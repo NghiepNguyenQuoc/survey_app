@@ -23,6 +23,33 @@ public class SurveyApiWrapper {
     private static final String TAG = "SurveyApiWrapper";
 
     // Get country code
+    public static synchronized void loginToServer(final Context context, String username, String password, final ICallBack callBack) {
+        HttpClient client = new AsyncHttpClient();
+
+        RequestParams para=new RequestParams();
+        para.put("userName",username);
+        para.put("password",password);
+        client.post(Endpoint.LOGIN, para, new StringHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Map<String, List<String>> headers, String content) {
+                //IpCountryInfo result = new Gson().fromJson(content, IpCountryInfo.class);
+                callBack.onSuccess(content);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Map<String, List<String>> headers, String content) {
+                Log.d(TAG, "Server responded with a status code " + statusCode);
+                checkUnauthorizedAndHandleError(context, statusCode, content, callBack);
+            }
+
+            @Override
+            public void onFailure(Throwable throwable) {
+                Log.d(TAG, "An exception occurred during the request. Usually unable to connect or there was an error reading the response");
+            }
+        });
+    }
+
+    // Get country code
     public static synchronized void getCountryCode(final Context context, final ICallBack callBack) {
         HttpClient client = new AsyncHttpClient();
 
