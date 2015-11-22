@@ -8,4 +8,5 @@ public class Endpoint {
 
     public static final String COUNTRY_CODE = "http://www.w3schools.com/website/customers_mysql.php";
     public static final String LOGIN="http://www.ebas.vn/api/admin/login";
+    public static final String PROJECT_LIST="http://www.ebas.vn/api/admin/getProjecList";
 }

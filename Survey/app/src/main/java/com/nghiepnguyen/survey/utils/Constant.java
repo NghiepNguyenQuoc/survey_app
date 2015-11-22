@@ -14,7 +14,7 @@ public class Constant {
 
 
     public static final String FORGET_PASSWORD = "ForgetPasswordActivity";
-
+    public static final String SHARED_PREFERENCE_CURRENT_USER = "CURRENT USER INFO";
     // Convert dp to px
     public static int dpToPx(int dp, Context context) {
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();

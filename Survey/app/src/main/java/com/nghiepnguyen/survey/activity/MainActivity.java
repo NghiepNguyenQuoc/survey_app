@@ -12,7 +12,9 @@ import android.widget.TextView;
 import com.nghiepnguyen.survey.Interface.ICallBack;
 import com.nghiepnguyen.survey.R;
 import com.nghiepnguyen.survey.model.CommonErrorModel;
+import com.nghiepnguyen.survey.model.UserInfoModel;
 import com.nghiepnguyen.survey.networking.SurveyApiWrapper;
+import com.nghiepnguyen.survey.storage.UserInfoManager;
 
 public class MainActivity extends BaseActivity {
     private static final String TAG = "MainActivity";
@@ -51,8 +53,10 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        UserInfoModel userInfo= UserInfoManager.getUserInfo(this);
 
-        SurveyApiWrapper.getCountryCode(this, new ICallBack() {
+
+        SurveyApiWrapper.getProjectList(this,userInfo.getID(),userInfo.getSecrectToken(), new ICallBack() {
             @Override
             public void onSuccess(final Object data) {
                 runOnUiThread(new Runnable() {

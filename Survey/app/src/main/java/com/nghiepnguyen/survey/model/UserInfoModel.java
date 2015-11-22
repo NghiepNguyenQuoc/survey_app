@@ -14,6 +14,25 @@ public class UserInfoModel implements Parcelable {
     private String FullName;
     private String LoginName;
 
+    protected UserInfoModel(Parcel in) {
+        SecrectToken = in.readString();
+        ID = in.readInt();
+        FullName = in.readString();
+        LoginName = in.readString();
+    }
+
+    public static final Creator<UserInfoModel> CREATOR = new Creator<UserInfoModel>() {
+        @Override
+        public UserInfoModel createFromParcel(Parcel in) {
+            return new UserInfoModel(in);
+        }
+
+        @Override
+        public UserInfoModel[] newArray(int size) {
+            return new UserInfoModel[size];
+        }
+    };
+
     public String getSecrectToken() {
         return SecrectToken;
     }
@@ -46,13 +65,17 @@ public class UserInfoModel implements Parcelable {
         LoginName = loginName;
     }
 
+
     @Override
     public int describeContents() {
         return 0;
     }
 
     @Override
-    public void writeToParcel(Parcel dest, int flags) {
-
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(SecrectToken);
+        parcel.writeInt(ID);
+        parcel.writeString(FullName);
+        parcel.writeString(LoginName);
     }
 }
