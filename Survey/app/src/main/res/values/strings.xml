@@ -19,5 +19,12 @@
         completions."
     </string>
 
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="nav_sub_item_bottom">Cá nhân</string>
+
+    <string name="nav_item_project_list">Danh sách dự án</string>
+    <string name="nav_item_logout">Đăng xuất</string>
 
 </resources>

@@ -12,9 +12,19 @@ public class Constant {
     public static final int HTTP_UNAUTHORIZED = 401;
     public static final int KEY_ACTIVITY_RESULT_SIGN_IN = 47;
 
-
+    /*activity*/
     public static final String FORGET_PASSWORD = "ForgetPasswordActivity";
+
+    /*fragment*/
+    public static final String PROJECT_LIST = "ProjectListFragment";
+
+
+
+
+
+
     public static final String SHARED_PREFERENCE_CURRENT_USER = "CURRENT USER INFO";
+
     // Convert dp to px
     public static int dpToPx(int dp, Context context) {
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();

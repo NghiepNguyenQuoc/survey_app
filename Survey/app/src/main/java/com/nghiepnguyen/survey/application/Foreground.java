@@ -17,7 +17,7 @@ public class Foreground implements Application.ActivityLifecycleCallbacks {
     /**
      * Its not strictly necessary to use this method - _usually_ invoking
      * get with a Context gives us a path to retrieve the Application and
-     * initialise, but sometimes (e.g. in test harness) the ApplicationContext
+     * initialise, but sometimes (e.g. in ProjectListFragment harness) the ApplicationContext
      * is != the Application, and the docs make no guarantees.
      *
      * @param application
