@@ -34,9 +34,9 @@ public class ProjectListAdapter extends ArrayAdapter<ProjectModel> {
     private List<ProjectModel> projectList;
 
     public ProjectListAdapter(Context mContext, List<ProjectModel> projectList) {
-        super(mContext,0,projectList);
+        super(mContext, 0, projectList);
         this.mContext = mContext;
-        this.projectList=projectList;
+        this.projectList = projectList;
 
 
     }
@@ -61,8 +61,8 @@ public class ProjectListAdapter extends ArrayAdapter<ProjectModel> {
             view = LayoutInflater.from(mContext).inflate(R.layout.item_project, viewGroup, false);
             viewHolder = new ViewHolder();
 
-            viewHolder.tvProjectName= (TextView) view.findViewById(R.id.tv_project_name);
-            viewHolder.tvProjectDescription= (TextView) view.findViewById(R.id.tv_project_description);
+            viewHolder.tvProjectName = (TextView) view.findViewById(R.id.tv_project_name);
+            viewHolder.tvProjectDescription = (TextView) view.findViewById(R.id.tv_project_description);
             viewHolder.ivProjectImage = (ImageView) view.findViewById(R.id.iv_project_image);
 
             view.setTag(viewHolder);
@@ -71,12 +71,11 @@ public class ProjectListAdapter extends ArrayAdapter<ProjectModel> {
         }
 
 
-
         viewHolder.tvProjectName.setText(project.getName());
         viewHolder.tvProjectDescription.setText(Html.fromHtml(project.getDescription()));
-        String urlImage="6sao.vn"+project.getImage1();
+        String urlImage = "http://6sao.vn" + project.getImage1();
         Log.e(TAG, urlImage);
-        ImageUtil.loadImageView(mContext,urlImage,viewHolder.ivProjectImage,R.drawable.logo_6sao);
+        ImageUtil.loadImageView(mContext, urlImage, viewHolder.ivProjectImage, R.drawable.logo_6sao);
         return view;
     }
 
