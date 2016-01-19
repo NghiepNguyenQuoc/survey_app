@@ -3,6 +3,7 @@ package com.nghiepnguyen.survey.adapter;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
@@ -21,7 +22,16 @@ import com.loopj.android.http.RequestParams;
 import com.nghiepnguyen.survey.R;
 import com.nghiepnguyen.survey.model.ProjectModel;
 import com.nghiepnguyen.survey.utils.ImageUtil;
+import com.nostra13.universalimageloader.cache.disc.naming.HashCodeFileNameGenerator;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.nostra13.universalimageloader.core.assist.FailReason;
+import com.nostra13.universalimageloader.core.display.RoundedBitmapDisplayer;
+import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
+import com.nostra13.universalimageloader.utils.StorageUtils;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -29,6 +39,8 @@ import java.util.List;
  */
 public class ProjectListAdapter extends ArrayAdapter<ProjectModel> {
     private static final String TAG = "ProjectListAdapter";
+    public ImageLoader imageLoader;
+    DisplayImageOptions options;
     private Context mContext;
 
     private List<ProjectModel> projectList;
@@ -38,7 +50,35 @@ public class ProjectListAdapter extends ArrayAdapter<ProjectModel> {
         this.mContext = mContext;
         this.projectList = projectList;
 
+        imageLoader = ImageLoader.getInstance();
+        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(mContext).build();
+        imageLoader.init(config);
+        options = new DisplayImageOptions.Builder()
+                .showStubImage(R.drawable.logo_6sao)
+                .cacheInMemory()
+                .cacheOnDisc()
+                .build();
+    }
 
+
+    public void display(ImageView img, String url) {
+        imageLoader.displayImage(url, img, options, new ImageLoadingListener() {
+            @Override
+            public void onLoadingStarted(String imageUri, View view) {
+            }
+
+            @Override
+            public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
+            }
+
+            @Override
+            public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+            }
+
+            @Override
+            public void onLoadingCancelled(String imageUri, View view) {
+            }
+        });
     }
 
 
@@ -74,8 +114,9 @@ public class ProjectListAdapter extends ArrayAdapter<ProjectModel> {
         viewHolder.tvProjectName.setText(project.getName());
         viewHolder.tvProjectDescription.setText(Html.fromHtml(project.getDescription()));
         String urlImage = "http://6sao.vn" + project.getImage1();
-        Log.e(TAG, urlImage);
-        ImageUtil.loadImageView(mContext, urlImage, viewHolder.ivProjectImage, R.drawable.logo_6sao);
+        //ImageUtil.loadImageView(mContext, urlImage, viewHolder.ivProjectImage, R.drawable.logo_6sao);
+
+        display(viewHolder.ivProjectImage, urlImage);
         return view;
     }
 
@@ -93,4 +134,5 @@ public class ProjectListAdapter extends ArrayAdapter<ProjectModel> {
     public void setBookings(List<ProjectModel> projectList) {
         this.projectList = projectList;
     }
+
 }

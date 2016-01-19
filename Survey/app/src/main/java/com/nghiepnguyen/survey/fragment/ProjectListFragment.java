@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
@@ -24,7 +25,7 @@ import java.util.List;
 /**
  * Created by nghiep on 10/29/15.
  */
-public class ProjectListFragment extends Fragment {
+public class ProjectListFragment extends Fragment implements AdapterView.OnItemClickListener {
 
     private final static String TAG = "ProjectListFragment";
     private ProgressBar loadingWebview;
@@ -90,9 +91,16 @@ public class ProjectListFragment extends Fragment {
     // Init view
     private void initView() {
         mProjectListListView = (ListView) getView().findViewById(R.id.lv_project_list);
+        mProjectListListView.setOnItemClickListener(this);
         loadingWebview = (ProgressBar) getView().findViewById(R.id.loading_webview);
 
         loadingWebview.setVisibility(View.VISIBLE);
 
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        List<ProjectModel> projectList= ((ProjectListAdapter)mProjectListListView.getAdapter()).getProjectList();
+        //projectList.get(position);
     }
 }
