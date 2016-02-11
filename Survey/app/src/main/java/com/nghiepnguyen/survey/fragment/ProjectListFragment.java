@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.nghiepnguyen.survey.Interface.ICallBack;
 import com.nghiepnguyen.survey.R;
@@ -28,7 +29,7 @@ import java.util.List;
 public class ProjectListFragment extends Fragment implements AdapterView.OnItemClickListener {
 
     private final static String TAG = "ProjectListFragment";
-    private ProgressBar loadingWebview;
+    private ProgressBar loadingProgressBar;
     private Activity mActivity;
     private Context mContext;
 
@@ -67,7 +68,7 @@ public class ProjectListFragment extends Fragment implements AdapterView.OnItemC
                         List<ProjectModel> projectList = (List<ProjectModel>) data;
                         ProjectListAdapter adapter = new ProjectListAdapter(mActivity, projectList);
                         mProjectListListView.setAdapter(adapter);
-                        loadingWebview.setVisibility(View.GONE);
+                        loadingProgressBar.setVisibility(View.GONE);
 
                     }
                 });
@@ -92,15 +93,32 @@ public class ProjectListFragment extends Fragment implements AdapterView.OnItemC
     private void initView() {
         mProjectListListView = (ListView) getView().findViewById(R.id.lv_project_list);
         mProjectListListView.setOnItemClickListener(this);
-        loadingWebview = (ProgressBar) getView().findViewById(R.id.loading_webview);
+        loadingProgressBar = (ProgressBar) getView().findViewById(R.id.pb_loading);
 
-        loadingWebview.setVisibility(View.VISIBLE);
+        loadingProgressBar.setVisibility(View.VISIBLE);
 
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         List<ProjectModel> projectList= ((ProjectListAdapter)mProjectListListView.getAdapter()).getProjectList();
-        //projectList.get(position);
+        loadingProgressBar.setVisibility(View.VISIBLE);
+        SurveyApiWrapper.getNextQuestion(mActivity, UserInfoManager.getUserInfo(mActivity).getSecrectToken(), projectList.get(position).getID(), "", new ICallBack() {
+            @Override
+            public void onSuccess(Object data) {
+//                Toast.makeText(mActivity,"Sucessfull",Toast.LENGTH_LONG).show();
+
+                loadingProgressBar.setVisibility(View.GONE);
+
+            }
+
+            @Override
+            public void onFailure(CommonErrorModel error) {
+            }
+
+            @Override
+            public void onCompleted() {
+            }
+        });
     }
 }
