@@ -125,7 +125,7 @@ public class SurveyApiWrapper {
         });
     }
 
-    public static synchronized void geResponseOptionByQuestionID(final Context context, int questionID, final ICallBack callBack) {
+    public static synchronized void getResponseOptionByQuestionID(final Context context, int questionID, final ICallBack callBack) {
         HttpClient client = new AsyncHttpClient();
 
         RequestParams para = new RequestParams();

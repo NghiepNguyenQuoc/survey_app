@@ -6,4 +6,47 @@
     <color name="colorBlack">#000000</color>
     <color name="colorWhite">#ffffff</color>
 
+    <color name="cl_black">#000</color>
+    <color name="cl_white">#FFF</color>
+    <color name="cl_blue">#63BDE0</color>
+    <color name="cl_default">#3FB34F</color>
+    <color name="cl_default_trans">#803FB34F</color>
+    <color name="cl_gray">#8D8D8D</color>
+    <color name="cl_gray_opacity">#E5E5E5</color>
+    <color name="cl_bg_button_view">#EDEDED</color>
+    <color name="cl_bg_customize_view">#F9F9F9</color>
+    <color name="cl_bg_note">#EFEFEF</color>
+    <color name="cl_bg_route_view">#D8D8D8</color>
+    <color name="cl_txt_discount">#FF8400</color>
+    <color name="cl_bg_upcoming">#B4DB96</color>
+    <color name="cl_bg_history">#6C6C6C</color>
+    <color name="semi_transparent">#80000000</color>
+    <color name="overlay_transparent">#E0000000</color>
+    <color name="cl_service_bar">#EDEFF0</color>
+    <color name="cl_booking_overview_bar">#E7E7E7</color>
+    <color name="cl_pink">#a864a8</color>
+
+    <color name="cl_bg_from_view">#3FB34F</color>
+    <color name="cl_bg_via_view">#E5CF00</color>
+    <color name="cl_bg_to_view">#5FBCE0</color>
+    <color name="cl_border_listview">#C8C7CC</color>
+    <color name="cl_txt_requirement">#979797</color>
+    <color name="cl_btn_cancel_order">#C7C7C7</color>
+    <color name="cl_bg_left_menu">#F5F5F5</color>
+    <color name="cl_bg_fake_view">#DDDDDD</color>
+    <color name="cl_bg_tracking">#787673</color>
+    <color name="menu_button_pressed_color">#eaeaea</color>
+    <color name="cl_default_pressed">#ff2e8339</color>
+    <color name="cl_float_transparent">#66000000</color>
+    <color name="cl_vehicle_transparent">#AAF5F5F7</color>
+    <color name="cl_location">#F8F8FA</color>
+    <color name="red">#FFC93437</color>
+    <color name="blue">#FF375BF1</color>
+    <color name="yellow">#FFF7D23E</color>
+    <color name="green">#FF34A350</color>
+    <color name="cl_dark_grey_vehicle">#4A4A4A</color>
+    <color name="cl_light_blue">#00B9E6</color>
+    <color name="business_account_bg">#2E3942</color>
+    <color name="business_account_button">#646E71</color>
+
 </resources>

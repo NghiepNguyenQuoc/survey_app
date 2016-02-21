@@ -2,6 +2,7 @@ package com.nghiepnguyen.survey.fragment;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -10,16 +11,17 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.nghiepnguyen.survey.Interface.ICallBack;
 import com.nghiepnguyen.survey.R;
+import com.nghiepnguyen.survey.activity.ProjectSurveyActivity;
 import com.nghiepnguyen.survey.adapter.ProjectListAdapter;
 import com.nghiepnguyen.survey.model.CommonErrorModel;
 import com.nghiepnguyen.survey.model.ProjectModel;
 import com.nghiepnguyen.survey.model.UserInfoModel;
 import com.nghiepnguyen.survey.networking.SurveyApiWrapper;
 import com.nghiepnguyen.survey.storage.UserInfoManager;
+import com.nghiepnguyen.survey.utils.Constant;
 
 import java.util.List;
 
@@ -31,7 +33,7 @@ public class ProjectListFragment extends Fragment implements AdapterView.OnItemC
     private final static String TAG = "ProjectListFragment";
     private ProgressBar loadingProgressBar;
     private Activity mActivity;
-    private Context mContext;
+    UserInfoModel userInfo;
 
     private ListView mProjectListListView;
 
@@ -42,10 +44,14 @@ public class ProjectListFragment extends Fragment implements AdapterView.OnItemC
     }
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_project_list, container, false);
-        return rootView;
+        return inflater.inflate(R.layout.fragment_project_list, container, false);
     }
 
     @Override
@@ -55,10 +61,36 @@ public class ProjectListFragment extends Fragment implements AdapterView.OnItemC
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
+        userInfo = UserInfoManager.getUserInfo(mActivity);
+        callApiGetProjectList();
+    }
 
-        UserInfoModel userInfo = UserInfoManager.getUserInfo(mActivity);
+    // Init view
+    private void initView() {
+        mProjectListListView = (ListView) getView().findViewById(R.id.lv_project_list);
+        mProjectListListView.setOnItemClickListener(this);
+        loadingProgressBar = (ProgressBar) getView().findViewById(R.id.pb_loading);
+
+        loadingProgressBar.setVisibility(View.VISIBLE);
+
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        List<ProjectModel> projectList = ((ProjectListAdapter) mProjectListListView.getAdapter()).getProjectList();
+        Intent intent = new Intent(mActivity, ProjectSurveyActivity.class);
+        intent.putExtra(Constant.QUESTION_ID, projectList.get(position).getID());
+        startActivity(intent);
+    }
+
+    private void callApiGetProjectList() {
         SurveyApiWrapper.getProjectList(mActivity, userInfo.getID(), userInfo.getSecrectToken(), new ICallBack() {
             @Override
             public void onSuccess(final Object data) {
@@ -83,41 +115,6 @@ public class ProjectListFragment extends Fragment implements AdapterView.OnItemC
             @Override
             public void onCompleted() {
 
-            }
-        });
-
-
-    }
-
-    // Init view
-    private void initView() {
-        mProjectListListView = (ListView) getView().findViewById(R.id.lv_project_list);
-        mProjectListListView.setOnItemClickListener(this);
-        loadingProgressBar = (ProgressBar) getView().findViewById(R.id.pb_loading);
-
-        loadingProgressBar.setVisibility(View.VISIBLE);
-
-    }
-
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        List<ProjectModel> projectList= ((ProjectListAdapter)mProjectListListView.getAdapter()).getProjectList();
-        loadingProgressBar.setVisibility(View.VISIBLE);
-        SurveyApiWrapper.getNextQuestion(mActivity, UserInfoManager.getUserInfo(mActivity).getSecrectToken(), projectList.get(position).getID(), "", new ICallBack() {
-            @Override
-            public void onSuccess(Object data) {
-//                Toast.makeText(mActivity,"Sucessfull",Toast.LENGTH_LONG).show();
-
-                loadingProgressBar.setVisibility(View.GONE);
-
-            }
-
-            @Override
-            public void onFailure(CommonErrorModel error) {
-            }
-
-            @Override
-            public void onCompleted() {
             }
         });
     }

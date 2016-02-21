@@ -19,9 +19,11 @@ public class Constant {
     public static final String PROJECT_LIST = "ProjectListFragment";
 
 
+    /*bundle*/
+    public static final String BUNDLE_QUESTION = "BUNDLE_QUESTION";
+    public static final String BUNDLE_QUESTIONNAIRE = "BUNDLE_QUESTIONNAIRE";
 
-
-
+    public static final String QUESTION_ID = "QUESTION_ID";
 
     public static final String SHARED_PREFERENCE_CURRENT_USER = "CURRENT USER INFO";
 

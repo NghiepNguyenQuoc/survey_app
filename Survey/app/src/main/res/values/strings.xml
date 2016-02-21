@@ -26,5 +26,8 @@
 
     <string name="nav_item_project_list">Danh sách dự án</string>
     <string name="nav_item_logout">Đăng xuất</string>
+    <string name="button_next_question">Câu sau</string>
+    <string name="button_save_survey">Tạm lưu</string>
+
 
 </resources>
