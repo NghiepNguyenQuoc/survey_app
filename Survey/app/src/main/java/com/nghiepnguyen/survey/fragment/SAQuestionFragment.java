@@ -11,6 +11,7 @@ import android.widget.ListView;
 import com.nghiepnguyen.survey.R;
 import com.nghiepnguyen.survey.adapter.OptionQuestionnaireAdapter;
 import com.nghiepnguyen.survey.adapter.ProjectListAdapter;
+import com.nghiepnguyen.survey.model.QuestionModel;
 import com.nghiepnguyen.survey.model.QuestionnaireModel;
 import com.nghiepnguyen.survey.utils.Constant;
 
@@ -23,6 +24,7 @@ public class SAQuestionFragment extends Fragment {
     private final static String TAG = "SAQuestionFragment";
     private Activity mActivity;
     private List<QuestionnaireModel> questionnaireList;
+    private QuestionModel questionModel;
     private ListView mOptionListView;
 
     public SAQuestionFragment() {
@@ -41,6 +43,7 @@ public class SAQuestionFragment extends Fragment {
 
         if (getArguments() != null) {
             this.questionnaireList = getArguments().getParcelableArrayList(Constant.BUNDLE_QUESTIONNAIRE);
+            this.questionModel = getArguments().getParcelable(Constant.BUNDLE_QUESTION);
         }
     }
 
@@ -67,7 +70,7 @@ public class SAQuestionFragment extends Fragment {
     // Init view
     private void initView() {
         mOptionListView = (ListView) getView().findViewById(R.id.fragment_sa_question_listview);
-        OptionQuestionnaireAdapter adapter = new OptionQuestionnaireAdapter(mActivity, questionnaireList);
+        OptionQuestionnaireAdapter adapter = new OptionQuestionnaireAdapter(mActivity, questionModel, questionnaireList);
         mOptionListView.setAdapter(adapter);
     }
 }

@@ -33,12 +33,13 @@
             android:textColor="@color/cl_black"
             android:textSize="@dimen/text_size_title" />
 
-        <FrameLayout
-            android:id="@+id/activity_project_survey_content_main_frame_layout"
+        <ListView
+            android:id="@+id/activity_project_survey_option_listview"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_above="@+id/activity_project_survey_group_bottom_linearlayout"
-            android:layout_below="@+id/activity_project_survey_question_content_textview" />
+            android:layout_below="@+id/activity_project_survey_question_content_textview"
+            android:dividerHeight="0dp"></ListView>
 
         <LinearLayout
             android:id="@+id/activity_project_survey_group_bottom_linearlayout"
@@ -49,16 +50,16 @@
             android:orientation="horizontal">
 
             <Button
-                android:id="@+id/activity_project_survey_next_question_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/button_next_question" />
-
-            <Button
                 android:id="@+id/activity_project_survey_save_survey_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/button_save_survey" />
+
+            <Button
+                android:id="@+id/activity_project_survey_next_question_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/button_next_question" />
         </LinearLayout>
 
         <ProgressBar

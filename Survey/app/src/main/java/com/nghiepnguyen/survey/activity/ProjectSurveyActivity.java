@@ -6,15 +6,19 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.Toolbar;
 import android.text.Spannable;
 import android.text.SpannableString;
+import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.nghiepnguyen.survey.Interface.ICallBack;
 import com.nghiepnguyen.survey.R;
+import com.nghiepnguyen.survey.adapter.OptionQuestionnaireAdapter;
 import com.nghiepnguyen.survey.fragment.SAQuestionFragment;
 import com.nghiepnguyen.survey.model.CommonErrorModel;
 import com.nghiepnguyen.survey.model.QuestionModel;
@@ -31,19 +35,23 @@ import java.util.List;
  * Created by Nghiep Nguyen on 20/02/2016.
  * before start next question
  */
-public class ProjectSurveyActivity extends BaseActivity {
+public class ProjectSurveyActivity extends BaseActivity implements View.OnClickListener {
     private static String TAG = "ProjectSurveyActivity";
+
     private Toolbar mToolbar;
     private ProgressBar mProgressBar;
     private TextView mQuestionContentTextView;
     private Button mNextQuestionButton;
     private Button mSaveSurveyButton;
+    private ListView mOptionListView;
+
 
     private UserInfoModel currentUser;
     private Fragment mFragment;
     private int questionId;
     private QuestionModel questionModel;
     private List<QuestionnaireModel> questionnaireList;
+    private OptionQuestionnaireAdapter optionQuestionnaireAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +64,7 @@ public class ProjectSurveyActivity extends BaseActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        callApiToGetNextQuestion();
+        callApiToGetNextQuestion(currentUser.getSecrectToken(), questionId, "");
     }
 
     @Override
@@ -82,9 +90,12 @@ public class ProjectSurveyActivity extends BaseActivity {
         mNextQuestionButton = (Button) findViewById(R.id.activity_project_survey_next_question_button);
         mSaveSurveyButton = (Button) findViewById(R.id.activity_project_survey_save_survey_button);
         mProgressBar = (ProgressBar) findViewById(R.id.activity_project_survey_loading_progress_bar);
+        mOptionListView = (ListView) findViewById(R.id.activity_project_survey_option_listview);
 
         mToolbar.setTitle(getResources().getString(R.string.nav_item_project_list));
         setSupportActionBar(mToolbar);
+
+        mNextQuestionButton.setOnClickListener(this);
     }
 
     // get data from Intent or Storage
@@ -95,9 +106,9 @@ public class ProjectSurveyActivity extends BaseActivity {
         currentUser = UserInfoManager.getUserInfo(this);
     }
 
-    public void callApiToGetNextQuestion() {
+    public void callApiToGetNextQuestion(String secrectToken, int questionId, String preOption) {
         mProgressBar.setVisibility(View.VISIBLE);
-        SurveyApiWrapper.getNextQuestion(this, currentUser.getSecrectToken(), questionId, "", new ICallBack() {
+        SurveyApiWrapper.getNextQuestion(this, secrectToken, questionId, preOption, new ICallBack() {
             @Override
             public void onSuccess(final Object data) {
                  /*
@@ -190,11 +201,15 @@ public class ProjectSurveyActivity extends BaseActivity {
                         wordtoSpan.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.cl_pink)), 0, questionModel.getCode().length() + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                         mQuestionContentTextView.setText(wordtoSpan);
 
-                        mFragment = new SAQuestionFragment();
+                        optionQuestionnaireAdapter = new OptionQuestionnaireAdapter(ProjectSurveyActivity.this, questionModel, questionnaireList);
+                        mOptionListView.setAdapter(optionQuestionnaireAdapter);
+
+                        /*mFragment = new SAQuestionFragment();
                         Bundle args = new Bundle();
                         args.putParcelableArrayList(Constant.BUNDLE_QUESTIONNAIRE, (ArrayList<? extends Parcelable>) questionnaireList);
+                        args.putParcelable(Constant.BUNDLE_QUESTION, questionModel);
                         mFragment.setArguments(args);
-                        getSupportFragmentManager().beginTransaction().replace(R.id.activity_project_survey_content_main_frame_layout, mFragment, Constant.PROJECT_LIST).commit();
+                        getSupportFragmentManager().beginTransaction().replace(R.id.activity_project_survey_content_main_frame_layout, mFragment, Constant.PROJECT_LIST).commit();*/
                         mProgressBar.setVisibility(View.GONE);
                     }
                 });
@@ -213,5 +228,72 @@ public class ProjectSurveyActivity extends BaseActivity {
             }
         });
 
+    }
+
+    @Override
+    public void onClick(View view) {
+        int id = view.getId();
+        switch (id) {
+            case R.id.activity_project_survey_next_question_button:
+
+                //check emty
+                boolean isEmtyAnswer = checkEmtyAnswer(questionModel.getType(), optionQuestionnaireAdapter.getOptionList());
+                if (!isEmtyAnswer)
+                    Toast.makeText(ProjectSurveyActivity.this, getResources().getString(R.string.txt_emty_answer), Toast.LENGTH_LONG).show();
+
+                // check login
+                boolean isLogicAnswer = checkLogicAnswer(questionModel.getType(), optionQuestionnaireAdapter.getOptionList());
+                if (!isLogicAnswer)
+                    Toast.makeText(ProjectSurveyActivity.this, getResources().getString(R.string.txt_emty_other_option), Toast.LENGTH_LONG).show();
+
+                // collect data to send to server
+                String patternString = "<R QID=\"%s\" V=\"%s\" T=\"%s\"/>";
+                String inputValue="";
+                switch (questionModel.getType()) {
+                    case 0:
+                        for (QuestionnaireModel item : questionnaireList) {
+                            String valueOption = "";
+                            if (item.isSelected()) {
+                                if (item.getAllowInputText() == 1 && !TextUtils.isEmpty(item.getOtherOption()))
+                                    valueOption = String.format(patternString, questionModel.getID(), item.getValue(), item.getOtherOption());
+                                else
+                                    valueOption = String.format(patternString, questionModel.getID(), item.getValue(), item.getDescription());
+                                inputValue += valueOption;
+                                break;
+                            }
+                        }
+
+                        callApiToGetNextQuestion(currentUser.getSecrectToken(), questionId, inputValue);
+
+                        break;
+                }
+                break;
+        }
+    }
+
+    private boolean checkEmtyAnswer(int typeQuesion, List<QuestionnaireModel> questionnaireList) {
+        switch (typeQuesion) {
+            case 0:
+            case 2:
+            case 4:
+                for (QuestionnaireModel item : questionnaireList) {
+                    if (item.isSelected() == true)
+                        return true;
+                }
+                break;
+        }
+        return false;
+    }
+
+    private boolean checkLogicAnswer(int typeQuesion, List<QuestionnaireModel> questionnaireList) {
+        switch (typeQuesion) {
+            case 0:
+                for (QuestionnaireModel item : questionnaireList) {
+                    if (item.isSelected() && item.getAllowInputText() == 1 && !TextUtils.isEmpty(item.getOtherOption()))
+                        return true;
+                }
+                break;
+        }
+        return false;
     }
 }

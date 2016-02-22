@@ -29,5 +29,8 @@
     <string name="button_next_question">Câu sau</string>
     <string name="button_save_survey">Tạm lưu</string>
 
+    <string name="txt_emty_answer">Bạn chưa chọn phương án cho câu trả lời này.</string>
+    <string name="txt_emty_other_option">Vui lòng ghi rõ thông tin.</string>
+
 
 </resources>

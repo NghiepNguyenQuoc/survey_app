@@ -10,15 +10,23 @@ public class QuestionnaireModel implements Parcelable {
     private int ID;
     private int QuestionnaireID;
     private int AllowInputText;
+    private int Type;
+    private int Value;
     private String Description;
     private String Caption;
+    private boolean isSelected;
+    private String otherOption;
 
     protected QuestionnaireModel(Parcel in) {
         ID = in.readInt();
         QuestionnaireID = in.readInt();
         AllowInputText = in.readInt();
+        Type = in.readInt();
+        Value = in.readInt();
         Description = in.readString();
         Caption = in.readString();
+        otherOption = in.readString();
+        isSelected = in.readByte() != 0;
     }
 
     public static final Creator<QuestionnaireModel> CREATOR = new Creator<QuestionnaireModel>() {
@@ -41,6 +49,14 @@ public class QuestionnaireModel implements Parcelable {
         this.ID = ID;
     }
 
+    public int getQuestionnaireID() {
+        return QuestionnaireID;
+    }
+
+    public void setQuestionnaireID(int questionnaireID) {
+        QuestionnaireID = questionnaireID;
+    }
+
     public int getAllowInputText() {
         return AllowInputText;
     }
@@ -49,12 +65,20 @@ public class QuestionnaireModel implements Parcelable {
         AllowInputText = allowInputText;
     }
 
-    public int getQuestionnaireID() {
-        return QuestionnaireID;
+    public int getType() {
+        return Type;
     }
 
-    public void setQuestionnaireID(int questionnaireID) {
-        QuestionnaireID = questionnaireID;
+    public void setType(int type) {
+        Type = type;
+    }
+
+    public int getValue() {
+        return Value;
+    }
+
+    public void setValue(int value) {
+        Value = value;
     }
 
     public String getDescription() {
@@ -73,17 +97,37 @@ public class QuestionnaireModel implements Parcelable {
         Caption = caption;
     }
 
+    public boolean isSelected() {
+        return isSelected;
+    }
+
+    public void setIsSelected(boolean isSelected) {
+        this.isSelected = isSelected;
+    }
+
+    public String getOtherOption() {
+        return otherOption;
+    }
+
+    public void setOtherOption(String otherOption) {
+        this.otherOption = otherOption;
+    }
+
     @Override
     public int describeContents() {
         return 0;
     }
 
     @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(ID);
-        dest.writeInt(QuestionnaireID);
-        dest.writeInt(AllowInputText);
-        dest.writeString(Description);
-        dest.writeString(Caption);
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeInt(ID);
+        parcel.writeInt(QuestionnaireID);
+        parcel.writeInt(AllowInputText);
+        parcel.writeInt(Type);
+        parcel.writeInt(Value);
+        parcel.writeString(Description);
+        parcel.writeString(otherOption);
+        parcel.writeString(Caption);
+        parcel.writeByte((byte) (isSelected ? 1 : 0));
     }
 }

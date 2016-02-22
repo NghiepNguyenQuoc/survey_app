@@ -1,17 +1,23 @@
 package com.nghiepnguyen.survey.adapter;
 
 import android.content.Context;
+import android.text.Editable;
 import android.text.Html;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RadioButton;
 import android.widget.TextView;
 
 import com.nghiepnguyen.survey.R;
 import com.nghiepnguyen.survey.model.ProjectModel;
+import com.nghiepnguyen.survey.model.QuestionModel;
 import com.nghiepnguyen.survey.model.QuestionnaireModel;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -50,11 +56,17 @@ public class OptionQuestionnaireAdapter extends ArrayAdapter<QuestionnaireModel>
     private static final String TAG = "OptionQuestionnaireAdapter";
     private Context mContext;
     private List<QuestionnaireModel> optionList;
+    private QuestionModel questionModel;
 
-    public OptionQuestionnaireAdapter(Context context, List<QuestionnaireModel> optionList) {
+    private RadioButton mSelectedRB;// current RadioButton when user focus
+    private int mSelectedPosition = -1;// current position in adapter
+
+
+    public OptionQuestionnaireAdapter(Context context, QuestionModel questionModel, List<QuestionnaireModel> optionList) {
         super(context, 0, optionList);
         this.mContext = context;
         this.optionList = optionList;
+        this.questionModel = questionModel;
     }
 
 
@@ -69,7 +81,7 @@ public class OptionQuestionnaireAdapter extends ArrayAdapter<QuestionnaireModel>
     }
 
     @Override
-    public View getView(int i, View view, ViewGroup viewGroup) {
+    public View getView(final int i, View view, ViewGroup viewGroup) {
         final QuestionnaireModel option = optionList.get(i);
 
         final ViewHolder viewHolder;
@@ -78,22 +90,80 @@ public class OptionQuestionnaireAdapter extends ArrayAdapter<QuestionnaireModel>
             viewHolder = new ViewHolder();
 
             viewHolder.optionCheckbox = (CheckBox) view.findViewById(R.id.item_option_question_option_checbox);
+            viewHolder.optionRadioButton = (RadioButton) view.findViewById(R.id.item_option_question_option_radio_button);
             viewHolder.otherOptionTextView = (TextView) view.findViewById(R.id.item_option_question_other_option_edittext);
             view.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) view.getTag();
         }
 
-        viewHolder.optionCheckbox.setText(option.getDescription());
-        if (option.getAllowInputText() == 1)
-            viewHolder.otherOptionTextView.setVisibility(View.VISIBLE);
-        else
-            viewHolder.otherOptionTextView.setVisibility(View.GONE);
+        ///////////////////////////////////////////////////////////////////
+        if (questionModel.getType() == 0 || questionModel.getType() == 2) {
+            viewHolder.optionRadioButton.setText(option.getDescription());
+            viewHolder.optionRadioButton.setVisibility(View.VISIBLE);
+            viewHolder.optionCheckbox.setVisibility(View.GONE);
+
+            if (option.getAllowInputText() == 1) {
+                viewHolder.otherOptionTextView.setVisibility(View.VISIBLE);
+
+            } else {
+                viewHolder.otherOptionTextView.setVisibility(View.GONE);
+
+
+            }
+
+            //set check for radio button
+            viewHolder.optionRadioButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (i != mSelectedPosition && mSelectedRB != null) {
+                        mSelectedRB.setChecked(false);
+                        option.setIsSelected(false);
+                    }
+                    mSelectedPosition = i;
+                    option.setIsSelected(true);
+                    mSelectedRB = (RadioButton) view;
+                }
+            });
+
+        } else {
+            viewHolder.optionCheckbox.setText(option.getDescription());
+            viewHolder.optionCheckbox.setVisibility(View.VISIBLE);
+            viewHolder.optionRadioButton.setVisibility(View.GONE);
+
+            if (option.getAllowInputText() == 1) {
+                viewHolder.otherOptionTextView.setVisibility(View.VISIBLE);
+
+
+
+            } else {
+                viewHolder.otherOptionTextView.setVisibility(View.GONE);
+
+            }
+        }
+
+        viewHolder.otherOptionTextView.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                option.setOtherOption(editable.toString());
+            }
+        });
         return view;
     }
 
     private static class ViewHolder {
         public CheckBox optionCheckbox;
+        public RadioButton optionRadioButton;
         public TextView otherOptionTextView;
     }
 
