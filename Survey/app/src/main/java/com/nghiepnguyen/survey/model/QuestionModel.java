@@ -12,6 +12,7 @@ public class QuestionModel implements Parcelable {
     private int ZOrder;
     private String Code;
     private int Type;
+    private int MaxResponseCount;
     private String TypeCode;
     private String TypeName;
 
@@ -21,6 +22,7 @@ public class QuestionModel implements Parcelable {
         ZOrder = in.readInt();
         Code = in.readString();
         Type = in.readInt();
+        MaxResponseCount = in.readInt();
         TypeCode = in.readString();
         TypeName = in.readString();
     }
@@ -77,6 +79,14 @@ public class QuestionModel implements Parcelable {
         Type = type;
     }
 
+    public int getMaxResponseCount() {
+        return MaxResponseCount;
+    }
+
+    public void setMaxResponseCount(int maxResponseCount) {
+        MaxResponseCount = maxResponseCount;
+    }
+
     public String getTypeCode() {
         return TypeCode;
     }
@@ -105,6 +115,7 @@ public class QuestionModel implements Parcelable {
         parcel.writeInt(ZOrder);
         parcel.writeString(Code);
         parcel.writeInt(Type);
+        parcel.writeInt(MaxResponseCount);
         parcel.writeString(TypeCode);
         parcel.writeString(TypeName);
     }

@@ -108,8 +108,6 @@ public class OptionQuestionnaireAdapter extends ArrayAdapter<QuestionnaireModel>
 
             } else {
                 viewHolder.otherOptionTextView.setVisibility(View.GONE);
-
-
             }
 
             //set check for radio button
@@ -118,13 +116,26 @@ public class OptionQuestionnaireAdapter extends ArrayAdapter<QuestionnaireModel>
                 public void onClick(View view) {
                     if (i != mSelectedPosition && mSelectedRB != null) {
                         mSelectedRB.setChecked(false);
-                        option.setIsSelected(false);
+                        optionList.get(mSelectedPosition).setIsSelected(false);
+
                     }
                     mSelectedPosition = i;
-                    option.setIsSelected(true);
+                    optionList.get(mSelectedPosition).setIsSelected(true);
                     mSelectedRB = (RadioButton) view;
                 }
             });
+
+        } else if (questionModel.getType() == 1) {
+            viewHolder.optionCheckbox.setText(option.getDescription());
+            viewHolder.optionCheckbox.setVisibility(View.VISIBLE);
+            viewHolder.optionRadioButton.setVisibility(View.GONE);
+
+            if (option.getAllowInputText() == 1) {
+                viewHolder.otherOptionTextView.setVisibility(View.VISIBLE);
+            } else {
+                viewHolder.otherOptionTextView.setVisibility(View.GONE);
+
+            }
 
         } else {
             viewHolder.optionCheckbox.setText(option.getDescription());
@@ -133,9 +144,6 @@ public class OptionQuestionnaireAdapter extends ArrayAdapter<QuestionnaireModel>
 
             if (option.getAllowInputText() == 1) {
                 viewHolder.otherOptionTextView.setVisibility(View.VISIBLE);
-
-
-
             } else {
                 viewHolder.otherOptionTextView.setVisibility(View.GONE);
 

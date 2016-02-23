@@ -1,8 +1,9 @@
 package com.nghiepnguyen.survey.activity;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -10,6 +11,7 @@ import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -19,7 +21,6 @@ import android.widget.Toast;
 import com.nghiepnguyen.survey.Interface.ICallBack;
 import com.nghiepnguyen.survey.R;
 import com.nghiepnguyen.survey.adapter.OptionQuestionnaireAdapter;
-import com.nghiepnguyen.survey.fragment.SAQuestionFragment;
 import com.nghiepnguyen.survey.model.CommonErrorModel;
 import com.nghiepnguyen.survey.model.QuestionModel;
 import com.nghiepnguyen.survey.model.QuestionnaireModel;
@@ -28,7 +29,6 @@ import com.nghiepnguyen.survey.networking.SurveyApiWrapper;
 import com.nghiepnguyen.survey.storage.UserInfoManager;
 import com.nghiepnguyen.survey.utils.Constant;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -145,7 +145,26 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                  * }]
                   */
                 questionModel = (QuestionModel) data;
-                callApiToGetResponseOption(questionModel.getID());
+                if (questionModel != null) {
+                    callApiToGetResponseOption(questionModel.getID());
+                } else {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mProgressBar.setVisibility(View.GONE);
+                            AlertDialog.Builder dialog = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
+                            dialog.setTitle(getResources().getString(R.string.title_notice));
+                            dialog.setMessage(getResources().getString(R.string.txt_not_suitable_option));
+                            dialog.setPositiveButton(getResources().getString(R.string.button_ok), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    ProjectSurveyActivity.this.finish();
+                                }
+                            });
+                            dialog.show();
+                        }
+                    });
+                }
             }
 
             @Override
@@ -236,22 +255,38 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         switch (id) {
             case R.id.activity_project_survey_next_question_button:
 
+                AlertDialog.Builder dialog = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
+                dialog.setTitle(getResources().getString(R.string.title_notice));
+
+                //////////////////////////////////////////////////////////////////
+                //check maxAnswer
+                boolean isMaxAnswer = checkMaxMaxResponse(questionModel.getType(), questionModel.getMaxResponseCount(), optionQuestionnaireAdapter.getOptionList());
+                if (!isMaxAnswer) {
+                    dialog.setMessage(getResources().getString(R.string.txt_over_max_answer));
+                    dialog.show();
+                }
+
                 //check emty
                 boolean isEmtyAnswer = checkEmtyAnswer(questionModel.getType(), optionQuestionnaireAdapter.getOptionList());
-                if (!isEmtyAnswer)
-                    Toast.makeText(ProjectSurveyActivity.this, getResources().getString(R.string.txt_emty_answer), Toast.LENGTH_LONG).show();
+                if (!isEmtyAnswer) {
+                    dialog.setMessage(getResources().getString(R.string.txt_emty_answer));
+                    dialog.show();
+                }
 
-                // check login
+                // check logic
                 boolean isLogicAnswer = checkLogicAnswer(questionModel.getType(), optionQuestionnaireAdapter.getOptionList());
-                if (!isLogicAnswer)
-                    Toast.makeText(ProjectSurveyActivity.this, getResources().getString(R.string.txt_emty_other_option), Toast.LENGTH_LONG).show();
+                if (!isLogicAnswer) {
+                    dialog.setMessage(getResources().getString(R.string.txt_emty_other_option));
+                    dialog.show();
+                }
 
+                /////////////////////////////////////////////////////////////////
                 // collect data to send to server
                 String patternString = "<R QID=\"%s\" V=\"%s\" T=\"%s\"/>";
-                String inputValue="";
+                String inputValue = "";
                 switch (questionModel.getType()) {
                     case 0:
-                        for (QuestionnaireModel item : questionnaireList) {
+                        for (QuestionnaireModel item : optionQuestionnaireAdapter.getOptionList()) {
                             String valueOption = "";
                             if (item.isSelected()) {
                                 if (item.getAllowInputText() == 1 && !TextUtils.isEmpty(item.getOtherOption()))
@@ -286,14 +321,29 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     }
 
     private boolean checkLogicAnswer(int typeQuesion, List<QuestionnaireModel> questionnaireList) {
+        boolean flag = true;
         switch (typeQuesion) {
             case 0:
                 for (QuestionnaireModel item : questionnaireList) {
-                    if (item.isSelected() && item.getAllowInputText() == 1 && !TextUtils.isEmpty(item.getOtherOption()))
-                        return true;
+                    if (item.isSelected() && item.getAllowInputText() == 1 && TextUtils.isEmpty(item.getOtherOption()))
+                        flag = false;
                 }
                 break;
         }
-        return false;
+        return flag;
+    }
+
+    private boolean checkMaxMaxResponse(int typeQuesion, int maxAnswer, List<QuestionnaireModel> questionnaireList) {
+        if ((!(typeQuesion == '6' || typeQuesion == '1')) || typeQuesion == 0)
+            return true;
+
+        int count = 0;
+        for (QuestionnaireModel item : questionnaireList) {
+            if (item.isSelected())
+                count++;
+        }
+        if (count > maxAnswer)
+            return false;
+        return true;
     }
 }

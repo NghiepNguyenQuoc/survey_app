@@ -103,9 +103,13 @@ public class SurveyApiWrapper {
             public void onSuccess(int statusCode, Map<String, List<String>> headers, String content) {
                 try {
                     JSONArray jsonArray = new JSONArray(content);
-                    JSONObject jsonService = jsonArray.getJSONObject(0);
-                    QuestionModel question = new Gson().fromJson(jsonService.toString(), QuestionModel.class);
-                    callBack.onSuccess(question);
+                    if (jsonArray.length() > 0) {
+                        JSONObject jsonService = jsonArray.getJSONObject(0);
+                        QuestionModel question = new Gson().fromJson(jsonService.toString(), QuestionModel.class);
+                        callBack.onSuccess(question);
+                    } else {
+                        callBack.onSuccess(null);
+                    }
                 } catch (JSONException e) {
                     e.printStackTrace();
                     checkUnauthorizedAndHandleError(context, statusCode, content, callBack);

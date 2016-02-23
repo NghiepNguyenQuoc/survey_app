@@ -22,6 +22,7 @@
         android:id="@+id/item_option_question_other_option_edittext"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:imeOptions="actionDone" />
+        android:animateLayoutChanges="true"
+        android:visibility="gone" />
 
 </LinearLayout>

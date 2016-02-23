@@ -34,6 +34,12 @@ public class MainActivity extends BaseActivity
         setContentView(R.layout.activity_main);
 
         initView();
+
+        fragment = new ProjectListFragment();
+        getSupportFragmentManager().beginTransaction().replace(R.id.content_main, fragment, Constant.PROJECT_LIST).commit();
+
+        toolbar.setTitle(getResources().getString(R.string.nav_item_project_list));
+        navigationView.getMenu().getItem(0).setChecked(true);
     }
 
     @Override
@@ -101,10 +107,6 @@ public class MainActivity extends BaseActivity
     protected void onResume() {
         super.onResume();
 
-        fragment = new ProjectListFragment();
-        getSupportFragmentManager().beginTransaction().replace(R.id.content_main, fragment, Constant.PROJECT_LIST).commit();
-        toolbar.setTitle(getResources().getString(R.string.nav_item_project_list));
-        navigationView.getMenu().getItem(0).setChecked(true);
     }
 
     private void initView() {
