@@ -52,6 +52,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     private QuestionModel questionModel;
     private List<QuestionnaireModel> questionnaireList;
     private OptionQuestionnaireAdapter optionQuestionnaireAdapter;
+    private String inputValue = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -146,13 +147,15 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                   */
                 questionModel = (QuestionModel) data;
                 if (questionModel != null) {
-                    callApiToGetResponseOption(questionModel.getID());
+                    String patternString = String.format("<InputValue UserID=\"0\" QuestionnaireID=\"%d\" />", questionModel.getID()) + inputValue;
+                    callApiToGetResponseOption(patternString);
                 } else {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             mProgressBar.setVisibility(View.GONE);
                             AlertDialog.Builder dialog = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
+                            dialog.setCancelable(false);
                             dialog.setTitle(getResources().getString(R.string.title_notice));
                             dialog.setMessage(getResources().getString(R.string.txt_not_suitable_option));
                             dialog.setPositiveButton(getResources().getString(R.string.button_ok), new DialogInterface.OnClickListener() {
@@ -180,8 +183,8 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     }
 
 
-    public void callApiToGetResponseOption(int questionId) {
-        SurveyApiWrapper.getResponseOptionByQuestionID(this, questionId, new ICallBack() {
+    public void callApiToGetResponseOption(String inputValue) {
+        SurveyApiWrapper.getResponseOptionByQuestionID(this, inputValue, new ICallBack() {
             @Override
             public void onSuccess(final Object data) {
                 /**
@@ -256,14 +259,16 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             case R.id.activity_project_survey_next_question_button:
 
                 AlertDialog.Builder dialog = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
-                dialog.setTitle(getResources().getString(R.string.title_notice));
+                dialog.setTitle(getResources().getString(R.string.title_attention));
+                dialog.setPositiveButton(getResources().getString(R.string.button_ok), null);
 
                 //////////////////////////////////////////////////////////////////
                 //check maxAnswer
                 boolean isMaxAnswer = checkMaxMaxResponse(questionModel.getType(), questionModel.getMaxResponseCount(), optionQuestionnaireAdapter.getOptionList());
                 if (!isMaxAnswer) {
-                    dialog.setMessage(getResources().getString(R.string.txt_over_max_answer));
+                    dialog.setMessage(String.format(getResources().getString(R.string.txt_over_max_answer), questionModel.getMaxResponseCount()));
                     dialog.show();
+                    return;
                 }
 
                 //check emty
@@ -271,6 +276,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 if (!isEmtyAnswer) {
                     dialog.setMessage(getResources().getString(R.string.txt_emty_answer));
                     dialog.show();
+                    return;
                 }
 
                 // check logic
@@ -278,14 +284,15 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 if (!isLogicAnswer) {
                     dialog.setMessage(getResources().getString(R.string.txt_emty_other_option));
                     dialog.show();
+                    return;
                 }
 
                 /////////////////////////////////////////////////////////////////
                 // collect data to send to server
                 String patternString = "<R QID=\"%s\" V=\"%s\" T=\"%s\"/>";
-                String inputValue = "";
                 switch (questionModel.getType()) {
                     case 0:
+                    case 1:
                         for (QuestionnaireModel item : optionQuestionnaireAdapter.getOptionList()) {
                             String valueOption = "";
                             if (item.isSelected()) {
@@ -294,7 +301,6 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                                 else
                                     valueOption = String.format(patternString, questionModel.getID(), item.getValue(), item.getDescription());
                                 inputValue += valueOption;
-                                break;
                             }
                         }
 
@@ -309,12 +315,17 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     private boolean checkEmtyAnswer(int typeQuesion, List<QuestionnaireModel> questionnaireList) {
         switch (typeQuesion) {
             case 0:
+            case 1:
             case 2:
             case 4:
+            case 6:
+            case 7:
                 for (QuestionnaireModel item : questionnaireList) {
                     if (item.isSelected() == true)
                         return true;
                 }
+                break;
+            case 3:
                 break;
         }
         return false;
@@ -334,7 +345,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     }
 
     private boolean checkMaxMaxResponse(int typeQuesion, int maxAnswer, List<QuestionnaireModel> questionnaireList) {
-        if ((!(typeQuesion == '6' || typeQuesion == '1')) || typeQuesion == 0)
+        if ((!(typeQuesion == 6 || typeQuesion == 1)) || maxAnswer == 0)
             return true;
 
         int count = 0;

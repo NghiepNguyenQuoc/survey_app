@@ -137,6 +137,14 @@ public class OptionQuestionnaireAdapter extends ArrayAdapter<QuestionnaireModel>
 
             }
 
+            //set check for radio button
+            viewHolder.optionCheckbox.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    optionList.get(i).setIsSelected(viewHolder.optionCheckbox.isChecked());
+                }
+            });
+
         } else {
             viewHolder.optionCheckbox.setText(option.getDescription());
             viewHolder.optionCheckbox.setVisibility(View.VISIBLE);
@@ -166,6 +174,9 @@ public class OptionQuestionnaireAdapter extends ArrayAdapter<QuestionnaireModel>
                 option.setOtherOption(editable.toString());
             }
         });
+
+        viewHolder.optionCheckbox.setTag(i);
+
         return view;
     }
 

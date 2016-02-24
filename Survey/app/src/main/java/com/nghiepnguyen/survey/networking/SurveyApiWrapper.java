@@ -129,12 +129,12 @@ public class SurveyApiWrapper {
         });
     }
 
-    public static synchronized void getResponseOptionByQuestionID(final Context context, int questionID, final ICallBack callBack) {
+    public static synchronized void getResponseOptionByQuestionID(final Context context, String inputValue, final ICallBack callBack) {
         HttpClient client = new AsyncHttpClient();
 
         RequestParams para = new RequestParams();
-        para.put("questionID", questionID);
-        client.get(Endpoint.GET_RESPONSEOPTION_BY_QUESTION_ID, para, new StringHttpResponseHandler() {
+        para.put("inputValue", inputValue);
+        client.get(Endpoint.GET_RESPONSEOPTION_BY_QUESTION_ID_2, para, new StringHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Map<String, List<String>> headers, String content) {
                 try {
