@@ -11,12 +11,10 @@ import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.nghiepnguyen.survey.Interface.ICallBack;
 import com.nghiepnguyen.survey.R;
@@ -34,6 +32,18 @@ import java.util.List;
 /**
  * Created by Nghiep Nguyen on 20/02/2016.
  * before start next question
+ * question type :
+ * -0 SA
+ * - 1 CheckBok
+ * -2 T/F
+ * -3 Textbox
+ * -4 Scale
+ * -5 SA theo hang ngang
+ * -6 CheckBok,Arrangements
+ * -7 CheckBok
+ * - 8 CheckSum
+ * -9 Matrix MA
+ * - 10 Matrix Column
  */
 public class ProjectSurveyActivity extends BaseActivity implements View.OnClickListener {
     private static String TAG = "ProjectSurveyActivity";
@@ -335,6 +345,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         boolean flag = true;
         switch (typeQuesion) {
             case 0:
+            case 1:
                 for (QuestionnaireModel item : questionnaireList) {
                     if (item.isSelected() && item.getAllowInputText() == 1 && TextUtils.isEmpty(item.getOtherOption()))
                         flag = false;
