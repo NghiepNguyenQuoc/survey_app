@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
@@ -92,14 +93,16 @@ public class OptionQuestionnaireAdapter extends ArrayAdapter<QuestionnaireModel>
             viewHolder.optionCheckbox = (CheckBox) view.findViewById(R.id.item_option_question_option_checbox);
             viewHolder.optionRadioButton = (RadioButton) view.findViewById(R.id.item_option_question_option_radio_button);
             viewHolder.otherOptionTextView = (TextView) view.findViewById(R.id.item_option_question_other_option_edittext);
+
             view.setTag(viewHolder);
+            view.setTag(R.id.item_option_question_option_checbox, viewHolder.optionCheckbox);
+
         } else {
             viewHolder = (ViewHolder) view.getTag();
         }
 
         ///////////////////////////////////////////////////////////////////
         if (questionModel.getType() == 0 || questionModel.getType() == 2) {
-            viewHolder.optionRadioButton.setText(option.getDescription());
             viewHolder.optionRadioButton.setVisibility(View.VISIBLE);
             viewHolder.optionCheckbox.setVisibility(View.GONE);
 
@@ -126,7 +129,6 @@ public class OptionQuestionnaireAdapter extends ArrayAdapter<QuestionnaireModel>
             });
 
         } else if (questionModel.getType() == 1) {
-            viewHolder.optionCheckbox.setText(option.getDescription());
             viewHolder.optionCheckbox.setVisibility(View.VISIBLE);
             viewHolder.optionRadioButton.setVisibility(View.GONE);
 
@@ -136,27 +138,27 @@ public class OptionQuestionnaireAdapter extends ArrayAdapter<QuestionnaireModel>
                 viewHolder.otherOptionTextView.setVisibility(View.GONE);
 
             }
-
-            //set check for radio button
-            viewHolder.optionCheckbox.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    optionList.get(i).setIsSelected(viewHolder.optionCheckbox.isChecked());
-                }
-            });
-
         } else {
-            viewHolder.optionCheckbox.setText(option.getDescription());
             viewHolder.optionCheckbox.setVisibility(View.VISIBLE);
             viewHolder.optionRadioButton.setVisibility(View.GONE);
-
             if (option.getAllowInputText() == 1) {
                 viewHolder.otherOptionTextView.setVisibility(View.VISIBLE);
             } else {
                 viewHolder.otherOptionTextView.setVisibility(View.GONE);
-
             }
         }
+
+        viewHolder.optionRadioButton.setText(option.getDescription());
+        viewHolder.optionCheckbox.setText(option.getDescription());
+
+        //set check for radio button
+        viewHolder.optionCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                int getPosition = (Integer) compoundButton.getTag();  // Here we get the position that we have set for the checkbox using setTag.
+                optionList.get(getPosition).setIsSelected(viewHolder.optionCheckbox.isChecked());
+            }
+        });
 
         viewHolder.otherOptionTextView.addTextChangedListener(new TextWatcher() {
             @Override
@@ -174,9 +176,8 @@ public class OptionQuestionnaireAdapter extends ArrayAdapter<QuestionnaireModel>
                 option.setOtherOption(editable.toString());
             }
         });
-
-        viewHolder.optionCheckbox.setTag(i);
-
+        viewHolder.optionCheckbox.setTag(i); // This line is important.
+        viewHolder.optionCheckbox.setChecked(optionList.get(i).isSelected());
         return view;
     }
 
