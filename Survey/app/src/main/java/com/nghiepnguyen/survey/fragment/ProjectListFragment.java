@@ -1,7 +1,9 @@
 package com.nghiepnguyen.survey.fragment;
 
 import android.app.Activity;
+import android.support.v7.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -109,7 +111,23 @@ public class ProjectListFragment extends Fragment implements AdapterView.OnItemC
 
             @Override
             public void onFailure(CommonErrorModel error) {
-
+                mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        loadingProgressBar.setVisibility(View.GONE);
+                        AlertDialog.Builder dialog = new AlertDialog.Builder(mActivity, R.style.AppCompatAlertDialogStyle);
+                        dialog.setCancelable(false);
+                        dialog.setTitle(getResources().getString(R.string.title_attention));
+                        dialog.setMessage(getResources().getString(R.string.message_can_not_get_project_list));
+                        dialog.setPositiveButton(getResources().getString(R.string.button_ok), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                mActivity.finish();
+                            }
+                        });
+                        dialog.show();
+                    }
+                });
             }
 
             @Override

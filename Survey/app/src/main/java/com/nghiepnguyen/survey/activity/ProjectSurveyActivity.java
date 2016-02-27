@@ -163,8 +163,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+
                             mProgressBar.setVisibility(View.GONE);
-                            AlertDialog.Builder dialog = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
+                            /*AlertDialog.Builder dialog = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
                             dialog.setCancelable(false);
                             dialog.setTitle(getResources().getString(R.string.title_notice));
                             dialog.setMessage(getResources().getString(R.string.txt_not_suitable_option));
@@ -174,7 +175,20 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                                     ProjectSurveyActivity.this.finish();
                                 }
                             });
+                            dialog.show();*/
+
+                            AlertDialog.Builder dialog = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
+                            dialog.setCancelable(false);
+                            dialog.setTitle(getResources().getString(R.string.title_confirm));
+                            dialog.setMessage(getResources().getString(R.string.txt_not_suitable_option));
+                            dialog.setPositiveButton(getResources().getString(R.string.button_ok), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    ProjectSurveyActivity.this.finish();
+                                }
+                            });
                             dialog.show();
+
                         }
                     });
                 }

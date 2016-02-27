@@ -1,12 +1,12 @@
 package com.nghiepnguyen.survey.networking;
 
 import android.content.Context;
-import android.os.Parcel;
 import android.util.Log;
 
 import com.google.gson.Gson;
 import com.nghiepnguyen.survey.Interface.ICallBack;
 import com.nghiepnguyen.survey.R;
+import com.nghiepnguyen.survey.model.AppMessageModel;
 import com.nghiepnguyen.survey.model.CommonErrorModel;
 import com.nghiepnguyen.survey.model.ProjectModel;
 import com.nghiepnguyen.survey.model.QuestionModel;
@@ -150,6 +150,32 @@ public class SurveyApiWrapper {
                     e.printStackTrace();
                     checkUnauthorizedAndHandleError(context, statusCode, content, callBack);
                 }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Map<String, List<String>> headers, String content) {
+                Log.d(TAG, "Server responded with a status code " + statusCode);
+                checkUnauthorizedAndHandleError(context, statusCode, content, callBack);
+            }
+
+            @Override
+            public void onFailure(Throwable throwable) {
+                Log.d(TAG, "An exception occurred during the request. Usually unable to connect or there was an error reading the response");
+            }
+        });
+    }
+
+    /*save survey*/
+    public static synchronized void saveResultSurvey(final Context context, String inputValue, final ICallBack callBack) {
+        HttpClient client = new AsyncHttpClient();
+
+        RequestParams para = new RequestParams();
+        para.put("inputValue", inputValue);
+        client.get(Endpoint.SAVE_RESULT_SURVEY, para, new StringHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Map<String, List<String>> headers, String content) {
+                AppMessageModel message = new Gson().fromJson(content.toString(), AppMessageModel.class);
+                callBack.onSuccess(message);
             }
 
             @Override

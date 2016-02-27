@@ -12,4 +12,5 @@ public class Endpoint {
     public static final String GET_NEXT_QUESTION="http://www.ebas.vn/api/admin/GetNextQuestion";
     public static final String GET_RESPONSEOPTION_BY_QUESTION_ID="http://www.ebas.vn/api/admin/GeResponseOptionByQuestionID";
     public static final String GET_RESPONSEOPTION_BY_QUESTION_ID_2="http://www.ebas.vn/api/admin/GeResponseOptionByQuestionID2";
+    public static final String SAVE_RESULT_SURVEY="http://www.ebas.vn/api/admin2/SaveResultSurvey";
 }
