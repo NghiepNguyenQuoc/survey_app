@@ -88,7 +88,9 @@ public class ProjectListFragment extends Fragment implements AdapterView.OnItemC
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         List<ProjectModel> projectList = ((ProjectListAdapter) mProjectListListView.getAdapter()).getProjectList();
         Intent intent = new Intent(mActivity, ProjectSurveyActivity.class);
-        intent.putExtra(Constant.QUESTION_ID, projectList.get(position).getID());
+        Bundle bundle=new Bundle();
+        bundle.putParcelable(Constant.BUNDLE_QUESTION,projectList.get(position));
+        intent.putExtras(bundle);
         startActivity(intent);
     }
 

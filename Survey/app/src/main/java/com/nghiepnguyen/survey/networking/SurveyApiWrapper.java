@@ -174,7 +174,7 @@ public class SurveyApiWrapper {
         client.get(Endpoint.SAVE_RESULT_SURVEY, para, new StringHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Map<String, List<String>> headers, String content) {
-                AppMessageModel message = new Gson().fromJson(content.toString(), AppMessageModel.class);
+                AppMessageModel message = new Gson().fromJson(content, AppMessageModel.class);
                 callBack.onSuccess(message);
             }
 

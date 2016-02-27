@@ -2,7 +2,6 @@ package com.nghiepnguyen.survey.activity;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.text.Spannable;
@@ -19,7 +18,9 @@ import android.widget.TextView;
 import com.nghiepnguyen.survey.Interface.ICallBack;
 import com.nghiepnguyen.survey.R;
 import com.nghiepnguyen.survey.adapter.OptionQuestionnaireAdapter;
+import com.nghiepnguyen.survey.model.AppMessageModel;
 import com.nghiepnguyen.survey.model.CommonErrorModel;
+import com.nghiepnguyen.survey.model.ProjectModel;
 import com.nghiepnguyen.survey.model.QuestionModel;
 import com.nghiepnguyen.survey.model.QuestionnaireModel;
 import com.nghiepnguyen.survey.model.UserInfoModel;
@@ -27,6 +28,7 @@ import com.nghiepnguyen.survey.networking.SurveyApiWrapper;
 import com.nghiepnguyen.survey.storage.UserInfoManager;
 import com.nghiepnguyen.survey.utils.Constant;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -57,12 +59,14 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
 
     private UserInfoModel currentUser;
-    private Fragment mFragment;
-    private int questionId;
     private QuestionModel questionModel;
+    private ProjectModel projectModel;
+
     private List<QuestionnaireModel> questionnaireList;
     private OptionQuestionnaireAdapter optionQuestionnaireAdapter;
-    private String inputValue = "";
+    private String strInputValue = "";
+    private String strResponseOption = "";
+    private List<Integer> pathList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,7 +79,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     @Override
     protected void onStart() {
         super.onStart();
-        callApiToGetNextQuestion(currentUser.getSecrectToken(), questionId, "");
+        callApiToGetNextQuestion(currentUser.getSecrectToken(), projectModel.getID(), "");
     }
 
     @Override
@@ -107,19 +111,21 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         setSupportActionBar(mToolbar);
 
         mNextQuestionButton.setOnClickListener(this);
+
+        pathList = new ArrayList<>();
     }
 
     // get data from Intent or Storage
     private void initDataToComponets() {
-        questionId = getIntent().getIntExtra(Constant.QUESTION_ID, 0);
+        projectModel = getIntent().getParcelableExtra(Constant.BUNDLE_QUESTION);
 
         //
         currentUser = UserInfoManager.getUserInfo(this);
     }
 
-    public void callApiToGetNextQuestion(String secrectToken, int questionId, String preOption) {
+    public void callApiToGetNextQuestion(String secrectToken, int projectId, String preOption) {
         mProgressBar.setVisibility(View.VISIBLE);
-        SurveyApiWrapper.getNextQuestion(this, secrectToken, questionId, preOption, new ICallBack() {
+        SurveyApiWrapper.getNextQuestion(this, secrectToken, projectId, preOption, new ICallBack() {
             @Override
             public void onSuccess(final Object data) {
                  /*
@@ -157,40 +163,15 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                   */
                 questionModel = (QuestionModel) data;
                 if (questionModel != null) {
-                    String patternString = String.format("<InputValue UserID=\"0\" QuestionnaireID=\"%d\" />", questionModel.getID()) + inputValue;
+                    String patternString = String.format("<InputValue UserID=\"0\" QuestionnaireID=\"%d\" />", questionModel.getID()) + strInputValue;
                     callApiToGetResponseOption(patternString);
                 } else {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-
-                            mProgressBar.setVisibility(View.GONE);
-                            /*AlertDialog.Builder dialog = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
-                            dialog.setCancelable(false);
-                            dialog.setTitle(getResources().getString(R.string.title_notice));
-                            dialog.setMessage(getResources().getString(R.string.txt_not_suitable_option));
-                            dialog.setPositiveButton(getResources().getString(R.string.button_ok), new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    ProjectSurveyActivity.this.finish();
-                                }
-                            });
-                            dialog.show();*/
-
-                            AlertDialog.Builder dialog = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
-                            dialog.setCancelable(false);
-                            dialog.setTitle(getResources().getString(R.string.title_confirm));
-                            dialog.setMessage(getResources().getString(R.string.txt_not_suitable_option));
-                            dialog.setPositiveButton(getResources().getString(R.string.button_ok), new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    ProjectSurveyActivity.this.finish();
-                                }
-                            });
-                            dialog.show();
-
-                        }
-                    });
+                    // finished survey
+                    if (pathList.size() == projectModel.getQuestionCount()) {
+                        saveResultSurvey(1);
+                    } else {// kick out of survey
+                        saveResultSurvey(0);
+                    }
                 }
             }
 
@@ -237,6 +218,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                  * "MediaUrl": "",
                  * "ProjectID": null
                  * }, {
+                 *
                  */
                 runOnUiThread(new Runnable() {
                     @Override
@@ -274,6 +256,69 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             }
         });
 
+    }
+
+    // save survey api
+    public void saveResultSurvey(final int isCompleted) {
+        String inputValue = String.format("<InputValue SecrectToken=\"%s\" UserID=\"%d\" ProjectID=\"%d\" isCompleted=\"%d\" Action=\"INSERT\"/>",
+                currentUser.getSecrectToken(), currentUser.getID(), projectModel.getID(), isCompleted) + strResponseOption;
+
+        SurveyApiWrapper.saveResultSurvey(this, inputValue, new ICallBack() {
+            @Override
+            public void onSuccess(final Object data) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        AppMessageModel messageModel = (AppMessageModel) data;
+                        mProgressBar.setVisibility(View.GONE);
+
+                        AlertDialog.Builder customBuilder = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
+                        customBuilder.setCancelable(false);
+                        if (isCompleted == 1) {
+                            customBuilder.setTitle(getResources().getString(R.string.title_confirm));
+                            customBuilder.setMessage(showMessageCompletedProject(messageModel));
+                            customBuilder.setPositiveButton(getResources().getString(R.string.button_ok), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    ProjectSurveyActivity.this.finish();
+                                }
+                            });
+
+                            AlertDialog dialog = customBuilder.create();
+                            dialog.show();
+                            Button b = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
+                            if (b != null) {
+                                b.setTextColor(getResources().getColor(R.color.colorPrimary));
+                            }
+                        } else {
+                            // check more condition in here, IsSucessfull=false;
+                            customBuilder.setTitle(getResources().getString(R.string.title_notice));
+                            customBuilder.setMessage(getResources().getString(R.string.txt_not_suitable_option));
+                            customBuilder.setPositiveButton(getResources().getString(R.string.button_ok), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    ProjectSurveyActivity.this.finish();
+                                }
+                            });
+                            customBuilder.show();
+                        }
+
+
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(CommonErrorModel error) {
+
+            }
+
+            @Override
+            public void onCompleted() {
+
+            }
+        });
     }
 
     @Override
@@ -318,17 +363,18 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                     case 0:
                     case 1:
                         for (QuestionnaireModel item : optionQuestionnaireAdapter.getOptionList()) {
-                            String valueOption = "";
+                            String valueOption;
                             if (item.isSelected()) {
                                 if (item.getAllowInputText() == 1 && !TextUtils.isEmpty(item.getOtherOption()))
                                     valueOption = String.format(patternString, questionModel.getID(), item.getValue(), item.getOtherOption());
                                 else
                                     valueOption = String.format(patternString, questionModel.getID(), item.getValue(), item.getDescription());
-                                inputValue += valueOption;
+                                strInputValue += valueOption;
+                                strResponseOption += valueOption;
                             }
                         }
-
-                        callApiToGetNextQuestion(currentUser.getSecrectToken(), questionId, inputValue);
+                        pathList.add(questionModel.getID());
+                        callApiToGetNextQuestion(currentUser.getSecrectToken(), projectModel.getID(), strInputValue);
 
                         break;
                 }
@@ -345,7 +391,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             case 6:
             case 7:
                 for (QuestionnaireModel item : questionnaireList) {
-                    if (item.isSelected() == true)
+                    if (item.isSelected())
                         return true;
                 }
                 break;
@@ -381,5 +427,16 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         if (count > maxAnswer)
             return false;
         return true;
+    }
+    private String showMessageCompletedProject(AppMessageModel message){
+        switch(message.getCode()){
+            case "USER_RESPONSE_LOTTERYCODE":
+            case "USER_RESPONSE_GIFT":
+            case "OK":
+                return message.getDescription();
+            case "USER_RESPONSE_MARK":
+                return String.format(getResources().getString(R.string.txt_completed_survey_mark),message.getResult());
+        }
+        return getResources().getString(R.string.txt_completed_survey);
     }
 }
