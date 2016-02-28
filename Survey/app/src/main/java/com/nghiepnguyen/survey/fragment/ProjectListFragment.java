@@ -19,6 +19,7 @@ import com.nghiepnguyen.survey.R;
 import com.nghiepnguyen.survey.activity.ProjectSurveyActivity;
 import com.nghiepnguyen.survey.adapter.ProjectListAdapter;
 import com.nghiepnguyen.survey.model.CommonErrorModel;
+import com.nghiepnguyen.survey.model.MemberModel;
 import com.nghiepnguyen.survey.model.ProjectModel;
 import com.nghiepnguyen.survey.model.UserInfoModel;
 import com.nghiepnguyen.survey.networking.SurveyApiWrapper;
@@ -35,7 +36,8 @@ public class ProjectListFragment extends Fragment implements AdapterView.OnItemC
     private final static String TAG = "ProjectListFragment";
     private ProgressBar loadingProgressBar;
     private Activity mActivity;
-    UserInfoModel userInfo;
+    //UserInfoModel userInfo;
+    MemberModel memberInfo;
 
     private ListView mProjectListListView;
 
@@ -60,6 +62,8 @@ public class ProjectListFragment extends Fragment implements AdapterView.OnItemC
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         initView();
+        memberInfo = UserInfoManager.getMemberInfo(mActivity);
+        callApiGetProjectList();
     }
 
     @Override
@@ -70,8 +74,6 @@ public class ProjectListFragment extends Fragment implements AdapterView.OnItemC
     @Override
     public void onResume() {
         super.onResume();
-        userInfo = UserInfoManager.getUserInfo(mActivity);
-        callApiGetProjectList();
     }
 
     // Init view
@@ -88,14 +90,14 @@ public class ProjectListFragment extends Fragment implements AdapterView.OnItemC
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         List<ProjectModel> projectList = ((ProjectListAdapter) mProjectListListView.getAdapter()).getProjectList();
         Intent intent = new Intent(mActivity, ProjectSurveyActivity.class);
-        Bundle bundle=new Bundle();
-        bundle.putParcelable(Constant.BUNDLE_QUESTION,projectList.get(position));
+        Bundle bundle = new Bundle();
+        bundle.putParcelable(Constant.BUNDLE_QUESTION, projectList.get(position));
         intent.putExtras(bundle);
         startActivity(intent);
     }
 
     private void callApiGetProjectList() {
-        SurveyApiWrapper.getProjectList(mActivity, userInfo.getID(), userInfo.getSecrectToken(), new ICallBack() {
+        SurveyApiWrapper.getProjectList(mActivity, memberInfo.getID(), memberInfo.getSecrectToken(), new ICallBack() {
             @Override
             public void onSuccess(final Object data) {
                 mActivity.runOnUiThread(new Runnable() {

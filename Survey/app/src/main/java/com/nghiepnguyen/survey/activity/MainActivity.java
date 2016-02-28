@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import com.nghiepnguyen.survey.R;
 import com.nghiepnguyen.survey.fragment.ProjectListFragment;
+import com.nghiepnguyen.survey.model.MemberModel;
 import com.nghiepnguyen.survey.model.UserInfoModel;
 import com.nghiepnguyen.survey.storage.UserInfoManager;
 import com.nghiepnguyen.survey.utils.Constant;
@@ -26,7 +27,8 @@ public class MainActivity extends BaseActivity
     private Toolbar toolbar;
     private NavigationView navigationView;
 
-    UserInfoModel currentUser;
+    //UserInfoModel currentUser;
+    MemberModel memberInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,9 +128,13 @@ public class MainActivity extends BaseActivity
         TextView tvUserEmail = (TextView) headerView.findViewById(R.id.tv_user_email);
 
 
-        currentUser = UserInfoManager.getUserInfo(this);
-
+        /*currentUser = UserInfoManager.getUserInfo(this);
         tvUsername.setText(currentUser.getFullName());
-        tvUserEmail.setText(currentUser.getLoginName());
+        tvUserEmail.setText(currentUser.getLoginName());*/
+
+        memberInfo = UserInfoManager.getMemberInfo(this);
+        tvUsername.setText(memberInfo.getFirstName() + " " + memberInfo.getLastName());
+        tvUserEmail.setText(memberInfo.getLoginName());
+
     }
 }

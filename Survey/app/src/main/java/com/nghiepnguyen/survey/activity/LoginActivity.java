@@ -1,6 +1,8 @@
 package com.nghiepnguyen.survey.activity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 
 import android.os.Bundle;
@@ -16,6 +18,7 @@ import com.google.gson.Gson;
 import com.nghiepnguyen.survey.Interface.ICallBack;
 import com.nghiepnguyen.survey.R;
 import com.nghiepnguyen.survey.model.CommonErrorModel;
+import com.nghiepnguyen.survey.model.LoginModel;
 import com.nghiepnguyen.survey.model.UserInfoModel;
 import com.nghiepnguyen.survey.networking.SurveyApiWrapper;
 import com.nghiepnguyen.survey.storage.UserInfoManager;
@@ -65,7 +68,7 @@ public class LoginActivity extends AppCompatActivity {
                 // Store values at the time of the login attempt.
                 String email = mEmailView.getText().toString();
                 String password = mPasswordView.getText().toString();
-                SurveyApiWrapper.loginToServer(LoginActivity.this, email, password, new ICallBack() {
+                /*SurveyApiWrapper.loginToServer(LoginActivity.this, email, password, new ICallBack() {
                     @Override
                     public void onSuccess(final Object data) {
                         runOnUiThread(new Runnable() {
@@ -98,7 +101,57 @@ public class LoginActivity extends AppCompatActivity {
                     public void onCompleted() {
 
                     }
+                });*/
+
+                SurveyApiWrapper.memberLogin(LoginActivity.this, email, password, new ICallBack() {
+                    @Override
+                    public void onSuccess(final Object data) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                LoginModel loginModel = new Gson().fromJson(data.toString(), LoginModel.class);
+                                if (!loginModel.isSuccessfull()) {
+                                    AlertDialog.Builder customBuilder = new AlertDialog.Builder(LoginActivity.this, R.style.AppCompatAlertDialogStyle);
+                                    customBuilder.setCancelable(false);
+                                    customBuilder.setTitle(getResources().getString(R.string.title_confirm));
+                                    customBuilder.setMessage(loginModel.getDescription());
+                                    customBuilder.setPositiveButton(getResources().getString(R.string.button_ok), new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialogInterface, int i) {
+                                        }
+                                    });
+
+                                    customBuilder.show();
+                                } else {
+                                    UserInfoManager.saveMemberInfo(LoginActivity.this, loginModel.getMember());
+
+                                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                                    startActivity(intent);
+                                    finish();
+                                }
+                            }
+                        });
+
+                    }
+
+                    @Override
+                    public void onFailure(final CommonErrorModel error) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(LoginActivity.this, error.getError(), Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
+
+                    }
+
+                    @Override
+                    public void onCompleted() {
+
+                    }
                 });
+
             }
         });
 

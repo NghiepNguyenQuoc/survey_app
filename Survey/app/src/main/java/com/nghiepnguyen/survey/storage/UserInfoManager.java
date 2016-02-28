@@ -6,6 +6,7 @@ import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.nghiepnguyen.survey.application.MainApplication;
+import com.nghiepnguyen.survey.model.MemberModel;
 import com.nghiepnguyen.survey.model.UserInfoModel;
 import com.nghiepnguyen.survey.utils.Constant;
 
@@ -16,7 +17,7 @@ public class UserInfoManager {
     private static final String TAG = UserInfoManager.class.getSimpleName();
 
 
-    public static void saveUserInfo(Context mContext,UserInfoModel userInfo) {
+    public static void saveUserInfo(Context mContext, UserInfoModel userInfo) {
         SharedPreferences preferences = mContext.getSharedPreferences(TAG, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
         Gson gson = new Gson();
@@ -25,6 +26,7 @@ public class UserInfoManager {
         editor.putString(Constant.SHARED_PREFERENCE_CURRENT_USER, serializedUser);
         editor.apply();
     }
+
     public static UserInfoModel getUserInfo(Context mContext) {
         SharedPreferences preferences = mContext.getSharedPreferences(TAG, Context.MODE_PRIVATE);
         String serializedUser = preferences.getString(Constant.SHARED_PREFERENCE_CURRENT_USER, "");
@@ -34,5 +36,26 @@ public class UserInfoManager {
             userInfo = gson.fromJson(serializedUser, UserInfoModel.class);
         }
         return userInfo;
+    }
+
+    public static void saveMemberInfo(Context mContext, MemberModel memberModel) {
+        SharedPreferences preferences = mContext.getSharedPreferences(TAG, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        Gson gson = new Gson();
+
+        String serializedUser = gson.toJson(memberModel);
+        editor.putString(Constant.SHARED_PREFERENCE_CURRENT_MEMBER, serializedUser);
+        editor.apply();
+    }
+
+    public static MemberModel getMemberInfo(Context mContext) {
+        SharedPreferences preferences = mContext.getSharedPreferences(TAG, Context.MODE_PRIVATE);
+        String serializedUser = preferences.getString(Constant.SHARED_PREFERENCE_CURRENT_MEMBER, "");
+        MemberModel memberModel = null;
+        if (!TextUtils.isEmpty(serializedUser)) {
+            Gson gson = new Gson();
+            memberModel = gson.fromJson(serializedUser, MemberModel.class);
+        }
+        return memberModel;
     }
 }

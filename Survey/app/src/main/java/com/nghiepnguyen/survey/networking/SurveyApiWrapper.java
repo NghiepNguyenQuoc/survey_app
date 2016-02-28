@@ -54,6 +54,33 @@ public class SurveyApiWrapper {
         });
     }
 
+    // member login
+    public static synchronized void memberLogin(final Context context, String username, String password, final ICallBack callBack) {
+        HttpClient client = new AsyncHttpClient();
+
+        RequestParams para = new RequestParams();
+        para.put("userName", username);
+        para.put("password", password);
+        client.post(Endpoint.MEMBER_LOGIN, para, new StringHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Map<String, List<String>> headers, String content) {
+                callBack.onSuccess(content);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Map<String, List<String>> headers, String content) {
+                Log.d(TAG, "Server responded with a status code " + statusCode);
+                checkUnauthorizedAndHandleError(context, statusCode, content, callBack);
+            }
+
+            @Override
+            public void onFailure(Throwable throwable) {
+                Log.d(TAG, "An exception occurred during the request. Usually unable to connect or there was an error reading the response");
+            }
+        });
+    }
+
+
     public static synchronized void getProjectList(final Context context, int userId, String secrectToken, final ICallBack callBack) {
         HttpClient client = new AsyncHttpClient();
 

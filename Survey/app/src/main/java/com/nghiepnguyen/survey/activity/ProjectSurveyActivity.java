@@ -1,8 +1,12 @@
 package com.nghiepnguyen.survey.activity;
 
 import android.content.DialogInterface;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.AppCompatCheckBox;
+import android.support.v7.widget.AppCompatEditText;
+import android.support.v7.widget.AppCompatRadioButton;
 import android.support.v7.widget.Toolbar;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -11,15 +15,20 @@ import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ListView;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import com.nghiepnguyen.survey.Interface.ICallBack;
 import com.nghiepnguyen.survey.R;
-import com.nghiepnguyen.survey.adapter.OptionQuestionnaireAdapter;
 import com.nghiepnguyen.survey.model.AppMessageModel;
 import com.nghiepnguyen.survey.model.CommonErrorModel;
+import com.nghiepnguyen.survey.model.MemberModel;
 import com.nghiepnguyen.survey.model.ProjectModel;
 import com.nghiepnguyen.survey.model.QuestionModel;
 import com.nghiepnguyen.survey.model.QuestionnaireModel;
@@ -53,20 +62,24 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     private Toolbar mToolbar;
     private ProgressBar mProgressBar;
     private TextView mQuestionContentTextView;
+    //private EditText mOtherOptionEditText;
     private Button mNextQuestionButton;
     private Button mSaveSurveyButton;
-    private ListView mOptionListView;
+    private LinearLayout mOptionLinearLayout;
 
 
-    private UserInfoModel currentUser;
+    //private UserInfoModel currentUser;
+    private MemberModel currentMember;
     private QuestionModel questionModel;
     private ProjectModel projectModel;
 
     private List<QuestionnaireModel> questionnaireList;
-    private OptionQuestionnaireAdapter optionQuestionnaireAdapter;
     private String strInputValue = "";
     private String strResponseOption = "";
     private List<Integer> pathList;
+
+    private AppCompatRadioButton mSelectedRB;// current RadioButton when user focus
+    private int mSelectedPosition = -1;// current position in adapter
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,12 +87,13 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         setContentView(R.layout.activity_project_survey);
         initView();
         initDataToComponets();
+        //callApiToGetNextQuestion(currentUser.getSecrectToken(), projectModel.getID(), "");
+        callApiToGetNextQuestion(currentMember.getSecrectToken(), projectModel.getID(), "");
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        callApiToGetNextQuestion(currentUser.getSecrectToken(), projectModel.getID(), "");
     }
 
     @Override
@@ -102,10 +116,11 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         mToolbar = (Toolbar) findViewById(R.id.activity_project_survey_toolbar);
         mProgressBar = (ProgressBar) findViewById(R.id.activity_project_survey_loading_progress_bar);
         mQuestionContentTextView = (TextView) findViewById(R.id.activity_project_survey_question_content_textview);
+        //mOtherOptionEditText = (EditText) findViewById(R.id.activity_project_survey_other_option_edittext);
         mNextQuestionButton = (Button) findViewById(R.id.activity_project_survey_next_question_button);
         mSaveSurveyButton = (Button) findViewById(R.id.activity_project_survey_save_survey_button);
         mProgressBar = (ProgressBar) findViewById(R.id.activity_project_survey_loading_progress_bar);
-        mOptionListView = (ListView) findViewById(R.id.activity_project_survey_option_listview);
+        mOptionLinearLayout = (LinearLayout) findViewById(R.id.activity_project_survey_option_linearlayout);
 
         mToolbar.setTitle(getResources().getString(R.string.nav_item_project_list));
         setSupportActionBar(mToolbar);
@@ -120,10 +135,12 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         projectModel = getIntent().getParcelableExtra(Constant.BUNDLE_QUESTION);
 
         //
-        currentUser = UserInfoManager.getUserInfo(this);
+        //currentUser = UserInfoManager.getUserInfo(this);
+        currentMember = UserInfoManager.getMemberInfo(this);
     }
 
     public void callApiToGetNextQuestion(String secrectToken, int projectId, String preOption) {
+        mOptionLinearLayout.removeAllViews();
         mProgressBar.setVisibility(View.VISIBLE);
         SurveyApiWrapper.getNextQuestion(this, secrectToken, projectId, preOption, new ICallBack() {
             @Override
@@ -229,8 +246,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                         wordtoSpan.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.cl_pink)), 0, questionModel.getCode().length() + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                         mQuestionContentTextView.setText(wordtoSpan);
 
-                        optionQuestionnaireAdapter = new OptionQuestionnaireAdapter(ProjectSurveyActivity.this, questionModel, questionnaireList);
-                        mOptionListView.setAdapter(optionQuestionnaireAdapter);
+                        /*optionQuestionnaireAdapter = new OptionQuestionnaireAdapter(ProjectSurveyActivity.this, questionModel, questionnaireList);
+                        mOptionListView.setAdapter(optionQuestionnaireAdapter);*/
+                        generateOption(mOptionLinearLayout, questionModel, questionnaireList);
 
                         /*mFragment = new SAQuestionFragment();
                         Bundle args = new Bundle();
@@ -258,10 +276,141 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
     }
 
+    private void generateOption(LinearLayout mainView, QuestionModel questionModel, final List<QuestionnaireModel> questionnaireList) {
+        LinearLayout linearLayout1 = new LinearLayout(ProjectSurveyActivity.this);
+        linearLayout1.setOrientation(LinearLayout.VERTICAL);
+
+        // add para to radio group
+        RadioGroup.LayoutParams params = new RadioGroup.LayoutParams(RadioGroup.LayoutParams.MATCH_PARENT, RadioGroup.LayoutParams.WRAP_CONTENT);
+        linearLayout1.setLayoutParams(params);
+
+        for (QuestionnaireModel item : questionnaireList) {
+
+            /*
+            * create radio group
+            */
+            if (questionModel.getType() == 0 || questionModel.getType() == 2) {
+
+                // create radio button
+                AppCompatRadioButton radioButton = new AppCompatRadioButton(this);
+                radioButton.setId(item.getID());
+                radioButton.setText(item.getDescription());
+                radioButton.setPadding(0, Constant.dpToPx(10, this), 0, Constant.dpToPx(10, this));
+
+                if (item.getAllowInputText() == 1) {
+
+                    // create linearlayout add radio button
+                    LinearLayout linearLayout2 = new LinearLayout(this);
+                    linearLayout2.setOrientation(LinearLayout.VERTICAL);
+                    linearLayout2.addView(radioButton, params);
+
+                    // create linearlayout add edittext
+                    AppCompatEditText editText = new AppCompatEditText(this);
+                    editText.setId(item.getID() * 10);
+                    editText.setVisibility(View.GONE);
+                    linearLayout2.addView(editText, params);
+
+                    // add linearlayout to mainview
+                    linearLayout1.addView(linearLayout2, params);
+                } else {
+                    // create radio button
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                        radioButton.setBackground(getResources().getDrawable(R.drawable.radio_group_divider));
+                    }
+
+                    // add it to radio group
+                    linearLayout1.addView(radioButton, params);
+                }
+
+                radioButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        int i = 0;
+                        for (QuestionnaireModel item : questionnaireList) {
+                            i++;
+                            if (i != mSelectedPosition && mSelectedRB != null) {
+                                mSelectedRB.setChecked(false);
+                            }
+                            mSelectedPosition = i;
+                            AppCompatRadioButton radioButton = (AppCompatRadioButton) buttonView;
+                            radioButton.setChecked(isChecked);
+                            mSelectedRB = (AppCompatRadioButton) buttonView;
+
+                            // set allow input
+                            AppCompatEditText editText;
+                            if (buttonView.getId() == item.getID() && buttonView.isChecked() && item.getAllowInputText() == 1) {
+                                editText = (AppCompatEditText) findViewById(buttonView.getId() * 10);
+                                editText.setVisibility(View.VISIBLE);
+                                editText.requestFocus();
+                            } else if (buttonView.getId() == item.getID() && !buttonView.isChecked() && item.getAllowInputText() == 1) {
+                                editText = (AppCompatEditText) findViewById(buttonView.getId() * 10);
+                                editText.setVisibility(View.GONE);
+                            }
+                        }
+                    }
+                });
+            } else if (questionModel.getType() == 1) {
+                // create radio button
+                AppCompatCheckBox checkBox = new AppCompatCheckBox(this);
+                checkBox.setId(item.getID());
+                checkBox.setText(item.getDescription());
+                checkBox.setPadding(0, Constant.dpToPx(10, this), 0, Constant.dpToPx(10, this));
+
+                if (item.getAllowInputText() == 1) {
+                    // create linearlayout add checbox
+                    LinearLayout linearLayout = new LinearLayout(this);
+                    linearLayout.setOrientation(LinearLayout.VERTICAL);
+                    linearLayout.addView(checkBox, params);
+
+                    // create linearlayout add edittext
+                    AppCompatEditText editText = new AppCompatEditText(this);
+                    editText.setId(item.getID() * 10);
+                    editText.setVisibility(View.GONE);
+                    linearLayout.addView(editText, params);
+
+                    // add linearlayout to mainview
+                    linearLayout1.addView(linearLayout, params);
+                } else {
+                    // create radio button
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                        checkBox.setBackground(getResources().getDrawable(R.drawable.radio_group_divider));
+                    }
+                    // add it to radio group
+                    linearLayout1.addView(checkBox, params);
+                }
+
+                checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        for (QuestionnaireModel item : questionnaireList) {
+                            // set allow input
+                            AppCompatEditText editText;
+                            if (buttonView.getId() == item.getID() && buttonView.isChecked() && item.getAllowInputText() == 1) {
+                                editText = (AppCompatEditText) findViewById(buttonView.getId() * 10);
+                                editText.setVisibility(View.VISIBLE);
+                                editText.requestFocus();
+                            } else if (buttonView.getId() == item.getID() && !buttonView.isChecked() && item.getAllowInputText() == 1) {
+                                editText = (AppCompatEditText) findViewById(buttonView.getId() * 10);
+                                editText.setVisibility(View.GONE);
+                            }
+                        }
+                    }
+                });
+
+            }
+        }
+
+        // add group to main view
+        if (mainView != null)
+            mainView.removeView(linearLayout1);
+        mainView.addView(linearLayout1);
+    }
+
     // save survey api
+
     public void saveResultSurvey(final int isCompleted) {
         String inputValue = String.format("<InputValue SecrectToken=\"%s\" UserID=\"%d\" ProjectID=\"%d\" isCompleted=\"%d\" Action=\"INSERT\"/>",
-                currentUser.getSecrectToken(), currentUser.getID(), projectModel.getID(), isCompleted) + strResponseOption;
+                currentMember.getSecrectToken(), currentMember.getID(), projectModel.getID(), isCompleted) + strResponseOption;
 
         SurveyApiWrapper.saveResultSurvey(this, inputValue, new ICallBack() {
             @Override
@@ -303,8 +452,6 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                             });
                             customBuilder.show();
                         }
-
-
                     }
                 });
             }
@@ -331,9 +478,28 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 dialog.setTitle(getResources().getString(R.string.title_attention));
                 dialog.setPositiveButton(getResources().getString(R.string.button_ok), null);
 
+                // collect data from view
+                for (QuestionnaireModel item : questionnaireList) {
+                    if (questionModel.getType() == 0 || questionModel.getType() == 2) {
+                        RadioButton radioButon = (RadioButton) mOptionLinearLayout.findViewById(item.getID());
+                        item.setIsSelected(radioButon.isChecked());
+                        if (radioButon.isChecked() && item.getAllowInputText() == 1) {
+                            EditText editText = (EditText) mOptionLinearLayout.findViewById(item.getID() * 10);
+                            item.setOtherOption(editText.getText().toString());
+                        }
+                    } else {
+                        CheckBox checkBox = (CheckBox) mOptionLinearLayout.findViewById(item.getID());
+                        item.setIsSelected(checkBox.isChecked());
+                        if (checkBox.isChecked() && item.getAllowInputText() == 1) {
+                            EditText editText = (EditText) mOptionLinearLayout.findViewById(item.getID() * 10);
+                            item.setOtherOption(editText.getText().toString());
+                        }
+                    }
+                }
+
                 //////////////////////////////////////////////////////////////////
                 //check maxAnswer
-                boolean isMaxAnswer = checkMaxMaxResponse(questionModel.getType(), questionModel.getMaxResponseCount(), optionQuestionnaireAdapter.getOptionList());
+                boolean isMaxAnswer = checkMaxMaxResponse(questionModel.getType(), questionModel.getMaxResponseCount(), questionnaireList);
                 if (!isMaxAnswer) {
                     dialog.setMessage(String.format(getResources().getString(R.string.txt_over_max_answer), questionModel.getMaxResponseCount()));
                     dialog.show();
@@ -341,7 +507,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 }
 
                 //check emty
-                boolean isEmtyAnswer = checkEmtyAnswer(questionModel.getType(), optionQuestionnaireAdapter.getOptionList());
+                boolean isEmtyAnswer = checkEmtyAnswer(questionModel.getType(), questionnaireList);
                 if (!isEmtyAnswer) {
                     dialog.setMessage(getResources().getString(R.string.txt_emty_answer));
                     dialog.show();
@@ -349,7 +515,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 }
 
                 // check logic
-                boolean isLogicAnswer = checkLogicAnswer(questionModel.getType(), optionQuestionnaireAdapter.getOptionList());
+                boolean isLogicAnswer = checkLogicAnswer(questionModel.getType(), questionnaireList);
                 if (!isLogicAnswer) {
                     dialog.setMessage(getResources().getString(R.string.txt_emty_other_option));
                     dialog.show();
@@ -362,7 +528,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 switch (questionModel.getType()) {
                     case 0:
                     case 1:
-                        for (QuestionnaireModel item : optionQuestionnaireAdapter.getOptionList()) {
+                        for (QuestionnaireModel item : questionnaireList) {
                             String valueOption;
                             if (item.isSelected()) {
                                 if (item.getAllowInputText() == 1 && !TextUtils.isEmpty(item.getOtherOption()))
@@ -374,7 +540,8 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                             }
                         }
                         pathList.add(questionModel.getID());
-                        callApiToGetNextQuestion(currentUser.getSecrectToken(), projectModel.getID(), strInputValue);
+                        //callApiToGetNextQuestion(currentUser.getSecrectToken(), projectModel.getID(), strInputValue);
+                        callApiToGetNextQuestion(currentMember.getSecrectToken(), projectModel.getID(), strInputValue);
 
                         break;
                 }
@@ -428,14 +595,15 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             return false;
         return true;
     }
-    private String showMessageCompletedProject(AppMessageModel message){
-        switch(message.getCode()){
+
+    private String showMessageCompletedProject(AppMessageModel message) {
+        switch (message.getCode()) {
             case "USER_RESPONSE_LOTTERYCODE":
             case "USER_RESPONSE_GIFT":
             case "OK":
                 return message.getDescription();
             case "USER_RESPONSE_MARK":
-                return String.format(getResources().getString(R.string.txt_completed_survey_mark),message.getResult());
+                return String.format(getResources().getString(R.string.txt_completed_survey_mark), message.getResult());
         }
         return getResources().getString(R.string.txt_completed_survey);
     }

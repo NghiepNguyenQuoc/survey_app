@@ -25,7 +25,8 @@ public class Constant {
 
     public static final String QUESTION_ID = "QUESTION_ID";
 
-    public static final String SHARED_PREFERENCE_CURRENT_USER = "CURRENT USER INFO";
+    public static final String SHARED_PREFERENCE_CURRENT_USER = "SHARED_PREFERENCE_CURRENT_USER";
+    public static final String SHARED_PREFERENCE_CURRENT_MEMBER = "SHARED_PREFERENCE_CURRENT_MEMBER";
 
     // Convert dp to px
     public static int dpToPx(int dp, Context context) {

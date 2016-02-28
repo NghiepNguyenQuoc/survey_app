@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 
 import com.nghiepnguyen.survey.R;
+import com.nghiepnguyen.survey.model.MemberModel;
 import com.nghiepnguyen.survey.model.UserInfoModel;
 import com.nghiepnguyen.survey.storage.UserInfoManager;
 
@@ -32,9 +33,10 @@ public class SplashScreenActivity extends BaseActivity {
     }
 
     private void checkLogin() {
-        UserInfoModel user = UserInfoManager.getUserInfo(this);
+        //UserInfoModel user = UserInfoManager.getUserInfo(this);
+        MemberModel member = UserInfoManager.getMemberInfo(this);
         Intent intent;
-        if (user != null) {
+        if (member != null) {
             intent = new Intent(SplashScreenActivity.this, MainActivity.class);
         } else {
             intent = new Intent(SplashScreenActivity.this, LoginActivity.class);

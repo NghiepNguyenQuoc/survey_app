@@ -33,13 +33,41 @@
             android:textColor="@color/cl_black"
             android:textSize="@dimen/text_size_title" />
 
-        <ListView
+        <!--<ListView
             android:id="@+id/activity_project_survey_option_listview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_above="@+id/activity_project_survey_group_bottom_linearlayout"
             android:layout_below="@+id/activity_project_survey_question_content_textview"
-            android:dividerHeight="0dp"></ListView>
+            android:visibility="gone"
+            android:dividerHeight="0dp"></ListView>-->
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/activity_project_survey_group_bottom_linearlayout"
+            android:layout_below="@+id/activity_project_survey_question_content_textview"
+            android:fitsSystemWindows="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/activity_project_survey_option_linearlayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+                <!--<EditText
+                    android:id="@+id/activity_project_survey_other_option_edittext"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:animateLayoutChanges="true"
+                    android:visibility="gone" />-->
+            </LinearLayout>
+        </ScrollView>
 
         <LinearLayout
             android:id="@+id/activity_project_survey_group_bottom_linearlayout"
