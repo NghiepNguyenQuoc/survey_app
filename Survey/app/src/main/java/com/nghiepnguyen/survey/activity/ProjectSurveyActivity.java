@@ -409,7 +409,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     // save survey api
 
     public void saveResultSurvey(final int isCompleted) {
-        String inputValue = String.format("<InputValue SecrectToken=\"%s\" UserID=\"%d\" ProjectID=\"%d\" isCompleted=\"%d\" Action=\"INSERT\"/>",
+        String inputValue = String.format("<InputValue SecrectToken=\"%s\" UserID=\"%d\" ProjectID=\"%d\" IsCompleted=\"%d\" Action=\"INSERT\"/>",
                 currentMember.getSecrectToken(), currentMember.getID(), projectModel.getID(), isCompleted) + strResponseOption;
 
         SurveyApiWrapper.saveResultSurvey(this, inputValue, new ICallBack() {

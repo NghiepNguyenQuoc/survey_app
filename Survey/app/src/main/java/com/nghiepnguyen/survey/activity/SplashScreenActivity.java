@@ -39,8 +39,8 @@ public class SplashScreenActivity extends BaseActivity {
         if (member != null) {
             intent = new Intent(SplashScreenActivity.this, MainActivity.class);
         } else {
-            //intent = new Intent(SplashScreenActivity.this, LoginActivity.class);
-            intent = new Intent(SplashScreenActivity.this, Info_Interview.class);
+            intent = new Intent(SplashScreenActivity.this, LoginActivity.class);
+            //intent = new Intent(SplashScreenActivity.this, Info_Interview.class);
         }
         startActivity(intent);
         finish();
