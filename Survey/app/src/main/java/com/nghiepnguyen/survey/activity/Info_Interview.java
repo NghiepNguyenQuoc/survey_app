@@ -40,6 +40,12 @@ public class Info_Interview extends AppCompatActivity {
         radioSexButton=(RadioButton)findViewById(selectedId);
         gt = radioSexButton.getText().toString();
 
+        gt = gt.equals("Nữ")?"0":"1";
+
+        System.out.println(gt);
+    }
+
+    public void SaveToDB(){
 
     }
 }
