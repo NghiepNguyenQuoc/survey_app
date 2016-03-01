@@ -111,6 +111,8 @@ public class LoginActivity extends AppCompatActivity {
                             public void run() {
                                 LoginModel loginModel = new Gson().fromJson(data.toString(), LoginModel.class);
                                 if (!loginModel.isSuccessfull()) {
+                                    loadingWebview.setVisibility(View.GONE);
+
                                     AlertDialog.Builder customBuilder = new AlertDialog.Builder(LoginActivity.this, R.style.AppCompatAlertDialogStyle);
                                     customBuilder.setCancelable(false);
                                     customBuilder.setTitle(getResources().getString(R.string.title_confirm));

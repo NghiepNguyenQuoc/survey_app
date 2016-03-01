@@ -81,7 +81,8 @@
                 android:id="@+id/activity_project_survey_save_survey_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/button_save_survey" />
+                android:text="@string/button_save_survey"
+                android:visibility="gone" />
 
             <Button
                 android:id="@+id/activity_project_survey_next_question_button"

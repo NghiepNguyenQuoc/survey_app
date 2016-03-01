@@ -8,6 +8,7 @@ import com.nghiepnguyen.survey.Interface.ICallBack;
 import com.nghiepnguyen.survey.R;
 import com.nghiepnguyen.survey.model.AppMessageModel;
 import com.nghiepnguyen.survey.model.CommonErrorModel;
+import com.nghiepnguyen.survey.model.CompletedProject;
 import com.nghiepnguyen.survey.model.ProjectModel;
 import com.nghiepnguyen.survey.model.QuestionModel;
 import com.nghiepnguyen.survey.model.QuestionnaireModel;
@@ -99,6 +100,40 @@ public class SurveyApiWrapper {
                         projectList.add(project);
                     }
                     callBack.onSuccess(projectList);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    checkUnauthorizedAndHandleError(context, statusCode, content, callBack);
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Map<String, List<String>> headers, String content) {
+                Log.d(TAG, "Server responded with a status code " + statusCode);
+                checkUnauthorizedAndHandleError(context, statusCode, content, callBack);
+            }
+
+            @Override
+            public void onFailure(Throwable throwable) {
+                Log.d(TAG, "An exception occurred during the request. Usually unable to connect or there was an error reading the response");
+            }
+        });
+    }
+
+    public static synchronized void checkCompeleteProject(final Context context, String secrectToken, int userId, int projectID, final ICallBack callBack) {
+        HttpClient client = new AsyncHttpClient();
+
+        RequestParams para = new RequestParams();
+        para.put("SecrectToken", secrectToken);
+        para.put("userId", userId);
+        para.put("projectID", projectID);
+        client.get(Endpoint.CHECK_COMPLETED_PROJECT, para, new StringHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Map<String, List<String>> headers, String content) {
+
+                try {
+                    JSONObject jsonService = new JSONObject(content);
+                    CompletedProject completedProject = new Gson().fromJson(jsonService.toString(), CompletedProject.class);
+                    callBack.onSuccess(completedProject);
                 } catch (JSONException e) {
                     e.printStackTrace();
                     checkUnauthorizedAndHandleError(context, statusCode, content, callBack);

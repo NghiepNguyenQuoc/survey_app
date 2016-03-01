@@ -28,11 +28,11 @@ import com.nghiepnguyen.survey.Interface.ICallBack;
 import com.nghiepnguyen.survey.R;
 import com.nghiepnguyen.survey.model.AppMessageModel;
 import com.nghiepnguyen.survey.model.CommonErrorModel;
+import com.nghiepnguyen.survey.model.CompletedProject;
 import com.nghiepnguyen.survey.model.MemberModel;
 import com.nghiepnguyen.survey.model.ProjectModel;
 import com.nghiepnguyen.survey.model.QuestionModel;
 import com.nghiepnguyen.survey.model.QuestionnaireModel;
-import com.nghiepnguyen.survey.model.UserInfoModel;
 import com.nghiepnguyen.survey.networking.SurveyApiWrapper;
 import com.nghiepnguyen.survey.storage.UserInfoManager;
 import com.nghiepnguyen.survey.utils.Constant;
@@ -87,8 +87,10 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         setContentView(R.layout.activity_project_survey);
         initView();
         initDataToComponets();
+
+        callApiToCheckCompletedProject(currentMember.getSecrectToken(), currentMember.getID(), projectModel.getID());
         //callApiToGetNextQuestion(currentUser.getSecrectToken(), projectModel.getID(), "");
-        callApiToGetNextQuestion(currentMember.getSecrectToken(), projectModel.getID(), "");
+        //callApiToGetNextQuestion(currentMember.getSecrectToken(), projectModel.getID(), "");
     }
 
     @Override
@@ -122,21 +124,73 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         mProgressBar = (ProgressBar) findViewById(R.id.activity_project_survey_loading_progress_bar);
         mOptionLinearLayout = (LinearLayout) findViewById(R.id.activity_project_survey_option_linearlayout);
 
-        mToolbar.setTitle(getResources().getString(R.string.nav_item_project_list));
         setSupportActionBar(mToolbar);
 
         mNextQuestionButton.setOnClickListener(this);
-
+        mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onBackPressed();
+            }
+        });
         pathList = new ArrayList<>();
     }
 
     // get data from Intent or Storage
     private void initDataToComponets() {
         projectModel = getIntent().getParcelableExtra(Constant.BUNDLE_QUESTION);
+        getSupportActionBar().setTitle(projectModel.getName());
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         //
         //currentUser = UserInfoManager.getUserInfo(this);
         currentMember = UserInfoManager.getMemberInfo(this);
+    }
+
+    private void callApiToCheckCompletedProject(String secrectToken, int userId, int projectId) {
+        mProgressBar.setVisibility(View.VISIBLE);
+        SurveyApiWrapper.checkCompeleteProject(this, secrectToken, userId, projectId, new ICallBack() {
+            @Override
+            public void onSuccess(final Object data) {
+                final CompletedProject completedProject = (CompletedProject) data;
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mProgressBar.setVisibility(View.GONE);
+
+                        if (!completedProject.isSuccessfull()) {
+                            AlertDialog.Builder customBuilder = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
+                            customBuilder.setCancelable(false);
+                            // check more condition in here, IsSucessfull=false;
+                            customBuilder.setTitle(getResources().getString(R.string.title_notice));
+                            customBuilder.setMessage(completedProject.getDescription());
+                            customBuilder.setPositiveButton(getResources().getString(R.string.button_ok), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    ProjectSurveyActivity.this.finish();
+                                }
+                            });
+                            customBuilder.show();
+                        } else {
+                            callApiToGetNextQuestion(currentMember.getSecrectToken(), projectModel.getID(), "");
+                        }
+                    }
+                });
+
+            }
+
+            @Override
+            public void onFailure(CommonErrorModel error) {
+
+            }
+
+            @Override
+            public void onCompleted() {
+
+            }
+        });
     }
 
     public void callApiToGetNextQuestion(String secrectToken, int projectId, String preOption) {
