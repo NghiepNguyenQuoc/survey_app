@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class RequestParams {
 
-    public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+    public static final Charset DEFAULT_CHARSET = Charset.defaultCharset();
 
     private ConcurrentHashMap<String, String> stringParams = new ConcurrentHashMap<>();
     private ConcurrentHashMap<String, File> fileParams = new ConcurrentHashMap<>();
