@@ -16,11 +16,46 @@ import java.util.List;
  * Created by 08670_000 on 21/03/2016.
  */
 class MySQLiteHelper extends SQLiteOpenHelper {
+    // Logcat tag
+    private static final String LOG = "DatabaseHelper";
 
     // Database Version
     private static final int DATABASE_VERSION = 1;
+
     // Database Name
-    private static final String DATABASE_NAME = "SurveyDB";
+    private static final String DATABASE_NAME = "SurveyManager";
+
+    // Table Names
+    private static final String TABLE_QUESTIONNAIRE = "questionnaire";
+    private static final String TABLE_ROUTE = "route";
+    private static final String TABLE_QUESTION = "question";
+
+    // TABLE_QUESTIONNAIRE Columns names
+    private static final String KEY_ID = "ID";
+    private static final String KEY_CODE = "Code";
+    private static final String KEY_QUESTIONTEXT = "QuestionText";
+    private static final String KEY_ZORDER = "ZOrder";
+    private static final String KEY_VALUE = "Value";
+    private static final String KEY_CAPTION = "Caption";
+    private static final String KEY_DESCRIPTION = "Description";
+
+    private static final String[] COLUMNS = {KEY_ID, KEY_CODE, KEY_QUESTIONTEXT,
+            KEY_ZORDER, KEY_VALUE, KEY_CAPTION, KEY_DESCRIPTION};
+
+    // Table Create Statements
+    // TABLE_QUESTIONNAIRE table create statement
+    private static final String CREATE_QUESTIONNAIRE_TABLE = "CREATE TABLE " + TABLE_QUESTIONNAIRE + " ( " +
+            "ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            "Code TEXT, " +
+            "QuestionText TEXT, " +
+            "zOrder integer, " +
+            "Value integer, " +
+            "Caption TEXT, " +
+            "Description TEXT)";
+
+    // TABLE_ROUTE table create statement
+    // TABLE_QUESTION table create statement
+
 
     public MySQLiteHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -28,18 +63,7 @@ class MySQLiteHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        // SQL statement to create questionnaireModel table
-        String CREATE_QUESTIONNAIRE_TABLE = "CREATE TABLE questionnaire ( " +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "parentID integer, " +
-                "projectID integer, " +
-                "type integer, " +
-                "zOrder integer, " +
-                "status integer, " +
-                "code TEXT, " +
-                "questionText TEXT, " +
-                "typeCode TEXT, " +
-                "typeName TEXT)";
+
         // create questionnaireModel table
         db.execSQL(CREATE_QUESTIONNAIRE_TABLE);
     }
@@ -47,35 +71,17 @@ class MySQLiteHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // Drop older questionnaireModels table if existed
-        db.execSQL("DROP TABLE IF EXISTS questionnaire");
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_QUESTIONNAIRE);
 
         // create fresh questionnaireModels table
         this.onCreate(db);
     }
 
+    // ------------------------ Questionnaire table methods ----------------//
+
     /**
-     * CRUD operations (create "add", read "get", update, delete) questionnaireModel + get all questionnaireModels + delete all questionnaireModels
+     * Creating a Questionnaire
      */
-
-    // questionnaireModels table name
-    private static final String TABLE_QUESTIONNAIRE = "questionnaire";
-
-    // questionnaireModels Table Columns names
-    private static final String KEY_ID = "id";
-    private static final String KEY_PARENTID = "parentID";
-    private static final String KEY_PROJECTID = "projectID";
-    private static final String KEY_TYPE = "type";
-    private static final String KEY_ZORDER = "zOrder";
-    private static final String KEY_STATUS = "status";
-    private static final String KEY_CODE = "code";
-    private static final String KEY_QUESTIONTEXT = "questionText";
-    private static final String KEY_TYPECODE = "typeCode";
-    private static final String KEY_TYPENAME = "typeName";
-
-    private static final String[] COLUMNS = {KEY_ID, KEY_PARENTID, KEY_PROJECTID,
-            KEY_TYPE, KEY_ZORDER, KEY_STATUS,
-            KEY_CODE, KEY_QUESTIONTEXT, KEY_TYPECODE, KEY_TYPENAME};
-
     public void addQuestionnaire(QuestionnaireModel questionnaireModel) {
         Log.d("questionnaireModel", questionnaireModel.toString());
         // 1. get reference to writable DB
@@ -83,15 +89,12 @@ class MySQLiteHelper extends SQLiteOpenHelper {
 
         // 2. create ContentValues to add key "column"/value
         ContentValues values = new ContentValues();
-        values.put(KEY_PARENTID, questionnaireModel.getParentID());
-        values.put(KEY_PROJECTID, questionnaireModel.getProjectID());
-        values.put(KEY_TYPE, questionnaireModel.getType());
-        values.put(KEY_ZORDER, questionnaireModel.getZOrder());
-        values.put(KEY_STATUS, questionnaireModel.getStatus());
         values.put(KEY_CODE, questionnaireModel.getCode());
         values.put(KEY_QUESTIONTEXT, questionnaireModel.getQuestionText());
-        values.put(KEY_TYPECODE, questionnaireModel.getTypeCode());
-        values.put(KEY_TYPENAME, questionnaireModel.getTypeName());
+        values.put(KEY_ZORDER, questionnaireModel.getZOrder());
+        values.put(KEY_VALUE, questionnaireModel.getValue());
+        values.put(KEY_CAPTION, questionnaireModel.getCaption());
+        values.put(KEY_DESCRIPTION, questionnaireModel.getDescription());
 
         // 3. insert
         db.insert(TABLE_QUESTIONNAIRE, // table
@@ -102,6 +105,9 @@ class MySQLiteHelper extends SQLiteOpenHelper {
         db.close();
     }
 
+    /**
+     * get single Questionnaire
+     */
     public QuestionnaireModel getQuestionnaireModel(int id) {
 
         // 1. get reference to readable DB
@@ -125,15 +131,12 @@ class MySQLiteHelper extends SQLiteOpenHelper {
         // 4. build questionnaireModel object
         QuestionnaireModel questionnaireModel = new QuestionnaireModel();
         questionnaireModel.setID(Integer.parseInt(cursor.getString(0)));
-        questionnaireModel.setParentID(Integer.parseInt(cursor.getString(1)));
-        questionnaireModel.setProjectID(Integer.parseInt(cursor.getString(2)));
-        questionnaireModel.setType(Integer.parseInt(cursor.getString(3)));
-        questionnaireModel.setZOrder(Integer.parseInt(cursor.getString(4)));
-        questionnaireModel.setStatus(Integer.parseInt(cursor.getString(5)));
-        questionnaireModel.setCode(cursor.getString(6));
-        questionnaireModel.setQuestionText(cursor.getString(7));
-        questionnaireModel.setTypeCode(cursor.getString(8));
-        questionnaireModel.setTypeName(cursor.getString(9));
+        questionnaireModel.setCode(cursor.getString(1));
+        questionnaireModel.setQuestionText(cursor.getString(2));
+        questionnaireModel.setZOrder(Integer.parseInt(cursor.getString(3)));
+        questionnaireModel.setValue(Integer.parseInt(cursor.getString(4)));
+        questionnaireModel.setCaption(cursor.getString(5));
+        questionnaireModel.setDescription(cursor.getString(6));
 
         Log.d("getQuestionnaire(" + id + ")", questionnaireModel.toString());
 
@@ -141,7 +144,9 @@ class MySQLiteHelper extends SQLiteOpenHelper {
         return questionnaireModel;
     }
 
-    // Get All QuestionnaireModels
+    /**
+     * getting all Questionnaires
+     */
     public List<QuestionnaireModel> getAllquestionnaireModels() {
         List<QuestionnaireModel> questionnaireModels = new ArrayList<>();
 
@@ -157,18 +162,13 @@ class MySQLiteHelper extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             do {
                 questionnaireModel = new QuestionnaireModel();
-
-
                 questionnaireModel.setID(Integer.parseInt(cursor.getString(0)));
-                questionnaireModel.setParentID(Integer.parseInt(cursor.getString(1)));
-                questionnaireModel.setProjectID(Integer.parseInt(cursor.getString(2)));
-                questionnaireModel.setType(Integer.parseInt(cursor.getString(3)));
-                questionnaireModel.setZOrder(Integer.parseInt(cursor.getString(4)));
-                questionnaireModel.setStatus(Integer.parseInt(cursor.getString(5)));
-                questionnaireModel.setCode(cursor.getString(6));
-                questionnaireModel.setQuestionText(cursor.getString(7));
-                questionnaireModel.setTypeCode(cursor.getString(8));
-                questionnaireModel.setTypeName(cursor.getString(9));
+                questionnaireModel.setCode(cursor.getString(1));
+                questionnaireModel.setQuestionText(cursor.getString(2));
+                questionnaireModel.setZOrder(Integer.parseInt(cursor.getString(3)));
+                questionnaireModel.setValue(Integer.parseInt(cursor.getString(4)));
+                questionnaireModel.setCaption(cursor.getString(5));
+                questionnaireModel.setDescription(cursor.getString(6));
 
                 // Add questionnaireModel to questionnaireModel
                 questionnaireModels.add(questionnaireModel);
@@ -181,7 +181,9 @@ class MySQLiteHelper extends SQLiteOpenHelper {
         return questionnaireModels;
     }
 
-    // Updating single questionnaireModel
+    /**
+     * Updating a Questionnaire
+     */
     public int updatequestionnaireModel(QuestionnaireModel questionnaireModel) {
 
         // 1. get reference to writable DB
@@ -189,15 +191,12 @@ class MySQLiteHelper extends SQLiteOpenHelper {
 
         // 2. create ContentValues to add key "column"/value
         ContentValues values = new ContentValues();
-        values.put(KEY_PARENTID, questionnaireModel.getParentID());
-        values.put(KEY_PROJECTID, questionnaireModel.getProjectID());
-        values.put(KEY_TYPE, questionnaireModel.getType());
-        values.put(KEY_ZORDER, questionnaireModel.getZOrder());
-        values.put(KEY_STATUS, questionnaireModel.getStatus());
         values.put(KEY_CODE, questionnaireModel.getCode());
         values.put(KEY_QUESTIONTEXT, questionnaireModel.getQuestionText());
-        values.put(KEY_TYPECODE, questionnaireModel.getTypeCode());
-        values.put(KEY_TYPENAME, questionnaireModel.getTypeName());
+        values.put(KEY_ZORDER, questionnaireModel.getZOrder());
+        values.put(KEY_VALUE, questionnaireModel.getValue());
+        values.put(KEY_CAPTION, questionnaireModel.getCaption());
+        values.put(KEY_DESCRIPTION, questionnaireModel.getDescription());
 
         // 3. updating row
         int i = db.update(TABLE_QUESTIONNAIRE, //table
@@ -212,7 +211,9 @@ class MySQLiteHelper extends SQLiteOpenHelper {
 
     }
 
-    // Deleting single questionnaireModel
+    /**
+     * Deleting a Questionnaire
+     */
     public void deletequestionnaireModels(QuestionnaireModel questionnaireModel) {
 
         // 1. get reference to writable DB
@@ -230,4 +231,10 @@ class MySQLiteHelper extends SQLiteOpenHelper {
 
     }
 
+    // closing database
+    public void closeDB() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        if (db != null && db.isOpen())
+            db.close();
+    }
 }
