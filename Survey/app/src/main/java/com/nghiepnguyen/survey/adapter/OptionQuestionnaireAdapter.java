@@ -111,11 +111,11 @@ public class OptionQuestionnaireAdapter extends ArrayAdapter<QuestionnaireModel>
                 public void onClick(View view) {
                     if (i != mSelectedPosition && mSelectedRB != null) {
                         mSelectedRB.setChecked(false);
-                        optionList.get(mSelectedPosition).setIsSelected(false);
+                        optionList.get(mSelectedPosition).setIsSelected(0);
 
                     }
                     mSelectedPosition = i;
-                    optionList.get(mSelectedPosition).setIsSelected(true);
+                    optionList.get(mSelectedPosition).setIsSelected(1);
                     mSelectedRB = (RadioButton) view;
                 }
             });
@@ -148,7 +148,7 @@ public class OptionQuestionnaireAdapter extends ArrayAdapter<QuestionnaireModel>
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 int getPosition = (Integer) compoundButton.getTag();  // Here we get the position that we have set for the checkbox using setTag.
-                optionList.get(getPosition).setIsSelected(viewHolder.optionCheckbox.isChecked());
+                optionList.get(getPosition).setIsSelected(viewHolder.optionCheckbox.isChecked() == true ? 1 : 0);
             }
         });
 
@@ -169,7 +169,7 @@ public class OptionQuestionnaireAdapter extends ArrayAdapter<QuestionnaireModel>
             }
         });
         viewHolder.optionCheckbox.setTag(i); // This line is important.
-        viewHolder.optionCheckbox.setChecked(optionList.get(i).isSelected());
+        viewHolder.optionCheckbox.setChecked(optionList.get(i).getIsSelected() == 1 ? true : false);
         return view;
     }
 

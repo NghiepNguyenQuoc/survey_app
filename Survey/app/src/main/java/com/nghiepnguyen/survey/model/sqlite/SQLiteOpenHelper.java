@@ -5,9 +5,11 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Parcel;
 import android.util.Log;
 
-import com.nghiepnguyen.survey.model.resultModel.QuestionnaireModel;
+
+import com.nghiepnguyen.survey.model.QuestionnaireModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,26 +34,41 @@ class MySQLiteHelper extends SQLiteOpenHelper {
 
     // TABLE_QUESTIONNAIRE Columns names
     private static final String KEY_ID = "ID";
+    private static final String KEY_QUESTIONNAIREID = "QuestionnaireID";
+    private static final String KEY_TYPE = "Type";
+    private static final String KEY_ZORDERQUESTION = "ZOrderQuestion";
+    private static final String KEY_VALUE = "Value";
+    private static final String KEY_ALLOW_INPUT_TEXT = "AllowInputText";
+    private static final String KEY_IS_SELECTED = "isSelected";
+    private static final String KEY_MAXRESPONSECOUNT = "MaxResponseCount";
     private static final String KEY_CODE = "Code";
     private static final String KEY_QUESTIONTEXT = "QuestionText";
-    private static final String KEY_ZORDER = "ZOrder";
-    private static final String KEY_VALUE = "Value";
     private static final String KEY_CAPTION = "Caption";
     private static final String KEY_DESCRIPTION = "Description";
+    private static final String KEY_ZORDEROPTION = "ZOrderOption";
+    private static final String KEY_OTHEROPTION = "otherOption";
 
-    private static final String[] COLUMNS = {KEY_ID, KEY_CODE, KEY_QUESTIONTEXT,
-            KEY_ZORDER, KEY_VALUE, KEY_CAPTION, KEY_DESCRIPTION};
+    private static final String[] COLUMNS = {KEY_ID, KEY_QUESTIONNAIREID, KEY_TYPE, KEY_ZORDERQUESTION, KEY_VALUE, KEY_ALLOW_INPUT_TEXT, KEY_IS_SELECTED, KEY_MAXRESPONSECOUNT, KEY_CODE, KEY_QUESTIONTEXT,
+            KEY_CAPTION, KEY_DESCRIPTION, KEY_ZORDEROPTION, KEY_OTHEROPTION};
 
     // Table Create Statements
     // TABLE_QUESTIONNAIRE table create statement
     private static final String CREATE_QUESTIONNAIRE_TABLE = "CREATE TABLE " + TABLE_QUESTIONNAIRE + " ( " +
             "ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            "QuestionnaireID INTEGER, " +
+            "Type INTEGER, " +
+            "ZOrderQuestion INTEGER, " +
+            "Value INTEGER, " +
+            "AllowInputText INTEGER, " +
+            "IsSelected INTEGER, " +
+            "MaxResponseCount INTEGER, " +
             "Code TEXT, " +
             "QuestionText TEXT, " +
-            "zOrder integer, " +
-            "Value integer, " +
             "Caption TEXT, " +
-            "Description TEXT)";
+            "Description TEXT, " +
+            "ZOrderOption TEXT, " +
+            "otherOption TEXT)";
+
 
     // TABLE_ROUTE table create statement
     // TABLE_QUESTION table create statement
@@ -89,12 +106,19 @@ class MySQLiteHelper extends SQLiteOpenHelper {
 
         // 2. create ContentValues to add key "column"/value
         ContentValues values = new ContentValues();
+        values.put(KEY_TYPE, questionnaireModel.getType());
+        values.put(KEY_QUESTIONNAIREID, questionnaireModel.getQuestionnaireID());
+        values.put(KEY_ZORDERQUESTION, questionnaireModel.getZOrderQuestion());
+        values.put(KEY_VALUE, questionnaireModel.getValue());
+        values.put(KEY_ALLOW_INPUT_TEXT, questionnaireModel.getAllowInputText());
+        values.put(KEY_IS_SELECTED, questionnaireModel.getIsSelected());
+        values.put(KEY_MAXRESPONSECOUNT, questionnaireModel.getMaxResponseCount());
         values.put(KEY_CODE, questionnaireModel.getCode());
         values.put(KEY_QUESTIONTEXT, questionnaireModel.getQuestionText());
-        values.put(KEY_ZORDER, questionnaireModel.getZOrder());
-        values.put(KEY_VALUE, questionnaireModel.getValue());
         values.put(KEY_CAPTION, questionnaireModel.getCaption());
         values.put(KEY_DESCRIPTION, questionnaireModel.getDescription());
+        values.put(KEY_ZORDEROPTION, questionnaireModel.getZOrderOption());
+        values.put(KEY_OTHEROPTION, questionnaireModel.getOtherOption());
 
         // 3. insert
         db.insert(TABLE_QUESTIONNAIRE, // table
@@ -129,14 +153,21 @@ class MySQLiteHelper extends SQLiteOpenHelper {
             cursor.moveToFirst();
 
         // 4. build questionnaireModel object
-        QuestionnaireModel questionnaireModel = new QuestionnaireModel();
+        QuestionnaireModel questionnaireModel = new QuestionnaireModel(Parcel.obtain());
         questionnaireModel.setID(Integer.parseInt(cursor.getString(0)));
-        questionnaireModel.setCode(cursor.getString(1));
-        questionnaireModel.setQuestionText(cursor.getString(2));
-        questionnaireModel.setZOrder(Integer.parseInt(cursor.getString(3)));
+        questionnaireModel.setQuestionnaireID(Integer.parseInt(cursor.getString(1)));
+        questionnaireModel.setType(Integer.parseInt(cursor.getString(2)));
+        questionnaireModel.setZOrderQuestion(Integer.parseInt(cursor.getString(3)));
         questionnaireModel.setValue(Integer.parseInt(cursor.getString(4)));
-        questionnaireModel.setCaption(cursor.getString(5));
-        questionnaireModel.setDescription(cursor.getString(6));
+        questionnaireModel.setAllowInputText(Integer.parseInt(cursor.getString(5)));
+        questionnaireModel.setIsSelected(Integer.parseInt(cursor.getString(6)));
+        questionnaireModel.setMaxResponseCount(Integer.parseInt(cursor.getString(7)));
+        questionnaireModel.setCode(cursor.getString(8));
+        questionnaireModel.setQuestionText(cursor.getString(9));
+        questionnaireModel.setCaption(cursor.getString(10));
+        questionnaireModel.setDescription(cursor.getString(11));
+        questionnaireModel.setZOrderOption(cursor.getString(12));
+        questionnaireModel.setOtherOption(cursor.getString(13));
 
         Log.d("getQuestionnaire(" + id + ")", questionnaireModel.toString());
 
@@ -161,14 +192,21 @@ class MySQLiteHelper extends SQLiteOpenHelper {
         QuestionnaireModel questionnaireModel = null;
         if (cursor.moveToFirst()) {
             do {
-                questionnaireModel = new QuestionnaireModel();
+                questionnaireModel = new QuestionnaireModel(Parcel.obtain());
                 questionnaireModel.setID(Integer.parseInt(cursor.getString(0)));
-                questionnaireModel.setCode(cursor.getString(1));
-                questionnaireModel.setQuestionText(cursor.getString(2));
-                questionnaireModel.setZOrder(Integer.parseInt(cursor.getString(3)));
+                questionnaireModel.setQuestionnaireID(Integer.parseInt(cursor.getString(1)));
+                questionnaireModel.setType(Integer.parseInt(cursor.getString(2)));
+                questionnaireModel.setZOrderQuestion(Integer.parseInt(cursor.getString(3)));
                 questionnaireModel.setValue(Integer.parseInt(cursor.getString(4)));
-                questionnaireModel.setCaption(cursor.getString(5));
-                questionnaireModel.setDescription(cursor.getString(6));
+                questionnaireModel.setAllowInputText(Integer.parseInt(cursor.getString(5)));
+                questionnaireModel.setIsSelected(Integer.parseInt(cursor.getString(6)));
+                questionnaireModel.setMaxResponseCount(Integer.parseInt(cursor.getString(7)));
+                questionnaireModel.setCode(cursor.getString(8));
+                questionnaireModel.setQuestionText(cursor.getString(9));
+                questionnaireModel.setCaption(cursor.getString(10));
+                questionnaireModel.setDescription(cursor.getString(11));
+                questionnaireModel.setZOrderOption(cursor.getString(12));
+                questionnaireModel.setOtherOption(cursor.getString(13));
 
                 // Add questionnaireModel to questionnaireModel
                 questionnaireModels.add(questionnaireModel);
@@ -191,12 +229,19 @@ class MySQLiteHelper extends SQLiteOpenHelper {
 
         // 2. create ContentValues to add key "column"/value
         ContentValues values = new ContentValues();
+        values.put(KEY_QUESTIONNAIREID, questionnaireModel.getQuestionnaireID());
+        values.put(KEY_TYPE, questionnaireModel.getType());
+        values.put(KEY_ZORDERQUESTION, questionnaireModel.getZOrderQuestion());
+        values.put(KEY_VALUE, questionnaireModel.getValue());
+        values.put(KEY_ALLOW_INPUT_TEXT, questionnaireModel.getAllowInputText());
+        values.put(KEY_IS_SELECTED, questionnaireModel.getIsSelected());
+        values.put(KEY_MAXRESPONSECOUNT, questionnaireModel.getMaxResponseCount());
         values.put(KEY_CODE, questionnaireModel.getCode());
         values.put(KEY_QUESTIONTEXT, questionnaireModel.getQuestionText());
-        values.put(KEY_ZORDER, questionnaireModel.getZOrder());
-        values.put(KEY_VALUE, questionnaireModel.getValue());
         values.put(KEY_CAPTION, questionnaireModel.getCaption());
         values.put(KEY_DESCRIPTION, questionnaireModel.getDescription());
+        values.put(KEY_ZORDEROPTION, questionnaireModel.getZOrderOption());
+        values.put(KEY_OTHEROPTION, questionnaireModel.getOtherOption());
 
         // 3. updating row
         int i = db.update(TABLE_QUESTIONNAIRE, //table

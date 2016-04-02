@@ -3,6 +3,7 @@ package com.nghiepnguyen.survey.activity;
 import android.content.DialogInterface;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Parcel;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.AppCompatEditText;
@@ -70,16 +71,18 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
     //private UserInfoModel currentUser;
     private MemberModel currentMember;
+    private List<QuestionnaireModel> projectQuestionnaireModels;
+    private List<QuestionnaireModel> questionnaireModelList;
     private QuestionModel questionModel;
     private ProjectModel projectModel;
 
-    private List<QuestionnaireModel> questionnaireList;
     private String strInputValue = "";
     private String strResponseOption = "";
     private List<Integer> pathList;
 
     private AppCompatRadioButton mSelectedRB;// current RadioButton when user focus
     private int mSelectedPosition = -1;// current position in adapter
+    private int mCurrentQuestion = 0;// current position in adapter
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,8 +92,6 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         initDataToComponets();
 
         callApiToCheckCompletedProject(currentMember.getSecrectToken(), currentMember.getID(), projectModel.getID());
-        //callApiToGetNextQuestion(currentUser.getSecrectToken(), projectModel.getID(), "");
-        //callApiToGetNextQuestion(currentMember.getSecrectToken(), projectModel.getID(), "");
     }
 
     @Override
@@ -174,7 +175,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                             });
                             customBuilder.show();
                         } else {
-                            callApiToGetNextQuestion(currentMember.getSecrectToken(), projectModel.getID(), "");
+                            callApiToDownloadProjectData(projectModel.getID());
                         }
                     }
                 });
@@ -193,128 +194,43 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         });
     }
 
-    public void callApiToGetNextQuestion(String secrectToken, int projectId, String preOption) {
+    public void callApiToDownloadProjectData(int projectId) {
         mOptionLinearLayout.removeAllViews();
         mProgressBar.setVisibility(View.VISIBLE);
-        SurveyApiWrapper.getNextQuestion(this, secrectToken, projectId, preOption, new ICallBack() {
+        SurveyApiWrapper.downloadProjectData(this, projectId, new ICallBack() {
             @Override
             public void onSuccess(final Object data) {
-                 /*
-                 * [{
-                 * "ID": 4013,
-                 * "Code": "Q01",
-                 * "ProjectID": 226,
-                 * "ProjectName": "Nước giải khát đóng chai",
-                 * "QuestionText": "Trong 3 tháng qua, bạn thường sử dụng những loại nước uống giải khát đóng chai/lon nào? (MA)",
-                 * "ZOrder": 10,
-                 * "Status": 0,
-                 * "ParentID": 0,
-                 * "CreatedDateTime": "2016-01-22T10:49:37.213",
-                 * "CreatedBy": 50,
-                 * "CreatedByName": "Lê Việt Thái",
-                 * "LastUpdatedDateTime": "2016-01-29T11:52:13.44",
-                 * "LastUpdatedBy": 50,
-                 * "LastUpdatedByName": "Lê Việt Thái",
-                 * "Type": 1,
-                 * "TypeCode": "MA",
-                 * "TypeName": "MA",
-                 * "ScaleFrom": 0,
-                 * "ScaleFromText": "",
-                 * "ScaleTo": 0,
-                 * "ScaleToText": "",
-                 * "DependentID": 0,
-                 * "MaxResponseCount": 0,
-                 * "MinResponseCount": 0,
-                 * "DisplayRandomResponse": false,
-                 * "MediaUrl": null,
-                 * "CheckSumValue": 0,
-                 * "DependentType": 0,
-                 * "ContentType": 0
-                 * }]
-                  */
-                questionModel = (QuestionModel) data;
-                if (questionModel != null) {
-                    String patternString = String.format("<InputValue UserID=\"0\" QuestionnaireID=\"%d\" />", questionModel.getID()) + strInputValue;
-                    callApiToGetResponseOption(patternString);
-                } else {
-                    // finished survey
-                    if (pathList.size() == projectModel.getQuestionCount()) {
-                        saveResultSurvey(1);
-                    } else {// kick out of survey
-                        saveResultSurvey(0);
-                    }
-                }
-            }
+                /*{
+                    "ID": 4109,
+                        "Code": "Q1",
+                        "QuestionText": "Hiện nay, mức độ thường xuyên ăn chay của bạn như thế nào? (SA)",
+                        "Type": 0,
+                        "ZOrderQuestion": 10,
+                        "QuestionnaireID": 4109,
+                        "Value": 1,
+                        "Caption": "Mỗi ngày (ăn chay trường)",
+                        "Description": "Mỗi ngày (ăn chay trường)",
+                        "ZOrderOption": "0"
+                },*/
 
-            @Override
-            public void onFailure(CommonErrorModel error) {
-
-            }
-
-            @Override
-            public void onCompleted() {
-
-            }
-        });
-    }
-
-
-    public void callApiToGetResponseOption(String inputValue) {
-        SurveyApiWrapper.getResponseOptionByQuestionID(this, inputValue, new ICallBack() {
-            @Override
-            public void onSuccess(final Object data) {
-                /**
-                 * Created by 08670_000 on 22/02/2016.
-                 * Option of a question
-                 * [{
-                 * "ID": 8429,
-                 * "QuestionnaireID": 4015,
-                 * "Type": 0,
-                 * "Value": "1",
-                 * "Symbol": "",
-                 * "Caption": "Lavie (Nestle)",
-                 * "Description": "Lavie (Nestle)",
-                 * "ScaleFrom": 0,
-                 * "ScaleFromText": "",
-                 * "ScaleTo": 0,
-                 * "ScaleToText": "",
-                 * "ZOrder": "0000001",
-                 * "AllowInputText": 0,
-                 * "Status": 0,
-                 * "CreatedDateTime": "/Date(-62135596800000)/",
-                 * "CreatedBy": null,
-                 * "LastUpdatedDateTime": null,
-                 * "LastUpdatedBy": null,
-                 * "MValue": 0,
-                 * "MediaUrl": "",
-                 * "ProjectID": null
-                 * }, {
-                 *
-                 */
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        questionnaireList = (List<QuestionnaireModel>) data;
-                        Spannable wordtoSpan = new SpannableString(questionModel.getCode() + ". " + questionModel.getQuestionText());
-                        wordtoSpan.setSpan(new RelativeSizeSpan(2f), 0, questionModel.getCode().length() + 1, 0); // set size
-                        wordtoSpan.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.cl_pink)), 0, questionModel.getCode().length() + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                        mQuestionContentTextView.setText(wordtoSpan);
-
-                        /*optionQuestionnaireAdapter = new OptionQuestionnaireAdapter(ProjectSurveyActivity.this, questionModel, questionnaireList);
-                        mOptionListView.setAdapter(optionQuestionnaireAdapter);*/
-                        generateOption(mOptionLinearLayout, questionModel, questionnaireList);
-
-                        /*mFragment = new SAQuestionFragment();
-                        Bundle args = new Bundle();
-                        args.putParcelableArrayList(Constant.BUNDLE_QUESTIONNAIRE, (ArrayList<? extends Parcelable>) questionnaireList);
-                        args.putParcelable(Constant.BUNDLE_QUESTION, questionModel);
-                        mFragment.setArguments(args);
-                        getSupportFragmentManager().beginTransaction().replace(R.id.activity_project_survey_content_main_frame_layout, mFragment, Constant.PROJECT_LIST).commit();*/
-                        mProgressBar.setVisibility(View.GONE);
+                        projectQuestionnaireModels = (List<QuestionnaireModel>) data;
+                        if (projectQuestionnaireModels != null && projectQuestionnaireModels.size() > 0) {
+                            mCurrentQuestion = 0;
+                            getNextQuestion(projectQuestionnaireModels, mCurrentQuestion);
+                            mProgressBar.setVisibility(View.GONE);
+                        } else {
+                            // finished survey
+                            if (pathList.size() == projectModel.getQuestionCount()) {
+                                saveResultSurvey(1);
+                            } else {// kick out of survey
+                                saveResultSurvey(0);
+                            }
+                        }
                     }
                 });
-
-
             }
 
             @Override
@@ -327,10 +243,36 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
             }
         });
-
     }
 
-    private void generateOption(LinearLayout mainView, QuestionModel questionModel, final List<QuestionnaireModel> questionnaireList) {
+    private void getNextQuestion(List<QuestionnaireModel> questionnaireModels, int questionnaireID) {
+        questionnaireModelList = new ArrayList<>();
+        for (int i = 0; i < questionnaireModels.size(); i++) {
+            if (questionnaireModels.get(i).getQuestionnaireID() == questionnaireID) {
+                if (i == 0) {
+                    Spannable wordtoSpan = new SpannableString(questionnaireModels.get(i).getCode() + ". " + questionnaireModels.get(i).getQuestionText());
+                    wordtoSpan.setSpan(new RelativeSizeSpan(2f), 0, questionnaireModels.get(i).getCode().length() + 1, 0); // set size
+                    wordtoSpan.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.cl_pink)), 0, questionnaireModels.get(i).getCode().length() + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    mQuestionContentTextView.setText(wordtoSpan);
+
+                    questionModel = new QuestionModel(Parcel.obtain());
+                    questionModel.setID(questionnaireModels.get(i).getID());
+                    questionModel.setQuestionText(questionnaireModels.get(i).getQuestionText());
+                    questionModel.setZOrder(questionnaireModels.get(i).getZOrderQuestion());
+                    questionModel.setCode(questionnaireModels.get(i).getCode());
+                    questionModel.setType(questionnaireModels.get(i).getType());
+                    //questionModel.setMaxResponseCount(questionnaireModels.get(i).getMaxResponseCount());
+                    questionModel.setMaxResponseCount(6);
+                }
+                questionnaireModelList.add(questionnaireModels.get(i));
+            }
+        }
+
+        if (questionnaireModelList != null && questionnaireModelList.size() > 0)
+            generateOption(mOptionLinearLayout, questionnaireModelList);
+    }
+
+    private void generateOption(LinearLayout mainView, final List<QuestionnaireModel> questionnaireList) {
         LinearLayout linearLayout1 = new LinearLayout(ProjectSurveyActivity.this);
         linearLayout1.setOrientation(LinearLayout.VERTICAL);
 
@@ -343,7 +285,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             /*
             * create radio group
             */
-            if (questionModel.getType() == 0 || questionModel.getType() == 2) {
+            if (item.getType() == 0 || item.getType() == 2) {
 
                 // create radio button
                 AppCompatRadioButton radioButton = new AppCompatRadioButton(this);
@@ -403,7 +345,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                         }
                     }
                 });
-            } else if (questionModel.getType() == 1) {
+            } else if (item.getType() == 1) {
                 // create radio button
                 AppCompatCheckBox checkBox = new AppCompatCheckBox(this);
                 checkBox.setId(item.getID());
@@ -461,7 +403,6 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     }
 
     // save survey api
-
     public void saveResultSurvey(final int isCompleted) {
         String inputValue = String.format("<InputValue SecrectToken=\"%s\" UserID=\"%d\" ProjectID=\"%d\" IsCompleted=\"%d\" Action=\"INSERT\"/>",
                 currentMember.getSecrectToken(), currentMember.getID(), projectModel.getID(), isCompleted) + strResponseOption;
@@ -533,17 +474,17 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 dialog.setPositiveButton(getResources().getString(R.string.button_ok), null);
 
                 // collect data from view
-                for (QuestionnaireModel item : questionnaireList) {
+                for (QuestionnaireModel item : questionnaireModelList) {
                     if (questionModel.getType() == 0 || questionModel.getType() == 2) {
                         RadioButton radioButon = (RadioButton) mOptionLinearLayout.findViewById(item.getID());
-                        item.setIsSelected(radioButon.isChecked());
+                        item.setIsSelected(radioButon.isChecked() == true ? 1 : 0);
                         if (radioButon.isChecked() && item.getAllowInputText() == 1) {
                             EditText editText = (EditText) mOptionLinearLayout.findViewById(item.getID() * 10);
                             item.setOtherOption(editText.getText().toString());
                         }
                     } else {
                         CheckBox checkBox = (CheckBox) mOptionLinearLayout.findViewById(item.getID());
-                        item.setIsSelected(checkBox.isChecked());
+                        item.setIsSelected(checkBox.isChecked() == true ? 1 : 0);
                         if (checkBox.isChecked() && item.getAllowInputText() == 1) {
                             EditText editText = (EditText) mOptionLinearLayout.findViewById(item.getID() * 10);
                             item.setOtherOption(editText.getText().toString());
@@ -553,7 +494,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
                 //////////////////////////////////////////////////////////////////
                 //check maxAnswer
-                boolean isMaxAnswer = checkMaxMaxResponse(questionModel.getType(), questionModel.getMaxResponseCount(), questionnaireList);
+                boolean isMaxAnswer = checkMaxMaxResponse(questionModel.getType(), questionModel.getMaxResponseCount(), questionnaireModelList);
                 if (!isMaxAnswer) {
                     dialog.setMessage(String.format(getResources().getString(R.string.txt_over_max_answer), questionModel.getMaxResponseCount()));
                     dialog.show();
@@ -561,7 +502,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 }
 
                 //check emty
-                boolean isEmtyAnswer = checkEmtyAnswer(questionModel.getType(), questionnaireList);
+                boolean isEmtyAnswer = checkEmtyAnswer(questionModel.getType(), questionnaireModelList);
                 if (!isEmtyAnswer) {
                     dialog.setMessage(getResources().getString(R.string.txt_emty_answer));
                     dialog.show();
@@ -569,7 +510,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 }
 
                 // check logic
-                boolean isLogicAnswer = checkLogicAnswer(questionModel.getType(), questionnaireList);
+                boolean isLogicAnswer = checkLogicAnswer(questionModel.getType(), questionnaireModelList);
                 if (!isLogicAnswer) {
                     dialog.setMessage(getResources().getString(R.string.txt_emty_other_option));
                     dialog.show();
@@ -582,9 +523,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 switch (questionModel.getType()) {
                     case 0:
                     case 1:
-                        for (QuestionnaireModel item : questionnaireList) {
+                        for (QuestionnaireModel item : questionnaireModelList) {
                             String valueOption;
-                            if (item.isSelected()) {
+                            if (item.getIsSelected() == 1) {
                                 if (item.getAllowInputText() == 1 && !TextUtils.isEmpty(item.getOtherOption()))
                                     valueOption = String.format(patternString, questionModel.getID(), item.getValue(), item.getOtherOption());
                                 else
@@ -594,9 +535,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                             }
                         }
                         pathList.add(questionModel.getID());
-                        //callApiToGetNextQuestion(currentUser.getSecrectToken(), projectModel.getID(), strInputValue);
-                        callApiToGetNextQuestion(currentMember.getSecrectToken(), projectModel.getID(), strInputValue);
-
+                        getNextQuestion(projectQuestionnaireModels, mCurrentQuestion);
                         break;
                 }
                 break;
@@ -612,7 +551,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             case 6:
             case 7:
                 for (QuestionnaireModel item : questionnaireList) {
-                    if (item.isSelected())
+                    if (item.getIsSelected() == 1)
                         return true;
                 }
                 break;
@@ -628,7 +567,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             case 0:
             case 1:
                 for (QuestionnaireModel item : questionnaireList) {
-                    if (item.isSelected() && item.getAllowInputText() == 1 && TextUtils.isEmpty(item.getOtherOption()))
+                    if (item.getIsSelected() == 1 && item.getAllowInputText() == 1 && TextUtils.isEmpty(item.getOtherOption()))
                         flag = false;
                 }
                 break;
@@ -642,7 +581,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
         int count = 0;
         for (QuestionnaireModel item : questionnaireList) {
-            if (item.isSelected())
+            if (item.getIsSelected() == 1)
                 count++;
         }
         if (count > maxAnswer)

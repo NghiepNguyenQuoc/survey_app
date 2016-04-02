@@ -4,29 +4,39 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 /**
- * Created by nghiep on 2/10/16.
+ * Created by 08670_000 on 21/03/2016.
  */
 public class QuestionnaireModel implements Parcelable {
     private int ID;
     private int QuestionnaireID;
-    private int AllowInputText;
     private int Type;
+    private int ZOrderQuestion;
     private int Value;
-    private String Description;
+    private int AllowInputText;
+    private int IsSelected;
+    private int MaxResponseCount;
+    private String Code;
+    private String QuestionText;
     private String Caption;
-    private boolean isSelected;
+    private String Description;
+    private String ZOrderOption;
     private String otherOption;
 
-    protected QuestionnaireModel(Parcel in) {
+    public QuestionnaireModel(Parcel in) {
         ID = in.readInt();
         QuestionnaireID = in.readInt();
-        AllowInputText = in.readInt();
         Type = in.readInt();
+        ZOrderQuestion = in.readInt();
         Value = in.readInt();
-        Description = in.readString();
+        AllowInputText = in.readInt();
+        IsSelected = in.readInt();
+        MaxResponseCount = in.readInt();
+        Code = in.readString();
+        QuestionText = in.readString();
         Caption = in.readString();
+        Description = in.readString();
+        ZOrderOption = in.readString();
         otherOption = in.readString();
-        isSelected = in.readByte() != 0;
     }
 
     public static final Creator<QuestionnaireModel> CREATOR = new Creator<QuestionnaireModel>() {
@@ -57,20 +67,20 @@ public class QuestionnaireModel implements Parcelable {
         QuestionnaireID = questionnaireID;
     }
 
-    public int getAllowInputText() {
-        return AllowInputText;
-    }
-
-    public void setAllowInputText(int allowInputText) {
-        AllowInputText = allowInputText;
-    }
-
     public int getType() {
         return Type;
     }
 
     public void setType(int type) {
         Type = type;
+    }
+
+    public int getZOrderQuestion() {
+        return ZOrderQuestion;
+    }
+
+    public void setZOrderQuestion(int ZOrderQuestion) {
+        this.ZOrderQuestion = ZOrderQuestion;
     }
 
     public int getValue() {
@@ -81,12 +91,44 @@ public class QuestionnaireModel implements Parcelable {
         Value = value;
     }
 
-    public String getDescription() {
-        return Description;
+    public int getAllowInputText() {
+        return AllowInputText;
     }
 
-    public void setDescription(String description) {
-        Description = description;
+    public void setAllowInputText(int allowInputText) {
+        AllowInputText = allowInputText;
+    }
+
+    public int getIsSelected() {
+        return IsSelected;
+    }
+
+    public void setIsSelected(int isSelected) {
+        IsSelected = isSelected;
+    }
+
+    public int getMaxResponseCount() {
+        return MaxResponseCount;
+    }
+
+    public void setMaxResponseCount(int maxResponseCount) {
+        MaxResponseCount = maxResponseCount;
+    }
+
+    public String getCode() {
+        return Code;
+    }
+
+    public void setCode(String code) {
+        Code = code;
+    }
+
+    public String getQuestionText() {
+        return QuestionText;
+    }
+
+    public void setQuestionText(String questionText) {
+        QuestionText = questionText;
     }
 
     public String getCaption() {
@@ -97,12 +139,20 @@ public class QuestionnaireModel implements Parcelable {
         Caption = caption;
     }
 
-    public boolean isSelected() {
-        return isSelected;
+    public String getDescription() {
+        return Description;
     }
 
-    public void setIsSelected(boolean isSelected) {
-        this.isSelected = isSelected;
+    public void setDescription(String description) {
+        Description = description;
+    }
+
+    public String getZOrderOption() {
+        return ZOrderOption;
+    }
+
+    public void setZOrderOption(String ZOrderOption) {
+        this.ZOrderOption = ZOrderOption;
     }
 
     public String getOtherOption() {
@@ -119,15 +169,20 @@ public class QuestionnaireModel implements Parcelable {
     }
 
     @Override
-    public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeInt(ID);
-        parcel.writeInt(QuestionnaireID);
-        parcel.writeInt(AllowInputText);
-        parcel.writeInt(Type);
-        parcel.writeInt(Value);
-        parcel.writeString(Description);
-        parcel.writeString(otherOption);
-        parcel.writeString(Caption);
-        parcel.writeByte((byte) (isSelected ? 1 : 0));
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(ID);
+        dest.writeInt(QuestionnaireID);
+        dest.writeInt(Type);
+        dest.writeInt(ZOrderQuestion);
+        dest.writeInt(Value);
+        dest.writeInt(AllowInputText);
+        dest.writeInt(IsSelected);
+        dest.writeInt(MaxResponseCount);
+        dest.writeString(Code);
+        dest.writeString(QuestionText);
+        dest.writeString(Caption);
+        dest.writeString(Description);
+        dest.writeString(ZOrderOption);
+        dest.writeString(otherOption);
     }
 }

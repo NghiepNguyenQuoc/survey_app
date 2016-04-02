@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.nghiepnguyen.survey.Interface.ICallBack;
 import com.nghiepnguyen.survey.R;
 import com.nghiepnguyen.survey.model.AppMessageModel;
@@ -19,6 +20,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -153,61 +155,24 @@ public class SurveyApiWrapper {
         });
     }
 
-    public static synchronized void getNextQuestion(final Context context, String session, int projectID, String preOption, final ICallBack callBack) {
+    public static synchronized void downloadProjectData(final Context context, int projectID, final ICallBack callBack) {
         HttpClient client = new AsyncHttpClient();
 
         RequestParams para = new RequestParams();
-        para.put("session", session);
         para.put("projectID", projectID);
-        para.put("preOption", preOption);
         client.get(Endpoint.GET_NEXT_QUESTION, para, new StringHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Map<String, List<String>> headers, String content) {
                 try {
                     JSONArray jsonArray = new JSONArray(content);
                     if (jsonArray.length() > 0) {
-                        JSONObject jsonService = jsonArray.getJSONObject(0);
-                        QuestionModel question = new Gson().fromJson(jsonService.toString(), QuestionModel.class);
-                        callBack.onSuccess(question);
+
+                        Type listType = new TypeToken<List<QuestionnaireModel>>(){}.getType();
+                        List<QuestionnaireModel> questionnaireModels = (List<QuestionnaireModel>) new Gson().fromJson(jsonArray.toString(), listType);
+                        callBack.onSuccess(questionnaireModels);
                     } else {
                         callBack.onSuccess(null);
                     }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    checkUnauthorizedAndHandleError(context, statusCode, content, callBack);
-                }
-            }
-
-            @Override
-            public void onFailure(int statusCode, Map<String, List<String>> headers, String content) {
-                Log.d(TAG, "Server responded with a status code " + statusCode);
-                checkUnauthorizedAndHandleError(context, statusCode, content, callBack);
-            }
-
-            @Override
-            public void onFailure(Throwable throwable) {
-                Log.d(TAG, "An exception occurred during the request. Usually unable to connect or there was an error reading the response");
-            }
-        });
-    }
-
-    public static synchronized void getResponseOptionByQuestionID(final Context context, String inputValue, final ICallBack callBack) {
-        HttpClient client = new AsyncHttpClient();
-
-        RequestParams para = new RequestParams();
-        para.put("inputValue", inputValue);
-        client.get(Endpoint.GET_RESPONSEOPTION_BY_QUESTION_ID_2, para, new StringHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Map<String, List<String>> headers, String content) {
-                try {
-                    List<QuestionnaireModel> questionnaireList = new ArrayList<>();
-                    JSONArray jsonArray = new JSONArray(content);
-                    for (int i = 0; i < jsonArray.length(); ++i) {
-                        JSONObject jsonService = jsonArray.getJSONObject(i);
-                        QuestionnaireModel questionnaire = new Gson().fromJson(jsonService.toString(), QuestionnaireModel.class);
-                        questionnaireList.add(questionnaire);
-                    }
-                    callBack.onSuccess(questionnaireList);
                 } catch (JSONException e) {
                     e.printStackTrace();
                     checkUnauthorizedAndHandleError(context, statusCode, content, callBack);
