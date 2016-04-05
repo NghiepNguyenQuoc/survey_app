@@ -1,6 +1,7 @@
 package com.nghiepnguyen.survey.activity;
 
 import android.content.DialogInterface;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcel;
@@ -34,12 +35,17 @@ import com.nghiepnguyen.survey.model.MemberModel;
 import com.nghiepnguyen.survey.model.ProjectModel;
 import com.nghiepnguyen.survey.model.QuestionModel;
 import com.nghiepnguyen.survey.model.QuestionnaireModel;
+import com.nghiepnguyen.survey.model.sqlite.MySQLiteHelper;
 import com.nghiepnguyen.survey.networking.SurveyApiWrapper;
 import com.nghiepnguyen.survey.storage.UserInfoManager;
 import com.nghiepnguyen.survey.utils.Constant;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Nghiep Nguyen on 20/02/2016.
@@ -60,12 +66,8 @@ import java.util.List;
 public class ProjectSurveyActivity extends BaseActivity implements View.OnClickListener {
     private static String TAG = "ProjectSurveyActivity";
 
-    private Toolbar mToolbar;
     private ProgressBar mProgressBar;
     private TextView mQuestionContentTextView;
-    //private EditText mOtherOptionEditText;
-    private Button mNextQuestionButton;
-    private Button mSaveSurveyButton;
     private LinearLayout mOptionLinearLayout;
 
 
@@ -82,7 +84,6 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
     private AppCompatRadioButton mSelectedRB;// current RadioButton when user focus
     private int mSelectedPosition = -1;// current position in adapter
-    private int mCurrentQuestion = 0;// current position in adapter
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,12 +117,12 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
 
     private void initView() {
-        mToolbar = (Toolbar) findViewById(R.id.activity_project_survey_toolbar);
+        Toolbar mToolbar = (Toolbar) findViewById(R.id.activity_project_survey_toolbar);
         mProgressBar = (ProgressBar) findViewById(R.id.activity_project_survey_loading_progress_bar);
         mQuestionContentTextView = (TextView) findViewById(R.id.activity_project_survey_question_content_textview);
         //mOtherOptionEditText = (EditText) findViewById(R.id.activity_project_survey_other_option_edittext);
-        mNextQuestionButton = (Button) findViewById(R.id.activity_project_survey_next_question_button);
-        mSaveSurveyButton = (Button) findViewById(R.id.activity_project_survey_save_survey_button);
+        Button mNextQuestionButton = (Button) findViewById(R.id.activity_project_survey_next_question_button);
+        Button mSaveSurveyButton = (Button) findViewById(R.id.activity_project_survey_save_survey_button);
         mProgressBar = (ProgressBar) findViewById(R.id.activity_project_survey_loading_progress_bar);
         mOptionLinearLayout = (LinearLayout) findViewById(R.id.activity_project_survey_option_linearlayout);
 
@@ -218,8 +219,15 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                     public void run() {
                         projectQuestionnaireModels = (List<QuestionnaireModel>) data;
                         if (projectQuestionnaireModels != null && projectQuestionnaireModels.size() > 0) {
-                            mCurrentQuestion = 0;
-                            getNextQuestion(projectQuestionnaireModels, mCurrentQuestion);
+
+                            // Database Helper
+                            MySQLiteHelper db = new MySQLiteHelper(getApplicationContext());
+
+                            for (QuestionnaireModel item : projectQuestionnaireModels)
+                                db.addQuestionnaire(item);
+
+                            db.getAllquestionnaireModels();
+                            //getNextQuestion(projectQuestionnaireModels);
                             mProgressBar.setVisibility(View.GONE);
                         } else {
                             // finished survey
@@ -245,10 +253,10 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         });
     }
 
-    private void getNextQuestion(List<QuestionnaireModel> questionnaireModels, int questionnaireID) {
+    private void getNextQuestion(List<QuestionnaireModel> questionnaireModels) {
         questionnaireModelList = new ArrayList<>();
         for (int i = 0; i < questionnaireModels.size(); i++) {
-            if (questionnaireModels.get(i).getQuestionnaireID() == questionnaireID) {
+            if (questionnaireModels.get(i).getQuestionnaireID() == 4109) {
                 if (i == 0) {
                     Spannable wordtoSpan = new SpannableString(questionnaireModels.get(i).getCode() + ". " + questionnaireModels.get(i).getQuestionText());
                     wordtoSpan.setSpan(new RelativeSizeSpan(2f), 0, questionnaireModels.get(i).getCode().length() + 1, 0); // set size
@@ -477,14 +485,14 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 for (QuestionnaireModel item : questionnaireModelList) {
                     if (questionModel.getType() == 0 || questionModel.getType() == 2) {
                         RadioButton radioButon = (RadioButton) mOptionLinearLayout.findViewById(item.getID());
-                        item.setIsSelected(radioButon.isChecked() == true ? 1 : 0);
+                        item.setIsSelected(radioButon.isChecked() ? 1 : 0);
                         if (radioButon.isChecked() && item.getAllowInputText() == 1) {
                             EditText editText = (EditText) mOptionLinearLayout.findViewById(item.getID() * 10);
                             item.setOtherOption(editText.getText().toString());
                         }
                     } else {
                         CheckBox checkBox = (CheckBox) mOptionLinearLayout.findViewById(item.getID());
-                        item.setIsSelected(checkBox.isChecked() == true ? 1 : 0);
+                        item.setIsSelected(checkBox.isChecked() ? 1 : 0);
                         if (checkBox.isChecked() && item.getAllowInputText() == 1) {
                             EditText editText = (EditText) mOptionLinearLayout.findViewById(item.getID() * 10);
                             item.setOtherOption(editText.getText().toString());
@@ -535,7 +543,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                             }
                         }
                         pathList.add(questionModel.getID());
-                        getNextQuestion(projectQuestionnaireModels, mCurrentQuestion);
+                        getNextQuestion(projectQuestionnaireModels);
                         break;
                 }
                 break;
@@ -584,9 +592,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             if (item.getIsSelected() == 1)
                 count++;
         }
-        if (count > maxAnswer)
-            return false;
-        return true;
+        return count <= maxAnswer;
     }
 
     private String showMessageCompletedProject(AppMessageModel message) {

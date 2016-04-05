@@ -8,16 +8,15 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Parcel;
 import android.util.Log;
 
-
 import com.nghiepnguyen.survey.model.QuestionnaireModel;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by 08670_000 on 21/03/2016.
+ * Created by 08670_000 on 05/04/2016.
  */
-class MySQLiteHelper extends SQLiteOpenHelper {
+public class MySQLiteHelper extends SQLiteOpenHelper {
     // Logcat tag
     private static final String LOG = "DatabaseHelper";
 
