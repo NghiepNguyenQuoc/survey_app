@@ -8,6 +8,7 @@ import android.os.Parcelable;
  */
 public class QuestionnaireModel implements Parcelable {
     private int ID;
+    private int ProjectID;
     private int QuestionnaireID;
     private int Type;
     private int ZOrderQuestion;
@@ -24,6 +25,7 @@ public class QuestionnaireModel implements Parcelable {
 
     public QuestionnaireModel(Parcel in) {
         ID = in.readInt();
+        ProjectID = in.readInt();
         QuestionnaireID = in.readInt();
         Type = in.readInt();
         ZOrderQuestion = in.readInt();
@@ -57,6 +59,14 @@ public class QuestionnaireModel implements Parcelable {
 
     public void setID(int ID) {
         this.ID = ID;
+    }
+
+    public int getProjectID() {
+        return ProjectID;
+    }
+
+    public void setProjectID(int projectID) {
+        ProjectID = projectID;
     }
 
     public int getQuestionnaireID() {
@@ -171,6 +181,7 @@ public class QuestionnaireModel implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeInt(ID);
+        dest.writeInt(ProjectID);
         dest.writeInt(QuestionnaireID);
         dest.writeInt(Type);
         dest.writeInt(ZOrderQuestion);

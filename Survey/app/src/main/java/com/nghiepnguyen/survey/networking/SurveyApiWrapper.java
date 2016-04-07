@@ -167,8 +167,9 @@ public class SurveyApiWrapper {
                     JSONArray jsonArray = new JSONArray(content);
                     if (jsonArray.length() > 0) {
 
-                        Type listType = new TypeToken<List<QuestionnaireModel>>(){}.getType();
-                        List<QuestionnaireModel> questionnaireModels = (List<QuestionnaireModel>) new Gson().fromJson(jsonArray.toString(), listType);
+                        Type listType = new TypeToken<List<QuestionnaireModel>>() {
+                        }.getType();
+                        List<QuestionnaireModel> questionnaireModels = new Gson().fromJson(jsonArray.toString(), listType);
                         callBack.onSuccess(questionnaireModels);
                     } else {
                         callBack.onSuccess(null);

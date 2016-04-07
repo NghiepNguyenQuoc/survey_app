@@ -1,7 +1,6 @@
 package com.nghiepnguyen.survey.activity;
 
 import android.content.DialogInterface;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcel;
@@ -41,11 +40,7 @@ import com.nghiepnguyen.survey.storage.UserInfoManager;
 import com.nghiepnguyen.survey.utils.Constant;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by Nghiep Nguyen on 20/02/2016.
@@ -81,9 +76,13 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     private String strInputValue = "";
     private String strResponseOption = "";
     private List<Integer> pathList;
+    private List<Integer> questionIds;
+    private int currentIndexQuestionID = 0;
 
     private AppCompatRadioButton mSelectedRB;// current RadioButton when user focus
     private int mSelectedPosition = -1;// current position in adapter
+
+    private MySQLiteHelper mySQLiteHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -148,6 +147,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         //
         //currentUser = UserInfoManager.getUserInfo(this);
         currentMember = UserInfoManager.getMemberInfo(this);
+
+        // Database Helper
+        mySQLiteHelper = new MySQLiteHelper(getApplicationContext());
     }
 
     private void callApiToCheckCompletedProject(String secrectToken, int userId, int projectId) {
@@ -195,7 +197,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         });
     }
 
-    public void callApiToDownloadProjectData(int projectId) {
+    public void callApiToDownloadProjectData(final int projectId) {
         mOptionLinearLayout.removeAllViews();
         mProgressBar.setVisibility(View.VISIBLE);
         SurveyApiWrapper.downloadProjectData(this, projectId, new ICallBack() {
@@ -219,15 +221,13 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                     public void run() {
                         projectQuestionnaireModels = (List<QuestionnaireModel>) data;
                         if (projectQuestionnaireModels != null && projectQuestionnaireModels.size() > 0) {
+                            if (mySQLiteHelper.getCountQuestionnaireByProjectId(projectId) == 0)
+                                for (QuestionnaireModel item : projectQuestionnaireModels)
+                                    mySQLiteHelper.addQuestionnaire(item, projectId);
 
-                            // Database Helper
-                            MySQLiteHelper db = new MySQLiteHelper(getApplicationContext());
-
-                            for (QuestionnaireModel item : projectQuestionnaireModels)
-                                db.addQuestionnaire(item);
-
-                            db.getAllquestionnaireModels();
-                            //getNextQuestion(projectQuestionnaireModels);
+                            questionIds = mySQLiteHelper.getAllQuestionID();
+                            projectQuestionnaireModels = mySQLiteHelper.getListQuestionnaireByQuestionId(questionIds.get(currentIndexQuestionID++));
+                            getNextQuestion(projectQuestionnaireModels);
                             mProgressBar.setVisibility(View.GONE);
                         } else {
                             // finished survey
@@ -256,24 +256,22 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     private void getNextQuestion(List<QuestionnaireModel> questionnaireModels) {
         questionnaireModelList = new ArrayList<>();
         for (int i = 0; i < questionnaireModels.size(); i++) {
-            if (questionnaireModels.get(i).getQuestionnaireID() == 4109) {
-                if (i == 0) {
-                    Spannable wordtoSpan = new SpannableString(questionnaireModels.get(i).getCode() + ". " + questionnaireModels.get(i).getQuestionText());
-                    wordtoSpan.setSpan(new RelativeSizeSpan(2f), 0, questionnaireModels.get(i).getCode().length() + 1, 0); // set size
-                    wordtoSpan.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.cl_pink)), 0, questionnaireModels.get(i).getCode().length() + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    mQuestionContentTextView.setText(wordtoSpan);
+            if (i == 0) {
+                Spannable wordtoSpan = new SpannableString(questionnaireModels.get(i).getCode() + ". " + questionnaireModels.get(i).getQuestionText());
+                wordtoSpan.setSpan(new RelativeSizeSpan(2f), 0, questionnaireModels.get(i).getCode().length() + 1, 0); // set size
+                wordtoSpan.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.cl_pink)), 0, questionnaireModels.get(i).getCode().length() + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                mQuestionContentTextView.setText(wordtoSpan);
 
-                    questionModel = new QuestionModel(Parcel.obtain());
-                    questionModel.setID(questionnaireModels.get(i).getID());
-                    questionModel.setQuestionText(questionnaireModels.get(i).getQuestionText());
-                    questionModel.setZOrder(questionnaireModels.get(i).getZOrderQuestion());
-                    questionModel.setCode(questionnaireModels.get(i).getCode());
-                    questionModel.setType(questionnaireModels.get(i).getType());
-                    //questionModel.setMaxResponseCount(questionnaireModels.get(i).getMaxResponseCount());
-                    questionModel.setMaxResponseCount(6);
-                }
-                questionnaireModelList.add(questionnaireModels.get(i));
+                questionModel = new QuestionModel(Parcel.obtain());
+                questionModel.setID(questionnaireModels.get(i).getID());
+                questionModel.setQuestionText(questionnaireModels.get(i).getQuestionText());
+                questionModel.setZOrder(questionnaireModels.get(i).getZOrderQuestion());
+                questionModel.setCode(questionnaireModels.get(i).getCode());
+                questionModel.setType(questionnaireModels.get(i).getType());
+                //questionModel.setMaxResponseCount(questionnaireModels.get(i).getMaxResponseCount());
+                questionModel.setMaxResponseCount(6);
             }
+            questionnaireModelList.add(questionnaireModels.get(i));
         }
 
         if (questionnaireModelList != null && questionnaireModelList.size() > 0)
@@ -543,6 +541,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                             }
                         }
                         pathList.add(questionModel.getID());
+
+
+                        projectQuestionnaireModels = mySQLiteHelper.getListQuestionnaireByQuestionId(questionIds.get(currentIndexQuestionID));
                         getNextQuestion(projectQuestionnaireModels);
                         break;
                 }

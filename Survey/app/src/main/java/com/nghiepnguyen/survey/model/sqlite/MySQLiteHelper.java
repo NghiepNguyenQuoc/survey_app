@@ -33,7 +33,8 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 
     // TABLE_QUESTIONNAIRE Columns names
     private static final String KEY_ID = "ID";
-    private static final String KEY_QUESTIONNAIREID = "QuestionnaireID";
+    private static final String KEY_PROJECT_ID = "ProjectID";
+    private static final String KEY_QUESTIONNAIRE_ID = "QuestionnaireID";
     private static final String KEY_TYPE = "Type";
     private static final String KEY_ZORDERQUESTION = "ZOrderQuestion";
     private static final String KEY_VALUE = "Value";
@@ -47,13 +48,15 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     private static final String KEY_ZORDEROPTION = "ZOrderOption";
     private static final String KEY_OTHEROPTION = "otherOption";
 
-    private static final String[] COLUMNS = {KEY_ID, KEY_QUESTIONNAIREID, KEY_TYPE, KEY_ZORDERQUESTION, KEY_VALUE, KEY_ALLOW_INPUT_TEXT, KEY_IS_SELECTED, KEY_MAXRESPONSECOUNT, KEY_CODE, KEY_QUESTIONTEXT,
+    private static final String[] COLUMNS = {KEY_ID, KEY_PROJECT_ID, KEY_QUESTIONNAIRE_ID, KEY_TYPE, KEY_ZORDERQUESTION, KEY_VALUE, KEY_ALLOW_INPUT_TEXT, KEY_IS_SELECTED, KEY_MAXRESPONSECOUNT, KEY_CODE, KEY_QUESTIONTEXT,
             KEY_CAPTION, KEY_DESCRIPTION, KEY_ZORDEROPTION, KEY_OTHEROPTION};
 
     // Table Create Statements
     // TABLE_QUESTIONNAIRE table create statement
     private static final String CREATE_QUESTIONNAIRE_TABLE = "CREATE TABLE " + TABLE_QUESTIONNAIRE + " ( " +
-            "ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            "QuestionnaireIndex INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            "ID INTEGER, " +
+            "ProjectID INTEGER, " +
             "QuestionnaireID INTEGER, " +
             "Type INTEGER, " +
             "ZOrderQuestion INTEGER, " +
@@ -98,15 +101,17 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     /**
      * Creating a Questionnaire
      */
-    public void addQuestionnaire(QuestionnaireModel questionnaireModel) {
+    public void addQuestionnaire(QuestionnaireModel questionnaireModel, int projectId) {
         Log.d("questionnaireModel", questionnaireModel.toString());
         // 1. get reference to writable DB
         SQLiteDatabase db = this.getWritableDatabase();
 
         // 2. create ContentValues to add key "column"/value
         ContentValues values = new ContentValues();
+        values.put(KEY_ID, questionnaireModel.getID());
+        values.put(KEY_PROJECT_ID, projectId);
         values.put(KEY_TYPE, questionnaireModel.getType());
-        values.put(KEY_QUESTIONNAIREID, questionnaireModel.getQuestionnaireID());
+        values.put(KEY_QUESTIONNAIRE_ID, questionnaireModel.getQuestionnaireID());
         values.put(KEY_ZORDERQUESTION, questionnaireModel.getZOrderQuestion());
         values.put(KEY_VALUE, questionnaireModel.getValue());
         values.put(KEY_ALLOW_INPUT_TEXT, questionnaireModel.getAllowInputText());
@@ -129,49 +134,67 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * get single Questionnaire
+     * get number record by projectid
      */
-    public QuestionnaireModel getQuestionnaireModel(int id) {
+    public int getCountQuestionnaireByProjectId(int projectid) {
+        List<QuestionnaireModel> questionnaireModels = new ArrayList<>();
 
-        // 1. get reference to readable DB
-        SQLiteDatabase db = this.getReadableDatabase();
+        // 1. build the query
+        String query = "SELECT  count(*) FROM " + TABLE_QUESTIONNAIRE + " WHERE " + KEY_PROJECT_ID + "=" + projectid;
 
-        // 2. build query
-        Cursor cursor =
-                db.query(TABLE_QUESTIONNAIRE, // a. table
-                        COLUMNS, // b. column names
-                        " id = ?", // c. selections
-                        new String[]{String.valueOf(id)}, // d. selections args
-                        null, // e. group by
-                        null, // f. having
-                        null, // g. order by
-                        null); // h. limit
+        // 2. get reference to writable DB
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
 
-        // 3. if we got results get the first one
-        if (cursor != null)
-            cursor.moveToFirst();
+        // 3. go over each row
+        if (cursor.moveToFirst()) {
+            return Integer.parseInt(cursor.getString(0));
+        }
+        return 0;
+    }
 
-        // 4. build questionnaireModel object
-        QuestionnaireModel questionnaireModel = new QuestionnaireModel(Parcel.obtain());
-        questionnaireModel.setID(Integer.parseInt(cursor.getString(0)));
-        questionnaireModel.setQuestionnaireID(Integer.parseInt(cursor.getString(1)));
-        questionnaireModel.setType(Integer.parseInt(cursor.getString(2)));
-        questionnaireModel.setZOrderQuestion(Integer.parseInt(cursor.getString(3)));
-        questionnaireModel.setValue(Integer.parseInt(cursor.getString(4)));
-        questionnaireModel.setAllowInputText(Integer.parseInt(cursor.getString(5)));
-        questionnaireModel.setIsSelected(Integer.parseInt(cursor.getString(6)));
-        questionnaireModel.setMaxResponseCount(Integer.parseInt(cursor.getString(7)));
-        questionnaireModel.setCode(cursor.getString(8));
-        questionnaireModel.setQuestionText(cursor.getString(9));
-        questionnaireModel.setCaption(cursor.getString(10));
-        questionnaireModel.setDescription(cursor.getString(11));
-        questionnaireModel.setZOrderOption(cursor.getString(12));
-        questionnaireModel.setOtherOption(cursor.getString(13));
+    /**
+     * get Questionnaires
+     */
+    public List<QuestionnaireModel> getListQuestionnaireByQuestionId(int id) {
+        List<QuestionnaireModel> questionnaireModels = new ArrayList<>();
 
-        Log.d("getQuestionnaire(" + id + ")", questionnaireModel.toString());
+        // 1. build the query
+        String query = "SELECT  * FROM " + TABLE_QUESTIONNAIRE + " WHERE ID=" + id;
 
-        // 5. return questionnaire
-        return questionnaireModel;
+        // 2. get reference to writable DB
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+
+        // 3. go over each row, build questionnaireModel and add it to list
+        QuestionnaireModel questionnaireModel = null;
+        if (cursor.moveToFirst()) {
+            do {
+                questionnaireModel = new QuestionnaireModel(Parcel.obtain());
+                questionnaireModel.setID(Integer.parseInt(cursor.getString(1)));
+                questionnaireModel.setProjectID(Integer.parseInt(cursor.getString(2)));
+                questionnaireModel.setQuestionnaireID(Integer.parseInt(cursor.getString(3)));
+                questionnaireModel.setType(Integer.parseInt(cursor.getString(4)));
+                questionnaireModel.setZOrderQuestion(Integer.parseInt(cursor.getString(5)));
+                questionnaireModel.setValue(Integer.parseInt(cursor.getString(6)));
+                questionnaireModel.setAllowInputText(Integer.parseInt(cursor.getString(7)));
+                questionnaireModel.setIsSelected(Integer.parseInt(cursor.getString(8)));
+                questionnaireModel.setMaxResponseCount(Integer.parseInt(cursor.getString(9)));
+                questionnaireModel.setCode(cursor.getString(10));
+                questionnaireModel.setQuestionText(cursor.getString(11));
+                questionnaireModel.setCaption(cursor.getString(12));
+                questionnaireModel.setDescription(cursor.getString(13));
+                questionnaireModel.setZOrderOption(cursor.getString(14));
+                questionnaireModel.setOtherOption(cursor.getString(15));
+
+                // Add questionnaireModel to questionnaireModel
+                questionnaireModels.add(questionnaireModel);
+            } while (cursor.moveToNext());
+        }
+
+        // return questionnaireModels
+        return questionnaireModels;
+
     }
 
     /**
@@ -192,30 +215,56 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             do {
                 questionnaireModel = new QuestionnaireModel(Parcel.obtain());
-                questionnaireModel.setID(Integer.parseInt(cursor.getString(0)));
-                questionnaireModel.setQuestionnaireID(Integer.parseInt(cursor.getString(1)));
-                questionnaireModel.setType(Integer.parseInt(cursor.getString(2)));
-                questionnaireModel.setZOrderQuestion(Integer.parseInt(cursor.getString(3)));
-                questionnaireModel.setValue(Integer.parseInt(cursor.getString(4)));
-                questionnaireModel.setAllowInputText(Integer.parseInt(cursor.getString(5)));
-                questionnaireModel.setIsSelected(Integer.parseInt(cursor.getString(6)));
-                questionnaireModel.setMaxResponseCount(Integer.parseInt(cursor.getString(7)));
-                questionnaireModel.setCode(cursor.getString(8));
-                questionnaireModel.setQuestionText(cursor.getString(9));
-                questionnaireModel.setCaption(cursor.getString(10));
-                questionnaireModel.setDescription(cursor.getString(11));
-                questionnaireModel.setZOrderOption(cursor.getString(12));
-                questionnaireModel.setOtherOption(cursor.getString(13));
+                questionnaireModel.setID(Integer.parseInt(cursor.getString(1)));
+                questionnaireModel.setProjectID(Integer.parseInt(cursor.getString(2)));
+                questionnaireModel.setQuestionnaireID(Integer.parseInt(cursor.getString(3)));
+                questionnaireModel.setType(Integer.parseInt(cursor.getString(4)));
+                questionnaireModel.setZOrderQuestion(Integer.parseInt(cursor.getString(5)));
+                questionnaireModel.setValue(Integer.parseInt(cursor.getString(6)));
+                questionnaireModel.setAllowInputText(Integer.parseInt(cursor.getString(7)));
+                questionnaireModel.setIsSelected(Integer.parseInt(cursor.getString(8)));
+                questionnaireModel.setMaxResponseCount(Integer.parseInt(cursor.getString(9)));
+                questionnaireModel.setCode(cursor.getString(10));
+                questionnaireModel.setQuestionText(cursor.getString(11));
+                questionnaireModel.setCaption(cursor.getString(12));
+                questionnaireModel.setDescription(cursor.getString(13));
+                questionnaireModel.setZOrderOption(cursor.getString(14));
+                questionnaireModel.setOtherOption(cursor.getString(15));
 
                 // Add questionnaireModel to questionnaireModel
                 questionnaireModels.add(questionnaireModel);
             } while (cursor.moveToNext());
         }
 
-        Log.d("getAllQuestionnaire()", questionnaireModels.toString());
-
         // return questionnaireModels
         return questionnaireModels;
+    }
+
+
+    /**
+     * getting all QuestionID
+     */
+    public List<Integer> getAllQuestionID() {
+        List<Integer> questionIds = new ArrayList<>();
+
+        // 1. build the query
+        String query = "SELECT " + KEY_ID + " FROM " + TABLE_QUESTIONNAIRE + " GROUP BY " + KEY_ID;
+
+        // 2. get reference to writable DB
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+
+        // 3. go over each row, build questionnaireModel and add it to list
+        int id;
+        if (cursor.moveToFirst()) {
+            do {
+                id = Integer.parseInt(cursor.getString(0));
+                questionIds.add(id);
+            } while (cursor.moveToNext());
+        }
+
+        // return questionIds
+        return questionIds;
     }
 
     /**
@@ -228,8 +277,10 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 
         // 2. create ContentValues to add key "column"/value
         ContentValues values = new ContentValues();
-        values.put(KEY_QUESTIONNAIREID, questionnaireModel.getQuestionnaireID());
+        values.put(KEY_ID, questionnaireModel.getID());
+        values.put(KEY_PROJECT_ID, questionnaireModel.getProjectID());
         values.put(KEY_TYPE, questionnaireModel.getType());
+        values.put(KEY_QUESTIONNAIRE_ID, questionnaireModel.getQuestionnaireID());
         values.put(KEY_ZORDERQUESTION, questionnaireModel.getZOrderQuestion());
         values.put(KEY_VALUE, questionnaireModel.getValue());
         values.put(KEY_ALLOW_INPUT_TEXT, questionnaireModel.getAllowInputText());
