@@ -4,6 +4,7 @@ import android.content.DialogInterface;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcel;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.AppCompatEditText;
@@ -34,7 +35,7 @@ import com.nghiepnguyen.survey.model.MemberModel;
 import com.nghiepnguyen.survey.model.ProjectModel;
 import com.nghiepnguyen.survey.model.QuestionModel;
 import com.nghiepnguyen.survey.model.QuestionnaireModel;
-import com.nghiepnguyen.survey.model.sqlite.MySQLiteHelper;
+import com.nghiepnguyen.survey.model.sqlite.QuestionaireSQLiteHelper;
 import com.nghiepnguyen.survey.networking.SurveyApiWrapper;
 import com.nghiepnguyen.survey.storage.UserInfoManager;
 import com.nghiepnguyen.survey.utils.Constant;
@@ -68,7 +69,6 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
     //private UserInfoModel currentUser;
     private MemberModel currentMember;
-    private List<QuestionnaireModel> projectQuestionnaireModels;
     private List<QuestionnaireModel> questionnaireModelList;
     private QuestionModel questionModel;
     private ProjectModel projectModel;
@@ -82,7 +82,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     private AppCompatRadioButton mSelectedRB;// current RadioButton when user focus
     private int mSelectedPosition = -1;// current position in adapter
 
-    private MySQLiteHelper mySQLiteHelper;
+    private QuestionaireSQLiteHelper questionaireSQLiteHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,17 +111,30 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
+        //super.onBackPressed();
+        AlertDialog.Builder customBuilder = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
+        customBuilder.setTitle(getString(R.string.title_confirm));
+        customBuilder.setMessage(getString(R.string.txt_save_project_message));
+        customBuilder.setPositiveButton(getString(R.string.button_save_survey), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                // save survey ...
+            }
+        });
+        customBuilder.setNegativeButton(getString(R.string.button_exit), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                ProjectSurveyActivity.this.finish();
+            }
+        });
+        customBuilder.show();
     }
 
 
     private void initView() {
         Toolbar mToolbar = (Toolbar) findViewById(R.id.activity_project_survey_toolbar);
-        mProgressBar = (ProgressBar) findViewById(R.id.activity_project_survey_loading_progress_bar);
         mQuestionContentTextView = (TextView) findViewById(R.id.activity_project_survey_question_content_textview);
-        //mOtherOptionEditText = (EditText) findViewById(R.id.activity_project_survey_other_option_edittext);
         Button mNextQuestionButton = (Button) findViewById(R.id.activity_project_survey_next_question_button);
-        Button mSaveSurveyButton = (Button) findViewById(R.id.activity_project_survey_save_survey_button);
         mProgressBar = (ProgressBar) findViewById(R.id.activity_project_survey_loading_progress_bar);
         mOptionLinearLayout = (LinearLayout) findViewById(R.id.activity_project_survey_option_linearlayout);
 
@@ -140,6 +153,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     // get data from Intent or Storage
     private void initDataToComponets() {
         projectModel = getIntent().getParcelableExtra(Constant.BUNDLE_QUESTION);
+        assert getSupportActionBar() != null;
         getSupportActionBar().setTitle(projectModel.getName());
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
@@ -149,7 +163,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         currentMember = UserInfoManager.getMemberInfo(this);
 
         // Database Helper
-        mySQLiteHelper = new MySQLiteHelper(getApplicationContext());
+        questionaireSQLiteHelper = new QuestionaireSQLiteHelper(getApplicationContext());
     }
 
     private void callApiToCheckCompletedProject(String secrectToken, int userId, int projectId) {
@@ -168,9 +182,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                             AlertDialog.Builder customBuilder = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
                             customBuilder.setCancelable(false);
                             // check more condition in here, IsSucessfull=false;
-                            customBuilder.setTitle(getResources().getString(R.string.title_notice));
+                            customBuilder.setTitle(getString(R.string.title_notice));
                             customBuilder.setMessage(completedProject.getDescription());
-                            customBuilder.setPositiveButton(getResources().getString(R.string.button_ok), new DialogInterface.OnClickListener() {
+                            customBuilder.setPositiveButton(getString(R.string.button_ok), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     ProjectSurveyActivity.this.finish();
@@ -217,25 +231,18 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 },*/
 
                 runOnUiThread(new Runnable() {
+                    @SuppressWarnings("unchecked")
                     @Override
                     public void run() {
-                        projectQuestionnaireModels = (List<QuestionnaireModel>) data;
-                        if (projectQuestionnaireModels != null && projectQuestionnaireModels.size() > 0) {
-                            if (mySQLiteHelper.getCountQuestionnaireByProjectId(projectId) == 0)
-                                for (QuestionnaireModel item : projectQuestionnaireModels)
-                                    mySQLiteHelper.addQuestionnaire(item, projectId);
+                        List<QuestionnaireModel> allDataOfProject = (List<QuestionnaireModel>) data;
+                        if (allDataOfProject != null && allDataOfProject.size() > 0) {
+                            if (questionaireSQLiteHelper.getCountQuestionnaireByProjectId(projectId) == 0)
+                                for (QuestionnaireModel item : allDataOfProject)
+                                    questionaireSQLiteHelper.addQuestionnaire(item, projectId);
 
-                            questionIds = mySQLiteHelper.getAllQuestionID();
-                            projectQuestionnaireModels = mySQLiteHelper.getListQuestionnaireByQuestionId(questionIds.get(currentIndexQuestionID++));
-                            getNextQuestion(projectQuestionnaireModels);
+                            questionIds = questionaireSQLiteHelper.getAllQuestionIDByProjectId(projectId);
+                            getNextQuestion();
                             mProgressBar.setVisibility(View.GONE);
-                        } else {
-                            // finished survey
-                            if (pathList.size() == projectModel.getQuestionCount()) {
-                                saveResultSurvey(1);
-                            } else {// kick out of survey
-                                saveResultSurvey(0);
-                            }
                         }
                     }
                 });
@@ -253,29 +260,60 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         });
     }
 
-    private void getNextQuestion(List<QuestionnaireModel> questionnaireModels) {
-        questionnaireModelList = new ArrayList<>();
-        for (int i = 0; i < questionnaireModels.size(); i++) {
-            if (i == 0) {
-                Spannable wordtoSpan = new SpannableString(questionnaireModels.get(i).getCode() + ". " + questionnaireModels.get(i).getQuestionText());
-                wordtoSpan.setSpan(new RelativeSizeSpan(2f), 0, questionnaireModels.get(i).getCode().length() + 1, 0); // set size
-                wordtoSpan.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.cl_pink)), 0, questionnaireModels.get(i).getCode().length() + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                mQuestionContentTextView.setText(wordtoSpan);
+    private void getNextQuestion() {
+        mProgressBar.setVisibility(View.VISIBLE);
+        if (currentIndexQuestionID < questionIds.size()) {
+            // get all option and question
+            List<QuestionnaireModel> questionnaireModels = questionaireSQLiteHelper.getListQuestionnaireByQuestionId(questionIds.get(currentIndexQuestionID++));
 
-                questionModel = new QuestionModel(Parcel.obtain());
-                questionModel.setID(questionnaireModels.get(i).getID());
-                questionModel.setQuestionText(questionnaireModels.get(i).getQuestionText());
-                questionModel.setZOrder(questionnaireModels.get(i).getZOrderQuestion());
-                questionModel.setCode(questionnaireModels.get(i).getCode());
-                questionModel.setType(questionnaireModels.get(i).getType());
-                //questionModel.setMaxResponseCount(questionnaireModels.get(i).getMaxResponseCount());
-                questionModel.setMaxResponseCount(6);
+            // clear questionnaireModelList
+            if (questionnaireModelList == null)
+                questionnaireModelList = new ArrayList<>();
+            questionnaireModelList.clear();
+
+            // get new questionnaireModelList
+            for (int i = 0; i < questionnaireModels.size(); i++) {
+                if (i == 0) {
+                    Spannable wordtoSpan = new SpannableString(questionnaireModels.get(i).getCode() + ". " + questionnaireModels.get(i).getQuestionText());
+                    wordtoSpan.setSpan(new RelativeSizeSpan(2f), 0, questionnaireModels.get(i).getCode().length() + 1, 0); // set size
+                    wordtoSpan.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, R.color.cl_pink)), 0, questionnaireModels.get(i).getCode().length() + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    mQuestionContentTextView.setText(wordtoSpan);
+
+                    questionModel = new QuestionModel(Parcel.obtain());
+                    questionModel.setID(questionnaireModels.get(i).getID());
+                    questionModel.setQuestionText(questionnaireModels.get(i).getQuestionText());
+                    questionModel.setZOrder(questionnaireModels.get(i).getZOrderQuestion());
+                    questionModel.setCode(questionnaireModels.get(i).getCode());
+                    questionModel.setType(questionnaireModels.get(i).getType());
+                    questionModel.setMaxResponseCount(questionnaireModels.get(i).getMaxResponseCount());
+                }
+                questionnaireModelList.add(questionnaireModels.get(i));
             }
-            questionnaireModelList.add(questionnaireModels.get(i));
-        }
 
-        if (questionnaireModelList != null && questionnaireModelList.size() > 0)
-            generateOption(mOptionLinearLayout, questionnaireModelList);
+            // generate options
+            if (questionnaireModelList != null && questionnaireModelList.size() > 0)
+                generateOption(mOptionLinearLayout, questionnaireModelList);
+
+            mProgressBar.setVisibility(View.GONE);
+        } else {
+           /* // finished survey
+            if (pathList.size() == projectModel.getQuestionCount()) {
+                saveResultSurvey(1);
+            } else {// kick out of survey
+                saveResultSurvey(0);
+            }*/
+            AlertDialog.Builder customBuilder = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
+            customBuilder.setCancelable(false);
+            customBuilder.setTitle(getString(R.string.title_notice));
+            customBuilder.setMessage(getString(R.string.txt_completed_survey));
+            customBuilder.setPositiveButton(getString(R.string.button_ok), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    ProjectSurveyActivity.this.finish();
+                }
+            });
+            customBuilder.show();
+        }
     }
 
     private void generateOption(LinearLayout mainView, final List<QuestionnaireModel> questionnaireList) {
@@ -295,7 +333,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
                 // create radio button
                 AppCompatRadioButton radioButton = new AppCompatRadioButton(this);
-                radioButton.setId(item.getID());
+                radioButton.setId(item.getOptionID());
                 radioButton.setText(item.getDescription());
                 radioButton.setPadding(0, Constant.dpToPx(10, this), 0, Constant.dpToPx(10, this));
 
@@ -308,7 +346,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
                     // create linearlayout add edittext
                     AppCompatEditText editText = new AppCompatEditText(this);
-                    editText.setId(item.getID() * 10);
+                    editText.setId(item.getOptionID() * 10);
                     editText.setVisibility(View.GONE);
                     linearLayout2.addView(editText, params);
 
@@ -317,7 +355,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 } else {
                     // create radio button
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                        radioButton.setBackground(getResources().getDrawable(R.drawable.radio_group_divider));
+                        radioButton.setBackground(ContextCompat.getDrawable(this, R.drawable.radio_group_divider));
                     }
 
                     // add it to radio group
@@ -340,11 +378,11 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
                             // set allow input
                             AppCompatEditText editText;
-                            if (buttonView.getId() == item.getID() && buttonView.isChecked() && item.getAllowInputText() == 1) {
+                            if (buttonView.getId() == item.getOptionID() && buttonView.isChecked() && item.getAllowInputText() == 1) {
                                 editText = (AppCompatEditText) findViewById(buttonView.getId() * 10);
                                 editText.setVisibility(View.VISIBLE);
                                 editText.requestFocus();
-                            } else if (buttonView.getId() == item.getID() && !buttonView.isChecked() && item.getAllowInputText() == 1) {
+                            } else if (buttonView.getId() == item.getOptionID() && !buttonView.isChecked() && item.getAllowInputText() == 1) {
                                 editText = (AppCompatEditText) findViewById(buttonView.getId() * 10);
                                 editText.setVisibility(View.GONE);
                             }
@@ -354,7 +392,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             } else if (item.getType() == 1) {
                 // create radio button
                 AppCompatCheckBox checkBox = new AppCompatCheckBox(this);
-                checkBox.setId(item.getID());
+                checkBox.setId(item.getOptionID());
                 checkBox.setText(item.getDescription());
                 checkBox.setPadding(0, Constant.dpToPx(10, this), 0, Constant.dpToPx(10, this));
 
@@ -366,7 +404,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
                     // create linearlayout add edittext
                     AppCompatEditText editText = new AppCompatEditText(this);
-                    editText.setId(item.getID() * 10);
+                    editText.setId(item.getOptionID() * 10);
                     editText.setVisibility(View.GONE);
                     linearLayout.addView(editText, params);
 
@@ -375,7 +413,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 } else {
                     // create radio button
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                        checkBox.setBackground(getResources().getDrawable(R.drawable.radio_group_divider));
+                        checkBox.setBackground(ContextCompat.getDrawable(this, R.drawable.radio_group_divider));
                     }
                     // add it to radio group
                     linearLayout1.addView(checkBox, params);
@@ -387,11 +425,11 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                         for (QuestionnaireModel item : questionnaireList) {
                             // set allow input
                             AppCompatEditText editText;
-                            if (buttonView.getId() == item.getID() && buttonView.isChecked() && item.getAllowInputText() == 1) {
+                            if (buttonView.getId() == item.getOptionID() && buttonView.isChecked() && item.getAllowInputText() == 1) {
                                 editText = (AppCompatEditText) findViewById(buttonView.getId() * 10);
                                 editText.setVisibility(View.VISIBLE);
                                 editText.requestFocus();
-                            } else if (buttonView.getId() == item.getID() && !buttonView.isChecked() && item.getAllowInputText() == 1) {
+                            } else if (buttonView.getId() == item.getOptionID() && !buttonView.isChecked() && item.getAllowInputText() == 1) {
                                 editText = (AppCompatEditText) findViewById(buttonView.getId() * 10);
                                 editText.setVisibility(View.GONE);
                             }
@@ -403,8 +441,8 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         }
 
         // add group to main view
-        if (mainView != null)
-            mainView.removeView(linearLayout1);
+        assert mainView != null;
+        mainView.removeAllViews();
         mainView.addView(linearLayout1);
     }
 
@@ -426,9 +464,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                         AlertDialog.Builder customBuilder = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
                         customBuilder.setCancelable(false);
                         if (isCompleted == 1) {
-                            customBuilder.setTitle(getResources().getString(R.string.title_confirm));
+                            customBuilder.setTitle(getString(R.string.title_confirm));
                             customBuilder.setMessage(showMessageCompletedProject(messageModel));
-                            customBuilder.setPositiveButton(getResources().getString(R.string.button_ok), new DialogInterface.OnClickListener() {
+                            customBuilder.setPositiveButton(getString(R.string.button_ok), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     ProjectSurveyActivity.this.finish();
@@ -439,13 +477,13 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                             dialog.show();
                             Button b = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
                             if (b != null) {
-                                b.setTextColor(getResources().getColor(R.color.colorPrimary));
+                                b.setTextColor(ContextCompat.getColor(ProjectSurveyActivity.this, R.color.colorPrimary));
                             }
                         } else {
                             // check more condition in here, IsSucessfull=false;
-                            customBuilder.setTitle(getResources().getString(R.string.title_notice));
-                            customBuilder.setMessage(getResources().getString(R.string.txt_not_suitable_option));
-                            customBuilder.setPositiveButton(getResources().getString(R.string.button_ok), new DialogInterface.OnClickListener() {
+                            customBuilder.setTitle(getString(R.string.title_notice));
+                            customBuilder.setMessage(getString(R.string.txt_not_suitable_option));
+                            customBuilder.setPositiveButton(getString(R.string.button_ok), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     ProjectSurveyActivity.this.finish();
@@ -476,23 +514,23 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             case R.id.activity_project_survey_next_question_button:
 
                 AlertDialog.Builder dialog = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
-                dialog.setTitle(getResources().getString(R.string.title_attention));
-                dialog.setPositiveButton(getResources().getString(R.string.button_ok), null);
+                dialog.setTitle(getString(R.string.title_attention));
+                dialog.setPositiveButton(getString(R.string.button_ok), null);
 
                 // collect data from view
                 for (QuestionnaireModel item : questionnaireModelList) {
                     if (questionModel.getType() == 0 || questionModel.getType() == 2) {
-                        RadioButton radioButon = (RadioButton) mOptionLinearLayout.findViewById(item.getID());
+                        RadioButton radioButon = (RadioButton) mOptionLinearLayout.findViewById(item.getOptionID());
                         item.setIsSelected(radioButon.isChecked() ? 1 : 0);
                         if (radioButon.isChecked() && item.getAllowInputText() == 1) {
-                            EditText editText = (EditText) mOptionLinearLayout.findViewById(item.getID() * 10);
+                            EditText editText = (EditText) mOptionLinearLayout.findViewById(item.getOptionID() * 10);
                             item.setOtherOption(editText.getText().toString());
                         }
                     } else {
-                        CheckBox checkBox = (CheckBox) mOptionLinearLayout.findViewById(item.getID());
+                        CheckBox checkBox = (CheckBox) mOptionLinearLayout.findViewById(item.getOptionID());
                         item.setIsSelected(checkBox.isChecked() ? 1 : 0);
                         if (checkBox.isChecked() && item.getAllowInputText() == 1) {
-                            EditText editText = (EditText) mOptionLinearLayout.findViewById(item.getID() * 10);
+                            EditText editText = (EditText) mOptionLinearLayout.findViewById(item.getOptionID() * 10);
                             item.setOtherOption(editText.getText().toString());
                         }
                     }
@@ -502,7 +540,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 //check maxAnswer
                 boolean isMaxAnswer = checkMaxMaxResponse(questionModel.getType(), questionModel.getMaxResponseCount(), questionnaireModelList);
                 if (!isMaxAnswer) {
-                    dialog.setMessage(String.format(getResources().getString(R.string.txt_over_max_answer), questionModel.getMaxResponseCount()));
+                    dialog.setMessage(String.format(getString(R.string.txt_over_max_answer), questionModel.getMaxResponseCount()));
                     dialog.show();
                     return;
                 }
@@ -510,7 +548,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 //check emty
                 boolean isEmtyAnswer = checkEmtyAnswer(questionModel.getType(), questionnaireModelList);
                 if (!isEmtyAnswer) {
-                    dialog.setMessage(getResources().getString(R.string.txt_emty_answer));
+                    dialog.setMessage(getString(R.string.txt_emty_answer));
                     dialog.show();
                     return;
                 }
@@ -518,7 +556,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 // check logic
                 boolean isLogicAnswer = checkLogicAnswer(questionModel.getType(), questionnaireModelList);
                 if (!isLogicAnswer) {
-                    dialog.setMessage(getResources().getString(R.string.txt_emty_other_option));
+                    dialog.setMessage(getString(R.string.txt_emty_other_option));
                     dialog.show();
                     return;
                 }
@@ -541,10 +579,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                             }
                         }
                         pathList.add(questionModel.getID());
-
-
-                        projectQuestionnaireModels = mySQLiteHelper.getListQuestionnaireByQuestionId(questionIds.get(currentIndexQuestionID));
-                        getNextQuestion(projectQuestionnaireModels);
+                        getNextQuestion();
                         break;
                 }
                 break;
@@ -603,8 +638,8 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             case "OK":
                 return message.getDescription();
             case "USER_RESPONSE_MARK":
-                return String.format(getResources().getString(R.string.txt_completed_survey_mark), message.getResult());
+                return String.format(getString(R.string.txt_completed_survey_mark), message.getResult());
         }
-        return getResources().getString(R.string.txt_completed_survey);
+        return getString(R.string.txt_completed_survey);
     }
 }

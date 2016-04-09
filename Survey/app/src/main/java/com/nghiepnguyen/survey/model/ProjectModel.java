@@ -6,8 +6,78 @@ import android.os.Parcelable;
 /**
  * Created by nghiep on 11/22/15.
  */
-public class ProjectModel implements Parcelable{
+public class ProjectModel implements Parcelable {
     private int ID;
+    private String Name;
+    private String Description;
+    private String Image1;
+
+
+    protected ProjectModel(Parcel in) {
+        ID = in.readInt();
+        Name = in.readString();
+        Description = in.readString();
+        Image1 = in.readString();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(ID);
+        dest.writeString(Name);
+        dest.writeString(Description);
+        dest.writeString(Image1);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<ProjectModel> CREATOR = new Creator<ProjectModel>() {
+        @Override
+        public ProjectModel createFromParcel(Parcel in) {
+            return new ProjectModel(in);
+        }
+
+        @Override
+        public ProjectModel[] newArray(int size) {
+            return new ProjectModel[size];
+        }
+    };
+
+    public int getID() {
+        return ID;
+    }
+
+    public void setID(int ID) {
+        this.ID = ID;
+    }
+
+    public String getName() {
+        return Name;
+    }
+
+    public void setName(String name) {
+        Name = name;
+    }
+
+    public String getDescription() {
+        return Description;
+    }
+
+    public void setDescription(String description) {
+        Description = description;
+    }
+
+    public String getImage1() {
+        return Image1;
+    }
+
+    public void setImage1(String image1) {
+        Image1 = image1;
+    }
+
+    /*private int ID;
     private String Code;
     private String Name;
     private String Summary;
@@ -493,5 +563,5 @@ public class ProjectModel implements Parcelable{
         parcel.writeByte((byte) (HouseholdIncomeRequired ? 1 : 0));
         parcel.writeByte((byte) (DistrictRequired ? 1 : 0));
         parcel.writeByte((byte) (WardRequired ? 1 : 0));
-    }
+    }*/
 }

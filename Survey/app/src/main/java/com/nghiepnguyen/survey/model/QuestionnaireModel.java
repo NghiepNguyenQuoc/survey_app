@@ -7,6 +7,7 @@ import android.os.Parcelable;
  * Created by 08670_000 on 21/03/2016.
  */
 public class QuestionnaireModel implements Parcelable {
+    private int OptionID;
     private int ID;
     private int ProjectID;
     private int QuestionnaireID;
@@ -24,6 +25,7 @@ public class QuestionnaireModel implements Parcelable {
     private String otherOption;
 
     public QuestionnaireModel(Parcel in) {
+        OptionID = in.readInt();
         ID = in.readInt();
         ProjectID = in.readInt();
         QuestionnaireID = in.readInt();
@@ -52,6 +54,14 @@ public class QuestionnaireModel implements Parcelable {
             return new QuestionnaireModel[size];
         }
     };
+
+    public int getOptionID() {
+        return OptionID;
+    }
+
+    public void setOptionID(int optionID) {
+        OptionID = optionID;
+    }
 
     public int getID() {
         return ID;
@@ -180,6 +190,7 @@ public class QuestionnaireModel implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(OptionID);
         dest.writeInt(ID);
         dest.writeInt(ProjectID);
         dest.writeInt(QuestionnaireID);
