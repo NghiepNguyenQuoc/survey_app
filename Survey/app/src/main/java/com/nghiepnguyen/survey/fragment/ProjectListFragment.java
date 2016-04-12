@@ -1,12 +1,11 @@
 package com.nghiepnguyen.survey.fragment;
 
 import android.app.Activity;
-import android.support.v7.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,7 +20,9 @@ import com.nghiepnguyen.survey.adapter.ProjectListAdapter;
 import com.nghiepnguyen.survey.model.CommonErrorModel;
 import com.nghiepnguyen.survey.model.MemberModel;
 import com.nghiepnguyen.survey.model.ProjectModel;
-import com.nghiepnguyen.survey.model.UserInfoModel;
+import com.nghiepnguyen.survey.model.QuestionnaireModel;
+import com.nghiepnguyen.survey.model.sqlite.ProjectSQLiteHelper;
+import com.nghiepnguyen.survey.model.sqlite.QuestionaireSQLiteHelper;
 import com.nghiepnguyen.survey.networking.SurveyApiWrapper;
 import com.nghiepnguyen.survey.storage.UserInfoManager;
 import com.nghiepnguyen.survey.utils.Constant;
@@ -40,6 +41,8 @@ public class ProjectListFragment extends Fragment implements AdapterView.OnItemC
     MemberModel memberInfo;
 
     private ListView mProjectListListView;
+    private ProjectSQLiteHelper projectSQLiteHelper;
+
 
     @Override
     public void onAttach(Activity activity) {
@@ -63,6 +66,8 @@ public class ProjectListFragment extends Fragment implements AdapterView.OnItemC
         super.onActivityCreated(savedInstanceState);
         initView();
         memberInfo = UserInfoManager.getMemberInfo(mActivity);
+        projectSQLiteHelper = new ProjectSQLiteHelper(mActivity);
+
         callApiGetProjectList();
     }
 
@@ -104,10 +109,14 @@ public class ProjectListFragment extends Fragment implements AdapterView.OnItemC
                     @Override
                     public void run() {
                         List<ProjectModel> projectList = (List<ProjectModel>) data;
-                        ProjectListAdapter adapter = new ProjectListAdapter(mActivity, projectList);
-                        mProjectListListView.setAdapter(adapter);
-                        loadingProgressBar.setVisibility(View.GONE);
+                        if (projectList != null && projectList.size() > 0) {
+                            for (ProjectModel item : projectList)
+                                projectSQLiteHelper.addProject(item);
 
+                            ProjectListAdapter adapter = new ProjectListAdapter(mActivity, projectList);
+                            mProjectListListView.setAdapter(adapter);
+                            loadingProgressBar.setVisibility(View.GONE);
+                        }
                     }
                 });
 

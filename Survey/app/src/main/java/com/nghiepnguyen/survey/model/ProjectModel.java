@@ -13,7 +13,7 @@ public class ProjectModel implements Parcelable {
     private String Image1;
 
 
-    protected ProjectModel(Parcel in) {
+    public ProjectModel(Parcel in) {
         ID = in.readInt();
         Name = in.readString();
         Description = in.readString();
