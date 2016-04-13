@@ -21,7 +21,7 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
     public static final String TABLE_QUESTIONNAIRE = "questionnaire";
 
     // TABLE_QUESTIONNAIRE Columns names
-    private static final String KEY_OPTION_ID = "OptionID";
+    private static final String KEY_IDENTITY = "identity";
     private static final String KEY_ID = "ID";
     private static final String KEY_PROJECT_ID = "ProjectID";
     private static final String KEY_QUESTIONNAIRE_ID = "QuestionnaireID";
@@ -38,14 +38,14 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
     private static final String KEY_ZORDEROPTION = "ZOrderOption";
     private static final String KEY_OTHEROPTION = "otherOption";
 
-    private static final String[] COLUMNS = {KEY_OPTION_ID, KEY_ID, KEY_PROJECT_ID, KEY_QUESTIONNAIRE_ID, KEY_TYPE, KEY_ZORDERQUESTION, KEY_VALUE, KEY_ALLOW_INPUT_TEXT, KEY_IS_SELECTED, KEY_MAXRESPONSECOUNT, KEY_CODE, KEY_QUESTIONTEXT,
+    private static final String[] COLUMNS = {KEY_IDENTITY, KEY_ID, KEY_PROJECT_ID, KEY_QUESTIONNAIRE_ID, KEY_TYPE, KEY_ZORDERQUESTION, KEY_VALUE, KEY_ALLOW_INPUT_TEXT, KEY_IS_SELECTED, KEY_MAXRESPONSECOUNT, KEY_CODE, KEY_QUESTIONTEXT,
             KEY_CAPTION, KEY_DESCRIPTION, KEY_ZORDEROPTION, KEY_OTHEROPTION};
 
     // Table Create Statements
 
     // TABLE_QUESTIONNAIRE table create statement
     public static final String CREATE_QUESTIONNAIRE_TABLE = "CREATE TABLE " + TABLE_QUESTIONNAIRE + " ( " +
-            KEY_OPTION_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            KEY_IDENTITY + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
             KEY_ID + " INTEGER, " +
             KEY_PROJECT_ID + " INTEGER, " +
             KEY_QUESTIONNAIRE_ID + " INTEGER, " +
@@ -129,7 +129,7 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
         List<QuestionnaireModel> questionnaireModels = new ArrayList<>();
 
         // 1. build the query
-        String query = "SELECT  * FROM " + TABLE_QUESTIONNAIRE + " WHERE ID=" + id;
+        String query = "SELECT  * FROM " + TABLE_QUESTIONNAIRE + " WHERE " + KEY_QUESTIONNAIRE_ID + "=" + id;
 
         // 2. get reference to writable DB
         SQLiteDatabase db = this.getWritableDatabase();
@@ -140,7 +140,6 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
         if (cursor.moveToFirst()) {
             do {
                 questionnaireModel = new QuestionnaireModel(Parcel.obtain());
-                questionnaireModel.setOptionID(Integer.parseInt(cursor.getString(0)));
                 questionnaireModel.setID(Integer.parseInt(cursor.getString(1)));
                 questionnaireModel.setProjectID(Integer.parseInt(cursor.getString(2)));
                 questionnaireModel.setQuestionnaireID(Integer.parseInt(cursor.getString(3)));
@@ -185,7 +184,6 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
         if (cursor.moveToFirst()) {
             do {
                 questionnaireModel = new QuestionnaireModel(Parcel.obtain());
-                questionnaireModel.setOptionID(Integer.parseInt(cursor.getString(0)));
                 questionnaireModel.setID(Integer.parseInt(cursor.getString(1)));
                 questionnaireModel.setProjectID(Integer.parseInt(cursor.getString(2)));
                 questionnaireModel.setQuestionnaireID(Integer.parseInt(cursor.getString(3)));
@@ -219,10 +217,10 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
         List<Integer> questionIds = new ArrayList<>();
 
         // 1. build the query
-        String query = "SELECT " + KEY_ID +
+        String query = "SELECT " + KEY_QUESTIONNAIRE_ID +
                 " FROM " + TABLE_QUESTIONNAIRE +
                 " WHERE " + KEY_PROJECT_ID + " = " + projectId +
-                " GROUP BY " + KEY_ID;
+                " GROUP BY " + KEY_QUESTIONNAIRE_ID;
 
         // 2. get reference to writable DB
         SQLiteDatabase db = this.getWritableDatabase();

@@ -46,9 +46,9 @@ public class ProjectSQLiteHelper extends MySQLiteHelper {
      * Creating a Project
      */
     public void addProject(ProjectModel projectModel) {
+        // 1. get reference to writable DB
+        SQLiteDatabase db = this.getWritableDatabase();
         if (!checkExistProject(projectModel.getID())) {
-            // 1. get reference to writable DB
-            SQLiteDatabase db = this.getWritableDatabase();
 
             // 2. create ContentValues to add key "column"/value
             ContentValues values = new ContentValues();

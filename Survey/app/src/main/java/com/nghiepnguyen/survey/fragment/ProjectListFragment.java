@@ -20,9 +20,7 @@ import com.nghiepnguyen.survey.adapter.ProjectListAdapter;
 import com.nghiepnguyen.survey.model.CommonErrorModel;
 import com.nghiepnguyen.survey.model.MemberModel;
 import com.nghiepnguyen.survey.model.ProjectModel;
-import com.nghiepnguyen.survey.model.QuestionnaireModel;
 import com.nghiepnguyen.survey.model.sqlite.ProjectSQLiteHelper;
-import com.nghiepnguyen.survey.model.sqlite.QuestionaireSQLiteHelper;
 import com.nghiepnguyen.survey.networking.SurveyApiWrapper;
 import com.nghiepnguyen.survey.storage.UserInfoManager;
 import com.nghiepnguyen.survey.utils.Constant;
@@ -103,6 +101,7 @@ public class ProjectListFragment extends Fragment implements AdapterView.OnItemC
 
     private void callApiGetProjectList() {
         SurveyApiWrapper.getProjectList(mActivity, memberInfo.getID(), memberInfo.getSecrectToken(), new ICallBack() {
+            @SuppressWarnings("unchecked")
             @Override
             public void onSuccess(final Object data) {
                 mActivity.runOnUiThread(new Runnable() {

@@ -76,7 +76,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     private String strInputValue = "";
     private String strResponseOption = "";
     private List<Integer> pathList;
-    private List<Integer> questionIds;
+    private List<Integer> questionnaireIds;
     private int currentIndexQuestionID = 0;
 
     private AppCompatRadioButton mSelectedRB;// current RadioButton when user focus
@@ -240,7 +240,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                                 for (QuestionnaireModel item : allDataOfProject)
                                     questionaireSQLiteHelper.addQuestionnaire(item, projectId);
 
-                            questionIds = questionaireSQLiteHelper.getAllQuestionIDByProjectId(projectId);
+                            questionnaireIds = questionaireSQLiteHelper.getAllQuestionIDByProjectId(projectId);
                             getNextQuestion();
                             mProgressBar.setVisibility(View.GONE);
                         }
@@ -262,9 +262,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
     private void getNextQuestion() {
         mProgressBar.setVisibility(View.VISIBLE);
-        if (currentIndexQuestionID < questionIds.size()) {
+        if (currentIndexQuestionID < questionnaireIds.size()) {
             // get all option and question
-            List<QuestionnaireModel> questionnaireModels = questionaireSQLiteHelper.getListQuestionnaireByQuestionId(questionIds.get(currentIndexQuestionID++));
+            List<QuestionnaireModel> questionnaireModels = questionaireSQLiteHelper.getListQuestionnaireByQuestionId(questionnaireIds.get(currentIndexQuestionID++));
 
             // clear questionnaireModelList
             if (questionnaireModelList == null)
@@ -333,7 +333,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
                 // create radio button
                 AppCompatRadioButton radioButton = new AppCompatRadioButton(this);
-                radioButton.setId(item.getOptionID());
+                radioButton.setId(item.getID());
                 radioButton.setText(item.getDescription());
                 radioButton.setPadding(0, Constant.dpToPx(10, this), 0, Constant.dpToPx(10, this));
 
@@ -346,7 +346,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
                     // create linearlayout add edittext
                     AppCompatEditText editText = new AppCompatEditText(this);
-                    editText.setId(item.getOptionID() * 10);
+                    editText.setId(item.getID() * 10);
                     editText.setVisibility(View.GONE);
                     linearLayout2.addView(editText, params);
 
@@ -378,11 +378,11 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
                             // set allow input
                             AppCompatEditText editText;
-                            if (buttonView.getId() == item.getOptionID() && buttonView.isChecked() && item.getAllowInputText() == 1) {
+                            if (buttonView.getId() == item.getID() && buttonView.isChecked() && item.getAllowInputText() == 1) {
                                 editText = (AppCompatEditText) findViewById(buttonView.getId() * 10);
                                 editText.setVisibility(View.VISIBLE);
                                 editText.requestFocus();
-                            } else if (buttonView.getId() == item.getOptionID() && !buttonView.isChecked() && item.getAllowInputText() == 1) {
+                            } else if (buttonView.getId() == item.getID() && !buttonView.isChecked() && item.getAllowInputText() == 1) {
                                 editText = (AppCompatEditText) findViewById(buttonView.getId() * 10);
                                 editText.setVisibility(View.GONE);
                             }
@@ -392,7 +392,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             } else if (item.getType() == 1) {
                 // create radio button
                 AppCompatCheckBox checkBox = new AppCompatCheckBox(this);
-                checkBox.setId(item.getOptionID());
+                checkBox.setId(item.getID());
                 checkBox.setText(item.getDescription());
                 checkBox.setPadding(0, Constant.dpToPx(10, this), 0, Constant.dpToPx(10, this));
 
@@ -404,7 +404,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
                     // create linearlayout add edittext
                     AppCompatEditText editText = new AppCompatEditText(this);
-                    editText.setId(item.getOptionID() * 10);
+                    editText.setId(item.getID() * 10);
                     editText.setVisibility(View.GONE);
                     linearLayout.addView(editText, params);
 
@@ -425,11 +425,11 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                         for (QuestionnaireModel item : questionnaireList) {
                             // set allow input
                             AppCompatEditText editText;
-                            if (buttonView.getId() == item.getOptionID() && buttonView.isChecked() && item.getAllowInputText() == 1) {
+                            if (buttonView.getId() == item.getID() && buttonView.isChecked() && item.getAllowInputText() == 1) {
                                 editText = (AppCompatEditText) findViewById(buttonView.getId() * 10);
                                 editText.setVisibility(View.VISIBLE);
                                 editText.requestFocus();
-                            } else if (buttonView.getId() == item.getOptionID() && !buttonView.isChecked() && item.getAllowInputText() == 1) {
+                            } else if (buttonView.getId() == item.getID() && !buttonView.isChecked() && item.getAllowInputText() == 1) {
                                 editText = (AppCompatEditText) findViewById(buttonView.getId() * 10);
                                 editText.setVisibility(View.GONE);
                             }
@@ -520,17 +520,17 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 // collect data from view
                 for (QuestionnaireModel item : questionnaireModelList) {
                     if (questionModel.getType() == 0 || questionModel.getType() == 2) {
-                        RadioButton radioButon = (RadioButton) mOptionLinearLayout.findViewById(item.getOptionID());
+                        RadioButton radioButon = (RadioButton) mOptionLinearLayout.findViewById(item.getID());
                         item.setIsSelected(radioButon.isChecked() ? 1 : 0);
                         if (radioButon.isChecked() && item.getAllowInputText() == 1) {
-                            EditText editText = (EditText) mOptionLinearLayout.findViewById(item.getOptionID() * 10);
+                            EditText editText = (EditText) mOptionLinearLayout.findViewById(item.getID() * 10);
                             item.setOtherOption(editText.getText().toString());
                         }
                     } else {
-                        CheckBox checkBox = (CheckBox) mOptionLinearLayout.findViewById(item.getOptionID());
+                        CheckBox checkBox = (CheckBox) mOptionLinearLayout.findViewById(item.getID());
                         item.setIsSelected(checkBox.isChecked() ? 1 : 0);
                         if (checkBox.isChecked() && item.getAllowInputText() == 1) {
-                            EditText editText = (EditText) mOptionLinearLayout.findViewById(item.getOptionID() * 10);
+                            EditText editText = (EditText) mOptionLinearLayout.findViewById(item.getID() * 10);
                             item.setOtherOption(editText.getText().toString());
                         }
                     }
