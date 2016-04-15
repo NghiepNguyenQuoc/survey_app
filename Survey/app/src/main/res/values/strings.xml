@@ -46,4 +46,5 @@
     <string name="txt_save_project_message">Bạn có muốn lưu lại dự án đang thực hiện không ?</string>
 
     <string name="message_can_not_get_project_list">Không lấy được danh sách câu hỏi.\nVui lòng kiểm tra kết nối Internet và thử lại.\nỨng dụng sẽ thoát sau khi nhấn OK</string>
+    <string name="message_can_not_get_questionnaire_list">Không lấy được danh sách lựa chọn.\nVui lòng kiểm tra kết nối Internet và thử lại.\nỨng dụng sẽ thoát sau khi nhấn OK</string>
 </resources>

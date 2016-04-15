@@ -117,6 +117,7 @@ public class SurveyApiWrapper {
             @Override
             public void onFailure(Throwable throwable) {
                 Log.d(TAG, "An exception occurred during the request. Usually unable to connect or there was an error reading the response");
+                checkUnauthorizedAndHandleError(context, 0, throwable.getMessage(), callBack);
             }
         });
     }
@@ -160,7 +161,7 @@ public class SurveyApiWrapper {
 
         RequestParams para = new RequestParams();
         para.put("projectID", projectID);
-        client.get(Endpoint.GET_NEXT_QUESTION, para, new StringHttpResponseHandler() {
+        client.get(Endpoint.DOWNLOAD_PROJECT_DATA, para, new StringHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Map<String, List<String>> headers, String content) {
                 try {
@@ -189,6 +190,8 @@ public class SurveyApiWrapper {
             @Override
             public void onFailure(Throwable throwable) {
                 Log.d(TAG, "An exception occurred during the request. Usually unable to connect or there was an error reading the response");
+                checkUnauthorizedAndHandleError(context, 0, throwable.getMessage(), callBack);
+
             }
         });
     }

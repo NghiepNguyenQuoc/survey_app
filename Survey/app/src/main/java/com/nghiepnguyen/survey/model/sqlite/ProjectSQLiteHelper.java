@@ -104,9 +104,10 @@ public class ProjectSQLiteHelper extends MySQLiteHelper {
         Cursor cursor = db.rawQuery(query, null);
 
         // 3. go over each row, build project and add it to list
-        ProjectModel projectModel = new ProjectModel(Parcel.obtain());
+        ProjectModel projectModel = null;
         if (cursor.moveToFirst()) {
             do {
+                projectModel = new ProjectModel(Parcel.obtain());
                 projectModel.setID(Integer.parseInt(cursor.getString(1)));
                 projectModel.setName(cursor.getString(2));
                 projectModel.setDescription(cursor.getString(3));

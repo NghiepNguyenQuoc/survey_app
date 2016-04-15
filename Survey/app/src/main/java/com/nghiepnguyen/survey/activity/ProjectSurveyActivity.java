@@ -28,6 +28,7 @@ import android.widget.TextView;
 
 import com.nghiepnguyen.survey.Interface.ICallBack;
 import com.nghiepnguyen.survey.R;
+import com.nghiepnguyen.survey.adapter.ProjectListAdapter;
 import com.nghiepnguyen.survey.model.AppMessageModel;
 import com.nghiepnguyen.survey.model.CommonErrorModel;
 import com.nghiepnguyen.survey.model.CompletedProject;
@@ -91,7 +92,8 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         initView();
         initDataToComponets();
 
-        callApiToCheckCompletedProject(currentMember.getSecrectToken(), currentMember.getID(), projectModel.getID());
+        //callApiToCheckCompletedProject(currentMember.getSecrectToken(), currentMember.getID(), projectModel.getID());
+        callApiToDownloadProjectData(projectModel.getID());
     }
 
     @Override
@@ -250,7 +252,28 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
             @Override
             public void onFailure(CommonErrorModel error) {
-
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        questionnaireIds = questionaireSQLiteHelper.getAllQuestionIDByProjectId(projectId);
+                        if (questionnaireIds.size() > 0) {
+                            getNextQuestion();
+                        } else {
+                            AlertDialog.Builder dialog = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
+                            dialog.setCancelable(false);
+                            dialog.setTitle(getResources().getString(R.string.title_attention));
+                            dialog.setMessage(getResources().getString(R.string.message_can_not_get_questionnaire_list));
+                            dialog.setPositiveButton(getResources().getString(R.string.button_ok), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    ProjectSurveyActivity.this.finish();
+                                }
+                            });
+                            dialog.show();
+                        }
+                        mProgressBar.setVisibility(View.GONE);
+                    }
+                });
             }
 
             @Override

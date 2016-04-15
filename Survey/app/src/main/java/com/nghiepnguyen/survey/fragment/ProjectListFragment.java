@@ -126,18 +126,24 @@ public class ProjectListFragment extends Fragment implements AdapterView.OnItemC
                 mActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        List<ProjectModel> projectList = projectSQLiteHelper.getAllProject();
+                        if (projectList.size() > 0) {
+                            ProjectListAdapter adapter = new ProjectListAdapter(mActivity, projectList);
+                            mProjectListListView.setAdapter(adapter);
+                        } else {
+                            AlertDialog.Builder dialog = new AlertDialog.Builder(mActivity, R.style.AppCompatAlertDialogStyle);
+                            dialog.setCancelable(false);
+                            dialog.setTitle(getResources().getString(R.string.title_attention));
+                            dialog.setMessage(getResources().getString(R.string.message_can_not_get_project_list));
+                            dialog.setPositiveButton(getResources().getString(R.string.button_ok), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    mActivity.finish();
+                                }
+                            });
+                            dialog.show();
+                        }
                         loadingProgressBar.setVisibility(View.GONE);
-                        AlertDialog.Builder dialog = new AlertDialog.Builder(mActivity, R.style.AppCompatAlertDialogStyle);
-                        dialog.setCancelable(false);
-                        dialog.setTitle(getResources().getString(R.string.title_attention));
-                        dialog.setMessage(getResources().getString(R.string.message_can_not_get_project_list));
-                        dialog.setPositiveButton(getResources().getString(R.string.button_ok), new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                mActivity.finish();
-                            }
-                        });
-                        dialog.show();
                     }
                 });
             }
