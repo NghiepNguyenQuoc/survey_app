@@ -213,7 +213,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         });
     }
 
-    public void callApiToDownloadProjectData(final int projectId) {
+    public void  callApiToDownloadProjectData(final int projectId) {
         mOptionLinearLayout.removeAllViews();
         mProgressBar.setVisibility(View.VISIBLE);
         SurveyApiWrapper.downloadProjectData(this, projectId, new ICallBack() {

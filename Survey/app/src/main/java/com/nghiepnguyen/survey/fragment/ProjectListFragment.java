@@ -82,6 +82,7 @@ public class ProjectListFragment extends Fragment implements AdapterView.OnItemC
     // Init view
     private void initView() {
         mProjectListListView = (ListView) getView().findViewById(R.id.lv_project_list);
+        registerForContextMenu(mProjectListListView);
         mProjectListListView.setOnItemClickListener(this);
         loadingProgressBar = (ProgressBar) getView().findViewById(R.id.pb_loading);
 

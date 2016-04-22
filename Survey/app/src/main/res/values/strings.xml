@@ -47,4 +47,7 @@
 
     <string name="message_can_not_get_project_list">Không lấy được danh sách câu hỏi.\nVui lòng kiểm tra kết nối Internet và thử lại.\nỨng dụng sẽ thoát sau khi nhấn OK</string>
     <string name="message_can_not_get_questionnaire_list">Không lấy được danh sách lựa chọn.\nVui lòng kiểm tra kết nối Internet và thử lại.\nỨng dụng sẽ thoát sau khi nhấn OK</string>
+
+    <string name="menu_item_download">Tải xuống</string>
+    <string name="menu_item_upload">Upload dữ liệu</string>
 </resources>

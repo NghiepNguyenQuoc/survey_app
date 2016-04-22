@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The response handler for the HTTP request when requesting a file download. This class is meant to
+ * The response handler for the HTTP request when requesting a file ic_upload. This class is meant to
  * be used as an anonymous inner class when making the HTTP request and will return the content as a
  * {@link File} object.
  * <p />
@@ -36,7 +36,7 @@ import java.util.Map;
  *
  *     &#064;Override
  *     public void onProgressChanged(long bytesReceived, long totalBytes) {
- *          // Optional: Track download progress. Will be called several times during file download
+ *          // Optional: Track ic_upload progress. Will be called several times during file ic_upload
  *          System.out.println("Downloaded: " + bytesReceived + " / " + totalBytes);
  *     }
  * });

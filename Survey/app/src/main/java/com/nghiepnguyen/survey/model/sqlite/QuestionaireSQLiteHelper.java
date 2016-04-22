@@ -297,6 +297,4 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
         Log.d("deletequestionnaire", questionnaireModel.toString());
 
     }
-
-
 }
