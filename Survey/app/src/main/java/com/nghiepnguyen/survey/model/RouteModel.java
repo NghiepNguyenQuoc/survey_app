@@ -7,6 +7,8 @@ public class RouteModel {
     private int QuestionnaireConditionsID;
     private int QuestionnaireID;
     private int ProjectID;
+    private int Method;
+    private int NextQuestionnaireID;
     private String ResponseValue;
 
     public int getQuestionnaireConditionsID() {
@@ -31,6 +33,22 @@ public class RouteModel {
 
     public void setProjectID(int projectID) {
         ProjectID = projectID;
+    }
+
+    public int getMethod() {
+        return Method;
+    }
+
+    public void setMethod(int method) {
+        Method = method;
+    }
+
+    public int getNextQuestionnaireID() {
+        return NextQuestionnaireID;
+    }
+
+    public void setNextQuestionnaireID(int nextQuestionnaireID) {
+        NextQuestionnaireID = nextQuestionnaireID;
     }
 
     public String getResponseValue() {

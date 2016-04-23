@@ -33,7 +33,7 @@ public class RouteSQLiteHelper extends MySQLiteHelper {
     // Table Create Statements
 
     // TABLE_QUESTIONNAIRE table create statement
-    public static final String CREATE_QUESTIONNAIRE_TABLE = "CREATE TABLE " + TABLE_ROUTE  + " ( " +
+    public static final String CREATE_ROUTE_TABLE = "CREATE TABLE " + TABLE_ROUTE  + " ( " +
             KEY_IDENTITY + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
             KEY_CONDITION_ID + " INTEGER, " +
             KEY_QUESTIONNAIRE_ID + " INTEGER, " +
@@ -69,6 +69,24 @@ public class RouteSQLiteHelper extends MySQLiteHelper {
 
         // 4. close
         db.close();
+    }
+
+    /**
+     * get number record by projectid
+     */
+    public int countRouteByProjectId(int projectId) {
+        // 1. build the query
+        String query = "SELECT  count(*) FROM " + TABLE_ROUTE + " WHERE " + KEY_PROJECT_ID + "=" + projectId;
+
+        // 2. get reference to writable DB
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+
+        // 3. go over each row
+        if (cursor.moveToFirst()) {
+            return Integer.parseInt(cursor.getString(0));
+        }
+        return 0;
     }
 
         /**

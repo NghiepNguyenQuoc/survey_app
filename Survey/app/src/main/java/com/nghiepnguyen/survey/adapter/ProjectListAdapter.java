@@ -2,22 +2,17 @@ package com.nghiepnguyen.survey.adapter;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.graphics.Bitmap;
-import android.graphics.Point;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.PopupMenu;
 import android.text.Html;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.ListPopupWindow;
-import android.widget.PopupWindow;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.nghiepnguyen.survey.Interface.ICallBack;
@@ -25,9 +20,11 @@ import com.nghiepnguyen.survey.R;
 import com.nghiepnguyen.survey.model.CommonErrorModel;
 import com.nghiepnguyen.survey.model.ProjectModel;
 import com.nghiepnguyen.survey.model.QuestionnaireModel;
+import com.nghiepnguyen.survey.model.RouteModel;
 import com.nghiepnguyen.survey.model.sqlite.QuestionaireSQLiteHelper;
+import com.nghiepnguyen.survey.model.sqlite.RouteSQLiteHelper;
 import com.nghiepnguyen.survey.networking.SurveyApiWrapper;
-import com.nghiepnguyen.survey.utils.Constant;
+import com.nghiepnguyen.survey.utils.Utils;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
@@ -46,6 +43,7 @@ public class ProjectListAdapter extends ArrayAdapter<ProjectModel> {
     private Context mContext;
 
     private List<ProjectModel> projectList;
+    private QuestionaireSQLiteHelper questionaireSQLiteHelper;
 
     public ProjectListAdapter(Context mContext, List<ProjectModel> projectList) {
         super(mContext, 0, projectList);
@@ -60,6 +58,8 @@ public class ProjectListAdapter extends ArrayAdapter<ProjectModel> {
                 .cacheInMemory()
                 .cacheOnDisc()
                 .build();
+
+        questionaireSQLiteHelper = new QuestionaireSQLiteHelper(mContext);
     }
 
 
@@ -107,6 +107,7 @@ public class ProjectListAdapter extends ArrayAdapter<ProjectModel> {
             viewHolder.tvProjectDescription = (TextView) view.findViewById(R.id.tv_project_description);
             viewHolder.ivProjectImage = (ImageView) view.findViewById(R.id.iv_project_image);
             viewHolder.ivMenuPopup = (ImageView) view.findViewById(R.id.iv_menu_popup);
+            viewHolder.pbLoading = (ProgressBar) view.findViewById(R.id.pb_loading);
 
             view.setTag(viewHolder);
         } else {
@@ -119,9 +120,10 @@ public class ProjectListAdapter extends ArrayAdapter<ProjectModel> {
         String urlImage = "http://6sao.vn" + project.getImage1();
 
         display(viewHolder.ivProjectImage, urlImage);
+        final View finalView = view;
         viewHolder.ivMenuPopup.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
+            public void onClick(final View v) {
 
                 final PopupMenu popup = new PopupMenu(mContext, viewHolder.ivMenuPopup);
                 popup.getMenuInflater().inflate(R.menu.menu_popup, popup.getMenu());
@@ -129,7 +131,8 @@ public class ProjectListAdapter extends ArrayAdapter<ProjectModel> {
                     public boolean onMenuItemClick(MenuItem item) {
                         int i = item.getItemId();
                         if (i == R.id.menu_popup_download) {
-                            downloadProjectData(project.getID());
+                            viewHolder.pbLoading.setVisibility(View.VISIBLE);
+                            downloadProjectData(project, viewHolder.pbLoading, finalView);
                             return true;
                         } else if (i == R.id.menu_popup_upload) {
                             //do something
@@ -143,6 +146,11 @@ public class ProjectListAdapter extends ArrayAdapter<ProjectModel> {
                 popup.show();
             }
         });
+
+        if(questionaireSQLiteHelper .getCountQuestionnaireByProjectId(project.getID())>0)
+            view.setBackgroundColor(mContext.getResources().getColor(R.color.cl_default_trans));
+        else
+            view.setBackgroundColor(mContext.getResources().getColor(R.color.cl_white));
         return view;
     }
 
@@ -152,6 +160,7 @@ public class ProjectListAdapter extends ArrayAdapter<ProjectModel> {
         public TextView tvProjectDescription;
         public ImageView ivProjectImage;
         public ImageView ivMenuPopup;
+        public ProgressBar pbLoading;
     }
 
     public List<ProjectModel> getProjectList() {
@@ -162,22 +171,24 @@ public class ProjectListAdapter extends ArrayAdapter<ProjectModel> {
         this.projectList = projectList;
     }
 
-    private void downloadProjectData(final int projectId) {
-        SurveyApiWrapper.downloadProjectData(mContext, projectId, new ICallBack() {
+    private void downloadProjectData(final ProjectModel project, final View loadingView, final View itemView) {
+        SurveyApiWrapper.downloadProjectData(mContext, project.getID(), new ICallBack() {
             @Override
             public void onSuccess(final Object data) {
                 ((Activity) mContext).runOnUiThread(new Runnable() {
                     @SuppressWarnings("unchecked")
                     @Override
                     public void run() {
-                        QuestionaireSQLiteHelper questionaireSQLiteHelper = new QuestionaireSQLiteHelper(mContext);
                         List<QuestionnaireModel> allDataOfProject = (List<QuestionnaireModel>) data;
                         if (allDataOfProject != null && allDataOfProject.size() > 0) {
-                            if (questionaireSQLiteHelper.getCountQuestionnaireByProjectId(projectId) == 0)
+                            if (questionaireSQLiteHelper.getCountQuestionnaireByProjectId(project.getID()) == 0)
                                 for (QuestionnaireModel item : allDataOfProject)
-                                    questionaireSQLiteHelper.addQuestionnaire(item, projectId);
+                                    questionaireSQLiteHelper.addQuestionnaire(item, project.getID());
 
                         }
+
+                        // download project route
+                        downloadProjectRoute(project, loadingView,itemView);
                     }
                 });
             }
@@ -193,6 +204,8 @@ public class ProjectListAdapter extends ArrayAdapter<ProjectModel> {
                         dialog.setMessage(mContext.getString(R.string.message_can_not_get_questionnaire_list));
                         dialog.setPositiveButton(mContext.getString(R.string.button_ok), null);
                         dialog.show();
+
+                        loadingView.setVisibility(View.GONE);
                     }
                 });
             }
@@ -204,22 +217,26 @@ public class ProjectListAdapter extends ArrayAdapter<ProjectModel> {
         });
     }
 
-    private void downloadProjectRoute(final int projectId) {
-        SurveyApiWrapper.downloadProjectRoute(mContext, projectId, new ICallBack() {
+    private void downloadProjectRoute(final ProjectModel project, final View loadingView, final View itemView) {
+        SurveyApiWrapper.downloadProjectRoute(mContext, project.getID(), new ICallBack() {
             @Override
             public void onSuccess(final Object data) {
                 ((Activity) mContext).runOnUiThread(new Runnable() {
                     @SuppressWarnings("unchecked")
                     @Override
                     public void run() {
-                        QuestionaireSQLiteHelper questionaireSQLiteHelper = new QuestionaireSQLiteHelper(mContext);
-                        List<QuestionnaireModel> allDataOfProject = (List<QuestionnaireModel>) data;
-                        if (allDataOfProject != null && allDataOfProject.size() > 0) {
-                            if (questionaireSQLiteHelper.getCountQuestionnaireByProjectId(projectId) == 0)
-                                for (QuestionnaireModel item : allDataOfProject)
-                                    questionaireSQLiteHelper.addQuestionnaire(item, projectId);
+                        RouteSQLiteHelper routeSQLiteHelper = new RouteSQLiteHelper(mContext);
+                        List<RouteModel> routeModels = (List<RouteModel>) data;
+                        if (routeModels != null && routeModels.size() > 0) {
+                            if (routeSQLiteHelper.countRouteByProjectId(project.getID()) == 0)
+                                for (RouteModel item : routeModels)
+                                    routeSQLiteHelper.addQuestionnaire(item, project.getID());
 
                         }
+
+                        loadingView.setVisibility(View.GONE);
+                        itemView.setBackgroundColor(mContext.getResources().getColor(R.color.cl_default_trans));
+                        Utils.showToastLong(mContext,String.format(mContext.getString(R.string.message_download_compeleted),project.getName()));
                     }
                 });
             }
@@ -232,9 +249,11 @@ public class ProjectListAdapter extends ArrayAdapter<ProjectModel> {
                         AlertDialog.Builder dialog = new AlertDialog.Builder(mContext, R.style.AppCompatAlertDialogStyle);
                         dialog.setCancelable(false);
                         dialog.setTitle(mContext.getString(R.string.title_attention));
-                        dialog.setMessage(mContext.getString(R.string.message_can_not_get_questionnaire_list));
+                        dialog.setMessage(mContext.getString(R.string.message_can_not_get_route_list));
                         dialog.setPositiveButton(mContext.getString(R.string.button_ok), null);
                         dialog.show();
+
+                        loadingView.setVisibility(View.GONE);
                     }
                 });
             }

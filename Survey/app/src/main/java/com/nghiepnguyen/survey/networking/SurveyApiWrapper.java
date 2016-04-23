@@ -11,8 +11,8 @@ import com.nghiepnguyen.survey.model.AppMessageModel;
 import com.nghiepnguyen.survey.model.CommonErrorModel;
 import com.nghiepnguyen.survey.model.CompletedProject;
 import com.nghiepnguyen.survey.model.ProjectModel;
-import com.nghiepnguyen.survey.model.QuestionModel;
 import com.nghiepnguyen.survey.model.QuestionnaireModel;
+import com.nghiepnguyen.survey.model.RouteModel;
 import com.nghiepnguyen.survey.utils.Constant;
 import com.nghiepnguyen.survey.utils.Utils;
 
@@ -156,12 +156,12 @@ public class SurveyApiWrapper {
         });
     }
 
-    public static synchronized void downloadProjectRoute(final Context context, int projectID, final ICallBack callBack) {
+    public static synchronized void downloadProjectData(final Context context, int projectID, final ICallBack callBack) {
         HttpClient client = new AsyncHttpClient();
 
         RequestParams para = new RequestParams();
         para.put("projectID", projectID);
-        client.get(Endpoint.DOWNLOAD_PROJECT_ROUTE , para, new StringHttpResponseHandler() {
+        client.get(Endpoint.DOWNLOAD_PROJECT_DATA, para, new StringHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Map<String, List<String>> headers, String content) {
                 try {
@@ -172,6 +172,47 @@ public class SurveyApiWrapper {
                         }.getType();
                         List<QuestionnaireModel> questionnaireModels = new Gson().fromJson(jsonArray.toString(), listType);
                         callBack.onSuccess(questionnaireModels);
+                    } else {
+                        callBack.onSuccess(null);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    checkUnauthorizedAndHandleError(context, statusCode, content, callBack);
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Map<String, List<String>> headers, String content) {
+                Log.d(TAG, "Server responded with a status code " + statusCode);
+                checkUnauthorizedAndHandleError(context, statusCode, content, callBack);
+            }
+
+            @Override
+            public void onFailure(Throwable throwable) {
+                Log.d(TAG, "An exception occurred during the request. Usually unable to connect or there was an error reading the response");
+                checkUnauthorizedAndHandleError(context, 0, throwable.getMessage(), callBack);
+
+            }
+        });
+    }
+
+
+    public static synchronized void downloadProjectRoute(final Context context, int projectID, final ICallBack callBack) {
+        HttpClient client = new AsyncHttpClient();
+
+        RequestParams para = new RequestParams();
+        para.put("ProjectIDCondition", projectID);
+        client.get(Endpoint.DOWNLOAD_PROJECT_ROUTE , para, new StringHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Map<String, List<String>> headers, String content) {
+                try {
+                    JSONArray jsonArray = new JSONArray(content);
+                    if (jsonArray.length() > 0) {
+
+                        Type listType = new TypeToken<List<RouteModel>>() {
+                        }.getType();
+                        List<RouteModel> routeModels = new Gson().fromJson(jsonArray.toString(), listType);
+                        callBack.onSuccess(routeModels);
                     } else {
                         callBack.onSuccess(null);
                     }

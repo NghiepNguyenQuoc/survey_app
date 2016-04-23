@@ -93,7 +93,8 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         initDataToComponets();
 
         //callApiToCheckCompletedProject(currentMember.getSecrectToken(), currentMember.getID(), projectModel.getID());
-        callApiToDownloadProjectData(projectModel.getID());
+        questionnaireIds = questionaireSQLiteHelper.getAllQuestionIDByProjectId(projectModel.getID());
+        getNextQuestion();
     }
 
     @Override
@@ -194,7 +195,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                             });
                             customBuilder.show();
                         } else {
-                            callApiToDownloadProjectData(projectModel.getID());
+                            //callApiToDownloadProjectData(projectModel.getID());
                         }
                     }
                 });
@@ -204,76 +205,6 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             @Override
             public void onFailure(CommonErrorModel error) {
 
-            }
-
-            @Override
-            public void onCompleted() {
-
-            }
-        });
-    }
-
-    public void  callApiToDownloadProjectData(final int projectId) {
-        mOptionLinearLayout.removeAllViews();
-        mProgressBar.setVisibility(View.VISIBLE);
-        SurveyApiWrapper.downloadProjectData(this, projectId, new ICallBack() {
-            @Override
-            public void onSuccess(final Object data) {
-                /*{
-                    "ID": 4109,
-                        "Code": "Q1",
-                        "QuestionText": "Hiện nay, mức độ thường xuyên ăn chay của bạn như thế nào? (SA)",
-                        "Type": 0,
-                        "ZOrderQuestion": 10,
-                        "QuestionnaireID": 4109,
-                        "Value": 1,
-                        "Caption": "Mỗi ngày (ăn chay trường)",
-                        "Description": "Mỗi ngày (ăn chay trường)",
-                        "ZOrderOption": "0"
-                },*/
-
-                runOnUiThread(new Runnable() {
-                    @SuppressWarnings("unchecked")
-                    @Override
-                    public void run() {
-                        List<QuestionnaireModel> allDataOfProject = (List<QuestionnaireModel>) data;
-                        if (allDataOfProject != null && allDataOfProject.size() > 0) {
-                            if (questionaireSQLiteHelper.getCountQuestionnaireByProjectId(projectId) == 0)
-                                for (QuestionnaireModel item : allDataOfProject)
-                                    questionaireSQLiteHelper.addQuestionnaire(item, projectId);
-
-                            questionnaireIds = questionaireSQLiteHelper.getAllQuestionIDByProjectId(projectId);
-                            getNextQuestion();
-                            mProgressBar.setVisibility(View.GONE);
-                        }
-                    }
-                });
-            }
-
-            @Override
-            public void onFailure(CommonErrorModel error) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        questionnaireIds = questionaireSQLiteHelper.getAllQuestionIDByProjectId(projectId);
-                        if (questionnaireIds.size() > 0) {
-                            getNextQuestion();
-                        } else {
-                            AlertDialog.Builder dialog = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
-                            dialog.setCancelable(false);
-                            dialog.setTitle(getResources().getString(R.string.title_attention));
-                            dialog.setMessage(getResources().getString(R.string.message_can_not_get_questionnaire_list));
-                            dialog.setPositiveButton(getResources().getString(R.string.button_ok), new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    ProjectSurveyActivity.this.finish();
-                                }
-                            });
-                            dialog.show();
-                        }
-                        mProgressBar.setVisibility(View.GONE);
-                    }
-                });
             }
 
             @Override

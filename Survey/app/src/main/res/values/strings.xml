@@ -45,9 +45,11 @@
     <string name="txt_completed_survey">Cảm ơn bạn đã hoàn thành dự án. Bạn sẽ được tham gia bốc thăm trúng thưởng trong thời gian tới. Mã số bốc thăm của bạn sẽ được thông báo sau khi dự án kết thúc.</string>
     <string name="txt_save_project_message">Bạn có muốn lưu lại dự án đang thực hiện không ?</string>
 
-    <string name="message_can_not_get_project_list">Không lấy được danh sách câu hỏi.\nVui lòng kiểm tra kết nối Internet và thử lại.\nỨng dụng sẽ thoát sau khi nhấn OK</string>
-    <string name="message_can_not_get_questionnaire_list">Không lấy được danh sách lựa chọn.\nVui lòng kiểm tra kết nối Internet và thử lại.\nỨng dụng sẽ thoát sau khi nhấn OK</string>
+    <string name="message_can_not_get_project_list">Không lấy được danh sách dự án.\nVui lòng kiểm tra kết nối Internet và thử lại.\nỨng dụng sẽ thoát sau khi nhấn OK</string>
+    <string name="message_can_not_get_questionnaire_list">Không lấy được danh sách câu hỏi cho dự án này.\nVui lòng kiểm tra kết nối Internet và thử lại.\nỨng dụng sẽ thoát sau khi nhấn OK</string>
+    <string name="message_can_not_get_route_list">Không lấy được danh sách đường đi câu hỏi cho dự án này.\nVui lòng kiểm tra kết nối Internet và thử lại.\nỨng dụng sẽ thoát sau khi nhấn OK</string>
+    <string name="message_download_compeleted">Đã tải xuống hoàn tấc dự án \"%s\"</string>
 
-    <string name="menu_item_download">Tải xuống</string>
+    <string name="menu_item_download">Tải xuống dự án</string>
     <string name="menu_item_upload">Upload dữ liệu</string>
 </resources>

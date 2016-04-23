@@ -35,8 +35,16 @@
 
     <ImageView
         android:id="@+id/iv_menu_popup"
-        android:layout_width="20dp"
+        android:layout_width="40dp"
         android:layout_height="20dp"
         android:layout_alignParentRight="true"
+        android:scaleType="fitEnd"
         android:src="@drawable/ic_menu_moreover" />
+
+    <ProgressBar
+        android:id="@+id/pb_loading"
+        android:layout_width="40dp"
+        android:visibility="gone"
+        android:layout_height="40dp"
+        android:layout_centerInParent="true" />
 </RelativeLayout>
