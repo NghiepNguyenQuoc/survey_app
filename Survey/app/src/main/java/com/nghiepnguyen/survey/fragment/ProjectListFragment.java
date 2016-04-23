@@ -6,11 +6,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 
 import com.nghiepnguyen.survey.Interface.ICallBack;
@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * Created by nghiep on 10/29/15.
  */
-public class ProjectListFragment extends Fragment implements AdapterView.OnItemClickListener {
+public class ProjectListFragment extends Fragment implements ProjectListAdapter.RecyclerViewClickListener {
 
     private final static String TAG = "ProjectListFragment";
     private ProgressBar loadingProgressBar;
@@ -38,7 +38,7 @@ public class ProjectListFragment extends Fragment implements AdapterView.OnItemC
     //UserInfoModel userInfo;
     MemberModel memberInfo;
 
-    private ListView mProjectListListView;
+    private RecyclerView mProjectListListView;
     private ProjectSQLiteHelper projectSQLiteHelper;
 
 
@@ -81,17 +81,18 @@ public class ProjectListFragment extends Fragment implements AdapterView.OnItemC
 
     // Init view
     private void initView() {
-        mProjectListListView = (ListView) getView().findViewById(R.id.lv_project_list);
-        registerForContextMenu(mProjectListListView);
-        mProjectListListView.setOnItemClickListener(this);
-        loadingProgressBar = (ProgressBar) getView().findViewById(R.id.pb_loading);
+        mProjectListListView = (RecyclerView) getView().findViewById(R.id.lv_project_list);
+        mProjectListListView.setHasFixedSize(true);
+        LinearLayoutManager llm = new LinearLayoutManager(mActivity);
+        mProjectListListView.setLayoutManager(llm);
 
+        loadingProgressBar = (ProgressBar) getView().findViewById(R.id.pb_loading);
         loadingProgressBar.setVisibility(View.VISIBLE);
 
     }
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+    public void recyclerViewListClicked(View v, int position) {
         List<ProjectModel> projectList = ((ProjectListAdapter) mProjectListListView.getAdapter()).getProjectList();
         Intent intent = new Intent(mActivity, ProjectSurveyActivity.class);
         Bundle bundle = new Bundle();
@@ -113,7 +114,7 @@ public class ProjectListFragment extends Fragment implements AdapterView.OnItemC
                             for (ProjectModel item : projectList)
                                 projectSQLiteHelper.addProject(item);
 
-                            ProjectListAdapter adapter = new ProjectListAdapter(mActivity, projectList);
+                            ProjectListAdapter adapter = new ProjectListAdapter(mActivity, projectList, ProjectListFragment.this);
                             mProjectListListView.setAdapter(adapter);
                             loadingProgressBar.setVisibility(View.GONE);
                         }
@@ -129,7 +130,7 @@ public class ProjectListFragment extends Fragment implements AdapterView.OnItemC
                     public void run() {
                         List<ProjectModel> projectList = projectSQLiteHelper.getAllProject();
                         if (projectList.size() > 0) {
-                            ProjectListAdapter adapter = new ProjectListAdapter(mActivity, projectList);
+                            ProjectListAdapter adapter = new ProjectListAdapter(mActivity, projectList, ProjectListFragment.this);
                             mProjectListListView.setAdapter(adapter);
                         } else {
                             AlertDialog.Builder dialog = new AlertDialog.Builder(mActivity, R.style.AppCompatAlertDialogStyle);

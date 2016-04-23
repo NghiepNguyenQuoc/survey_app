@@ -49,6 +49,7 @@
     <string name="message_can_not_get_questionnaire_list">Không lấy được danh sách câu hỏi cho dự án này.\nVui lòng kiểm tra kết nối Internet và thử lại.\nỨng dụng sẽ thoát sau khi nhấn OK</string>
     <string name="message_can_not_get_route_list">Không lấy được danh sách đường đi câu hỏi cho dự án này.\nVui lòng kiểm tra kết nối Internet và thử lại.\nỨng dụng sẽ thoát sau khi nhấn OK</string>
     <string name="message_download_compeleted">Đã tải xuống hoàn tấc dự án \"%s\"</string>
+    <string name="message_project_not_ready">Dự án chưa sẵn sàng.\nHãy tải xuống dự án trước khi bắt đầu làm khảo sát.</string>
 
     <string name="menu_item_download">Tải xuống dự án</string>
     <string name="menu_item_upload">Upload dữ liệu</string>

@@ -11,7 +11,7 @@
     <color name="cl_white">#FFF</color>
     <color name="cl_blue">#63BDE0</color>
     <color name="cl_default">#3FB34F</color>
-    <color name="cl_default_trans">#FCE4EC</color>
+    <color name="cl_default_trans">#FFF59D</color>
     <color name="cl_gray">#8D8D8D</color>
     <color name="cl_gray_opacity">#E5E5E5</color>
     <color name="cl_pink">#a864a8</color>

@@ -54,11 +54,6 @@
         <activity android:name=".activity.RecordingActivity" />
 
         <activity
-            android:name=".activity.Info_Interview"
-            android:label="@string/title_activity_info_interview"
-            android:screenOrientation="portrait"></activity>
-
-        <activity
             android:name=".activity.MainActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait"

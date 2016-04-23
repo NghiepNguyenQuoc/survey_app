@@ -3,14 +3,16 @@ package com.nghiepnguyen.survey.adapter;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.PopupMenu;
+import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -36,7 +38,7 @@ import java.util.List;
 /**
  * Created by nghiep on 11/22/15.
  */
-public class ProjectListAdapter extends ArrayAdapter<ProjectModel> {
+public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.ProjectViewHolder> {
     private static final String TAG = "ProjectListAdapter";
     public ImageLoader imageLoader;
     DisplayImageOptions options;
@@ -44,11 +46,12 @@ public class ProjectListAdapter extends ArrayAdapter<ProjectModel> {
 
     private List<ProjectModel> projectList;
     private QuestionaireSQLiteHelper questionaireSQLiteHelper;
+    private static RecyclerViewClickListener itemListener;
 
-    public ProjectListAdapter(Context mContext, List<ProjectModel> projectList) {
-        super(mContext, 0, projectList);
+    public ProjectListAdapter(Context mContext, List<ProjectModel> projectList, RecyclerViewClickListener itemListener) {
         this.mContext = mContext;
         this.projectList = projectList;
+        this.itemListener = itemListener;
 
         imageLoader = ImageLoader.getInstance();
         ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(mContext).build();
@@ -62,6 +65,94 @@ public class ProjectListAdapter extends ArrayAdapter<ProjectModel> {
         questionaireSQLiteHelper = new QuestionaireSQLiteHelper(mContext);
     }
 
+    @Override
+    public ProjectViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_project, parent, false);
+        return new ProjectViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(final ProjectViewHolder holder, int position) {
+        final ProjectModel project = projectList.get(position);
+
+        holder.tvProjectName.setText(project.getName());
+        holder.tvProjectDescription.setText(Html.fromHtml(project.getDescription()));
+        String urlImage = "http://6sao.vn" + project.getImage1();
+
+        display(holder.ivProjectImage, urlImage);
+        holder.ivMenuPopup.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(final View v) {
+
+                final PopupMenu popup = new PopupMenu(mContext, holder.ivMenuPopup);
+                popup.getMenuInflater().inflate(R.menu.menu_popup, popup.getMenu());
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    public boolean onMenuItemClick(MenuItem item) {
+                        int i = item.getItemId();
+                        if (i == R.id.menu_popup_download) {
+                            holder.pbLoading.setVisibility(View.VISIBLE);
+                            downloadProjectData(project, holder.pbLoading, holder.cardView);
+                            return true;
+                        } else if (i == R.id.menu_popup_upload) {
+                            //do something
+                            return true;
+                        } else {
+                            return onMenuItemClick(item);
+                        }
+                    }
+                });
+
+                popup.show();
+            }
+        });
+
+        if (questionaireSQLiteHelper.getCountQuestionnaireByProjectId(project.getID()) > 0)
+            holder.cardView.setCardBackgroundColor(ContextCompat.getColor(mContext,R.color.cl_default_trans));
+        else
+            holder.cardView.setCardBackgroundColor(ContextCompat.getColor(mContext,R.color.cl_white));
+    }
+
+    @Override
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+    }
+
+    @Override
+    public int getItemCount() {
+        return projectList.size();
+    }
+
+    public List<ProjectModel> getProjectList() {
+        return projectList;
+    }
+
+    public static class ProjectViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+        public CardView cardView;
+        public TextView tvProjectName;
+        public TextView tvProjectDescription;
+        public ImageView ivProjectImage;
+        public ImageView ivMenuPopup;
+        public ProgressBar pbLoading;
+
+        public ProjectViewHolder(View itemView) {
+            super(itemView);
+
+            cardView = (CardView) itemView.findViewById(R.id.card_view);
+            tvProjectName = (TextView) itemView.findViewById(R.id.tv_project_name);
+            tvProjectDescription = (TextView) itemView.findViewById(R.id.tv_project_description);
+            ivProjectImage = (ImageView) itemView.findViewById(R.id.iv_project_image);
+            ivMenuPopup = (ImageView) itemView.findViewById(R.id.iv_menu_popup);
+            pbLoading = (ProgressBar) itemView.findViewById(R.id.pb_loading);
+            itemView.setOnClickListener(this);
+
+        }
+
+        @Override
+        public void onClick(View view) {
+            itemListener.recyclerViewListClicked(view, this.getAdapterPosition());
+
+        }
+    }
 
     public void display(ImageView img, String url) {
         imageLoader.displayImage(url, img, options, new ImageLoadingListener() {
@@ -83,95 +174,11 @@ public class ProjectListAdapter extends ArrayAdapter<ProjectModel> {
         });
     }
 
-
-    @Override
-    public int getCount() {
-        return projectList.size();
+    public interface RecyclerViewClickListener {
+        void recyclerViewListClicked(View v, int position);
     }
 
-    @Override
-    public ProjectModel getItem(int index) {
-        return projectList.get(index);
-    }
-
-    @Override
-    public View getView(int i, View view, ViewGroup viewGroup) {
-        final ProjectModel project = projectList.get(i);
-
-        final ViewHolder viewHolder;
-        if (view == null) {
-            view = LayoutInflater.from(mContext).inflate(R.layout.item_project, viewGroup, false);
-            viewHolder = new ViewHolder();
-
-            viewHolder.tvProjectName = (TextView) view.findViewById(R.id.tv_project_name);
-            viewHolder.tvProjectDescription = (TextView) view.findViewById(R.id.tv_project_description);
-            viewHolder.ivProjectImage = (ImageView) view.findViewById(R.id.iv_project_image);
-            viewHolder.ivMenuPopup = (ImageView) view.findViewById(R.id.iv_menu_popup);
-            viewHolder.pbLoading = (ProgressBar) view.findViewById(R.id.pb_loading);
-
-            view.setTag(viewHolder);
-        } else {
-            viewHolder = (ViewHolder) view.getTag();
-        }
-
-
-        viewHolder.tvProjectName.setText(project.getName());
-        viewHolder.tvProjectDescription.setText(Html.fromHtml(project.getDescription()));
-        String urlImage = "http://6sao.vn" + project.getImage1();
-
-        display(viewHolder.ivProjectImage, urlImage);
-        final View finalView = view;
-        viewHolder.ivMenuPopup.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-
-                final PopupMenu popup = new PopupMenu(mContext, viewHolder.ivMenuPopup);
-                popup.getMenuInflater().inflate(R.menu.menu_popup, popup.getMenu());
-                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                    public boolean onMenuItemClick(MenuItem item) {
-                        int i = item.getItemId();
-                        if (i == R.id.menu_popup_download) {
-                            viewHolder.pbLoading.setVisibility(View.VISIBLE);
-                            downloadProjectData(project, viewHolder.pbLoading, finalView);
-                            return true;
-                        } else if (i == R.id.menu_popup_upload) {
-                            //do something
-                            return true;
-                        } else {
-                            return onMenuItemClick(item);
-                        }
-                    }
-                });
-
-                popup.show();
-            }
-        });
-
-        if(questionaireSQLiteHelper .getCountQuestionnaireByProjectId(project.getID())>0)
-            view.setBackgroundColor(mContext.getResources().getColor(R.color.cl_default_trans));
-        else
-            view.setBackgroundColor(mContext.getResources().getColor(R.color.cl_white));
-        return view;
-    }
-
-
-    private static class ViewHolder {
-        public TextView tvProjectName;
-        public TextView tvProjectDescription;
-        public ImageView ivProjectImage;
-        public ImageView ivMenuPopup;
-        public ProgressBar pbLoading;
-    }
-
-    public List<ProjectModel> getProjectList() {
-        return projectList;
-    }
-
-    public void setBookings(List<ProjectModel> projectList) {
-        this.projectList = projectList;
-    }
-
-    private void downloadProjectData(final ProjectModel project, final View loadingView, final View itemView) {
+    private void downloadProjectData(final ProjectModel project, final View loadingView, final CardView itemView) {
         SurveyApiWrapper.downloadProjectData(mContext, project.getID(), new ICallBack() {
             @Override
             public void onSuccess(final Object data) {
@@ -188,7 +195,7 @@ public class ProjectListAdapter extends ArrayAdapter<ProjectModel> {
                         }
 
                         // download project route
-                        downloadProjectRoute(project, loadingView,itemView);
+                        downloadProjectRoute(project, loadingView, itemView);
                     }
                 });
             }
@@ -217,7 +224,7 @@ public class ProjectListAdapter extends ArrayAdapter<ProjectModel> {
         });
     }
 
-    private void downloadProjectRoute(final ProjectModel project, final View loadingView, final View itemView) {
+    private void downloadProjectRoute(final ProjectModel project, final View loadingView, final CardView itemView) {
         SurveyApiWrapper.downloadProjectRoute(mContext, project.getID(), new ICallBack() {
             @Override
             public void onSuccess(final Object data) {
@@ -235,8 +242,8 @@ public class ProjectListAdapter extends ArrayAdapter<ProjectModel> {
                         }
 
                         loadingView.setVisibility(View.GONE);
-                        itemView.setBackgroundColor(mContext.getResources().getColor(R.color.cl_default_trans));
-                        Utils.showToastLong(mContext,String.format(mContext.getString(R.string.message_download_compeleted),project.getName()));
+                        itemView.setCardBackgroundColor(ContextCompat.getColor(mContext,R.color.cl_default_trans));
+                        Utils.showToastLong(mContext, String.format(mContext.getString(R.string.message_download_compeleted), project.getName()));
                     }
                 });
             }

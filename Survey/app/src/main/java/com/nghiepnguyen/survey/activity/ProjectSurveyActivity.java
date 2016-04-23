@@ -28,7 +28,6 @@ import android.widget.TextView;
 
 import com.nghiepnguyen.survey.Interface.ICallBack;
 import com.nghiepnguyen.survey.R;
-import com.nghiepnguyen.survey.adapter.ProjectListAdapter;
 import com.nghiepnguyen.survey.model.AppMessageModel;
 import com.nghiepnguyen.survey.model.CommonErrorModel;
 import com.nghiepnguyen.survey.model.CompletedProject;
@@ -248,7 +247,18 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             if (questionnaireModelList != null && questionnaireModelList.size() > 0)
                 generateOption(mOptionLinearLayout, questionnaireModelList);
 
-            mProgressBar.setVisibility(View.GONE);
+        } else if (questionnaireIds.size() == 0) {
+            AlertDialog.Builder customBuilder = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
+            customBuilder.setCancelable(false);
+            customBuilder.setTitle(getString(R.string.title_notice));
+            customBuilder.setMessage(getString(R.string.message_project_not_ready));
+            customBuilder.setPositiveButton(getString(R.string.button_ok), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    ProjectSurveyActivity.this.finish();
+                }
+            });
+            customBuilder.show();
         } else {
            /* // finished survey
             if (pathList.size() == projectModel.getQuestionCount()) {
@@ -268,6 +278,8 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             });
             customBuilder.show();
         }
+        mProgressBar.setVisibility(View.GONE);
+
     }
 
     private void generateOption(LinearLayout mainView, final List<QuestionnaireModel> questionnaireList) {
@@ -308,9 +320,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                     linearLayout1.addView(linearLayout2, params);
                 } else {
                     // create radio button
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
                         radioButton.setBackground(ContextCompat.getDrawable(this, R.drawable.radio_group_divider));
-                    }
+
 
                     // add it to radio group
                     linearLayout1.addView(radioButton, params);
@@ -366,9 +378,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                     linearLayout1.addView(linearLayout, params);
                 } else {
                     // create radio button
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
                         checkBox.setBackground(ContextCompat.getDrawable(this, R.drawable.radio_group_divider));
-                    }
+
                     // add it to radio group
                     linearLayout1.addView(checkBox, params);
                 }

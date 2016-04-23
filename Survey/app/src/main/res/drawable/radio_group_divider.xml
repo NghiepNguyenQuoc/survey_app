@@ -4,4 +4,7 @@
     <stroke
         android:width="0.5dp"
         android:color="@color/cl_gray_opacity" />
+    <gradient
+        android:endColor="@color/cl_white"
+        android:startColor="@color/cl_white" />
 </shape>
