@@ -29,7 +29,8 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@color/cl_white">
 
         <TextView
             android:id="@+id/activity_project_survey_question_content_textview"
@@ -76,5 +77,4 @@
                 android:text="@string/button_next_question" />
         </LinearLayout>
     </RelativeLayout>
-
 </LinearLayout>

@@ -1,6 +1,13 @@
 package com.nghiepnguyen.survey.activity;
 
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcel;
@@ -15,6 +22,7 @@ import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -59,7 +67,7 @@ import java.util.List;
  * -9 Matrix MA
  * - 10 Matrix Column
  */
-public class ProjectSurveyActivity extends BaseActivity implements View.OnClickListener {
+public class ProjectSurveyActivity extends BaseActivity implements View.OnClickListener, LocationListener {
     private static String TAG = "ProjectSurveyActivity";
 
     private ProgressBar mProgressBar;
@@ -83,6 +91,16 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     private int mSelectedPosition = -1;// current position in adapter
 
     private QuestionaireSQLiteHelper questionaireSQLiteHelper;
+    private LocationManager locationManager;
+
+    // flag for GPS status
+    private boolean isGPSEnabled = false;
+    // flag for network status
+    private boolean isNetworkEnabled = false;
+
+    private Location location;
+    private double latitude = 0; // latitude
+    private double longitude = 0; // longitude
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,6 +122,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     @Override
     protected void onResume() {
         super.onResume();
+        location = getLocation();
     }
 
     @Override
@@ -117,16 +136,16 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         AlertDialog.Builder customBuilder = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
         customBuilder.setTitle(getString(R.string.title_confirm));
         customBuilder.setMessage(getString(R.string.txt_save_project_message));
-        customBuilder.setPositiveButton(getString(R.string.button_save_survey), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                // save survey ...
-            }
-        });
-        customBuilder.setNegativeButton(getString(R.string.button_exit), new DialogInterface.OnClickListener() {
+        customBuilder.setPositiveButton(getString(R.string.button_exit), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 ProjectSurveyActivity.this.finish();
+            }
+        });
+        customBuilder.setNegativeButton(getString(R.string.button_save_survey), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                // save survey ...
             }
         });
         customBuilder.show();
@@ -607,5 +626,109 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 return String.format(getString(R.string.txt_completed_survey_mark), message.getResult());
         }
         return getString(R.string.txt_completed_survey);
+    }
+
+    // Get location
+    public Location getLocation() {
+        try {
+            locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+            // getting GPS status
+            isGPSEnabled = locationManager
+                    .isProviderEnabled(LocationManager.GPS_PROVIDER);
+
+            // getting network status
+            isNetworkEnabled = locationManager
+                    .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+            if (!isGPSEnabled && !isNetworkEnabled) {
+                AlertDialog.Builder gpsAlertDialog = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
+                gpsAlertDialog.setCancelable(false);
+                gpsAlertDialog.setTitle(getString(R.string.title_notice));
+
+                // Show dialog open location in setting
+                Intent callGPSSettingIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                // In some cases, a matching Activity may not exist, so ensure you safeguard against this.
+                // So, we must check packageManager & resolveInfo still exist
+                PackageManager packageManager = getPackageManager();
+                ResolveInfo resolveInfo = packageManager.resolveActivity(callGPSSettingIntent, PackageManager.GET_META_DATA);
+                if (packageManager != null && resolveInfo != null) {
+
+                    gpsAlertDialog.setMessage(getString(R.string.message_error_gps));
+                    gpsAlertDialog.setPositiveButton(getString(R.string.button_setting), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            Intent callGPSSettingIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                            startActivityForResult(callGPSSettingIntent, PackageManager.GET_META_DATA);
+                        }
+                    });
+                    gpsAlertDialog.setNegativeButton(getString(R.string.button_cancel), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            ProjectSurveyActivity.this.finish();
+                        }
+                    });
+                    gpsAlertDialog.show();
+                } else {
+                    gpsAlertDialog.setMessage(getString(R.string.message_error_warning));
+                    gpsAlertDialog.setPositiveButton(getString(R.string.button_ok), null);
+                    gpsAlertDialog.show();
+                }
+            } else {
+                if (isNetworkEnabled) {
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                            ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                            ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                        return null;
+                    }
+                    locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, Constant.MIN_TIME_BW_UPDATES, Constant.MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
+                    Log.d(TAG, "Network");
+                    if (locationManager != null) {
+                        location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                        if (location != null) {
+                            latitude = location.getLatitude();
+                            longitude = location.getLongitude();
+                        }
+                    }
+                }
+                if (isGPSEnabled && location == null) {
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, Constant.MIN_TIME_BW_UPDATES, Constant.MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
+                    Log.d(TAG, "GPS Enabled");
+                    if (locationManager != null) {
+                        location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                        if (location != null) {
+                            latitude = location.getLatitude();
+                            longitude = location.getLongitude();
+                        }
+                    }
+                }
+
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return location;
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
     }
 }

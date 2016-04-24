@@ -12,6 +12,12 @@ public class Constant {
     public static final int HTTP_UNAUTHORIZED = 401;
     public static final int KEY_ACTIVITY_RESULT_SIGN_IN = 47;
 
+    // The minimum distance to change Updates in meters
+    public static final int MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // 10 meters
+
+    // The minimum time between updates in milliseconds
+    public static final int MIN_TIME_BW_UPDATES = 1000 * 60 * 1; // 1 minute
+
     /*activity*/
     public static final String FORGET_PASSWORD = "ForgetPasswordActivity";
 
