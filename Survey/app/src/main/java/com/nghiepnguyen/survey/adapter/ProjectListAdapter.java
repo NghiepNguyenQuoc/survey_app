@@ -107,9 +107,9 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
         });
 
         if (questionaireSQLiteHelper.getCountQuestionnaireByProjectId(project.getID()) > 0)
-            holder.cardView.setCardBackgroundColor(ContextCompat.getColor(mContext,R.color.cl_default_trans));
+            holder.cardView.setCardBackgroundColor(ContextCompat.getColor(mContext, R.color.cl_default_trans));
         else
-            holder.cardView.setCardBackgroundColor(ContextCompat.getColor(mContext,R.color.cl_white));
+            holder.cardView.setCardBackgroundColor(ContextCompat.getColor(mContext, R.color.cl_white));
     }
 
     @Override
@@ -189,8 +189,9 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
                         List<QuestionnaireModel> allDataOfProject = (List<QuestionnaireModel>) data;
                         if (allDataOfProject != null && allDataOfProject.size() > 0) {
                             if (questionaireSQLiteHelper.getCountQuestionnaireByProjectId(project.getID()) == 0)
-                                for (QuestionnaireModel item : allDataOfProject)
+                                for (QuestionnaireModel item : allDataOfProject) {
                                     questionaireSQLiteHelper.addQuestionnaire(item, project.getID());
+                                }
 
                         }
 
@@ -241,8 +242,9 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
 
                         }
 
+                        List<RouteModel> routeModels1 = routeSQLiteHelper.getAllRoute();
                         loadingView.setVisibility(View.GONE);
-                        itemView.setCardBackgroundColor(ContextCompat.getColor(mContext,R.color.cl_default_trans));
+                        itemView.setCardBackgroundColor(ContextCompat.getColor(mContext, R.color.cl_default_trans));
                         Utils.showToastLong(mContext, String.format(mContext.getString(R.string.message_download_compeleted), project.getName()));
                     }
                 });

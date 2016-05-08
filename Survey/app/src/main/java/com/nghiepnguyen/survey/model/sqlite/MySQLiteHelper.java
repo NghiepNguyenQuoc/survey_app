@@ -21,6 +21,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     public static final String TABLE_QUESTIONNAIRE = "questionnaire";
     public static final String TABLE_ROUTE = "route";
     public static final String TABLE_PROJECT = "project";
+    public static final String TABLE_ANSWER = "answer";
 
 
     public MySQLiteHelper(Context context) {
@@ -34,6 +35,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         db.execSQL(ProjectSQLiteHelper.CREATE_PROJECT_TABLE);
         db.execSQL(QuestionaireSQLiteHelper.CREATE_QUESTIONNAIRE_TABLE);
         db.execSQL(RouteSQLiteHelper.CREATE_ROUTE_TABLE);
+        //db.execSQL(AnswerSQLiteHelper.CREATE_ANSWER_TABLE);
     }
 
     @Override
@@ -42,6 +44,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_PROJECT);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_QUESTIONNAIRE);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_ROUTE);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_ANSWER);
 
         // create fresh questionnaireModels table
         this.onCreate(db);

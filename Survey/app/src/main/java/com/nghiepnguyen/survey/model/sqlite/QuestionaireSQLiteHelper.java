@@ -25,21 +25,20 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
     private static final String KEY_ID = "ID";
     private static final String KEY_PROJECT_ID = "ProjectID";
     private static final String KEY_QUESTIONNAIRE_ID = "QuestionnaireID";
+    private static final String KEY_DEPENDENT_ID = "DependentID";
     private static final String KEY_TYPE = "Type";
     private static final String KEY_ZORDERQUESTION = "ZOrderQuestion";
     private static final String KEY_VALUE = "Value";
     private static final String KEY_ALLOW_INPUT_TEXT = "AllowInputText";
     private static final String KEY_IS_SELECTED = "isSelected";
     private static final String KEY_MAXRESPONSECOUNT = "MaxResponseCount";
+    private static final String KEY_EXCLUSION= "exclusion";
     private static final String KEY_CODE = "Code";
     private static final String KEY_QUESTIONTEXT = "QuestionText";
     private static final String KEY_CAPTION = "Caption";
     private static final String KEY_DESCRIPTION = "Description";
     private static final String KEY_ZORDEROPTION = "ZOrderOption";
     private static final String KEY_OTHEROPTION = "otherOption";
-
-    private static final String[] COLUMNS = {KEY_IDENTITY, KEY_ID, KEY_PROJECT_ID, KEY_QUESTIONNAIRE_ID, KEY_TYPE, KEY_ZORDERQUESTION, KEY_VALUE, KEY_ALLOW_INPUT_TEXT, KEY_IS_SELECTED, KEY_MAXRESPONSECOUNT, KEY_CODE, KEY_QUESTIONTEXT,
-            KEY_CAPTION, KEY_DESCRIPTION, KEY_ZORDEROPTION, KEY_OTHEROPTION};
 
     // Table Create Statements
 
@@ -49,12 +48,14 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
             KEY_ID + " INTEGER, " +
             KEY_PROJECT_ID + " INTEGER, " +
             KEY_QUESTIONNAIRE_ID + " INTEGER, " +
+            KEY_DEPENDENT_ID + " INTEGER, " +
             KEY_TYPE + " INTEGER, " +
             KEY_ZORDERQUESTION + " INTEGER, " +
             KEY_VALUE + " INTEGER, " +
             KEY_ALLOW_INPUT_TEXT + " INTEGER, " +
             KEY_IS_SELECTED + " INTEGER, " +
             KEY_MAXRESPONSECOUNT + " INTEGER, " +
+            KEY_EXCLUSION + " INTEGER, " +
             KEY_CODE + " TEXT, " +
             KEY_QUESTIONTEXT + " TEXT, " +
             KEY_CAPTION + " TEXT, " +
@@ -83,11 +84,13 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
         values.put(KEY_PROJECT_ID, projectId);
         values.put(KEY_TYPE, questionnaireModel.getType());
         values.put(KEY_QUESTIONNAIRE_ID, questionnaireModel.getQuestionnaireID());
+        values.put(KEY_DEPENDENT_ID, questionnaireModel.getDependentID());
         values.put(KEY_ZORDERQUESTION, questionnaireModel.getZOrderQuestion());
         values.put(KEY_VALUE, questionnaireModel.getValue());
         values.put(KEY_ALLOW_INPUT_TEXT, questionnaireModel.getAllowInputText());
         values.put(KEY_IS_SELECTED, questionnaireModel.getIsSelected());
         values.put(KEY_MAXRESPONSECOUNT, questionnaireModel.getMaxResponseCount());
+        values.put(KEY_EXCLUSION, questionnaireModel.getExclusion());
         values.put(KEY_CODE, questionnaireModel.getCode());
         values.put(KEY_QUESTIONTEXT, questionnaireModel.getQuestionText());
         values.put(KEY_CAPTION, questionnaireModel.getCaption());
@@ -143,18 +146,20 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
                 questionnaireModel.setID(Integer.parseInt(cursor.getString(1)));
                 questionnaireModel.setProjectID(Integer.parseInt(cursor.getString(2)));
                 questionnaireModel.setQuestionnaireID(Integer.parseInt(cursor.getString(3)));
-                questionnaireModel.setType(Integer.parseInt(cursor.getString(4)));
-                questionnaireModel.setZOrderQuestion(Integer.parseInt(cursor.getString(5)));
-                questionnaireModel.setValue(Integer.parseInt(cursor.getString(6)));
-                questionnaireModel.setAllowInputText(Integer.parseInt(cursor.getString(7)));
-                questionnaireModel.setIsSelected(Integer.parseInt(cursor.getString(8)));
-                questionnaireModel.setMaxResponseCount(Integer.parseInt(cursor.getString(9)));
-                questionnaireModel.setCode(cursor.getString(10));
-                questionnaireModel.setQuestionText(cursor.getString(11));
-                questionnaireModel.setCaption(cursor.getString(12));
-                questionnaireModel.setDescription(cursor.getString(13));
-                questionnaireModel.setZOrderOption(cursor.getString(14));
-                questionnaireModel.setOtherOption(cursor.getString(15));
+                questionnaireModel.setDependentID(Integer.parseInt(cursor.getString(4)));
+                questionnaireModel.setType(Integer.parseInt(cursor.getString(5)));
+                questionnaireModel.setZOrderQuestion(Integer.parseInt(cursor.getString(6)));
+                questionnaireModel.setValue(Integer.parseInt(cursor.getString(7)));
+                questionnaireModel.setAllowInputText(Integer.parseInt(cursor.getString(8)));
+                questionnaireModel.setIsSelected(Integer.parseInt(cursor.getString(9)));
+                questionnaireModel.setMaxResponseCount(Integer.parseInt(cursor.getString(10)));
+                questionnaireModel.setExclusion(Integer.parseInt(cursor.getString(11)));
+                questionnaireModel.setCode(cursor.getString(12));
+                questionnaireModel.setQuestionText(cursor.getString(13));
+                questionnaireModel.setCaption(cursor.getString(14));
+                questionnaireModel.setDescription(cursor.getString(15));
+                questionnaireModel.setZOrderOption(cursor.getString(16));
+                questionnaireModel.setOtherOption(cursor.getString(17));
 
                 // Add questionnaireModel to questionnaireModel
                 questionnaireModels.add(questionnaireModel);
@@ -187,18 +192,20 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
                 questionnaireModel.setID(Integer.parseInt(cursor.getString(1)));
                 questionnaireModel.setProjectID(Integer.parseInt(cursor.getString(2)));
                 questionnaireModel.setQuestionnaireID(Integer.parseInt(cursor.getString(3)));
-                questionnaireModel.setType(Integer.parseInt(cursor.getString(4)));
-                questionnaireModel.setZOrderQuestion(Integer.parseInt(cursor.getString(5)));
-                questionnaireModel.setValue(Integer.parseInt(cursor.getString(6)));
-                questionnaireModel.setAllowInputText(Integer.parseInt(cursor.getString(7)));
-                questionnaireModel.setIsSelected(Integer.parseInt(cursor.getString(8)));
-                questionnaireModel.setMaxResponseCount(Integer.parseInt(cursor.getString(9)));
-                questionnaireModel.setCode(cursor.getString(10));
-                questionnaireModel.setQuestionText(cursor.getString(11));
-                questionnaireModel.setCaption(cursor.getString(12));
-                questionnaireModel.setDescription(cursor.getString(13));
-                questionnaireModel.setZOrderOption(cursor.getString(14));
-                questionnaireModel.setOtherOption(cursor.getString(15));
+                questionnaireModel.setDependentID(Integer.parseInt(cursor.getString(4)));
+                questionnaireModel.setType(Integer.parseInt(cursor.getString(5)));
+                questionnaireModel.setZOrderQuestion(Integer.parseInt(cursor.getString(6)));
+                questionnaireModel.setValue(Integer.parseInt(cursor.getString(7)));
+                questionnaireModel.setAllowInputText(Integer.parseInt(cursor.getString(8)));
+                questionnaireModel.setIsSelected(Integer.parseInt(cursor.getString(9)));
+                questionnaireModel.setMaxResponseCount(Integer.parseInt(cursor.getString(10)));
+                questionnaireModel.setExclusion(Integer.parseInt(cursor.getString(11)));
+                questionnaireModel.setCode(cursor.getString(12));
+                questionnaireModel.setQuestionText(cursor.getString(13));
+                questionnaireModel.setCaption(cursor.getString(14));
+                questionnaireModel.setDescription(cursor.getString(15));
+                questionnaireModel.setZOrderOption(cursor.getString(16));
+                questionnaireModel.setOtherOption(cursor.getString(17));
 
                 // Add questionnaireModel to questionnaireModel
                 questionnaireModels.add(questionnaireModel);
@@ -220,7 +227,15 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
         String query = "SELECT " + KEY_QUESTIONNAIRE_ID +
                 " FROM " + TABLE_QUESTIONNAIRE +
                 " WHERE " + KEY_PROJECT_ID + " = " + projectId +
-                " GROUP BY " + KEY_QUESTIONNAIRE_ID;
+                " AND "+KEY_QUESTIONNAIRE_ID+" != 4109"+
+                " AND "+KEY_QUESTIONNAIRE_ID+" != 4110"+
+                " AND "+KEY_QUESTIONNAIRE_ID+" != 4111"+
+                " AND "+KEY_QUESTIONNAIRE_ID+" != 4112"+
+                " AND "+KEY_QUESTIONNAIRE_ID+" != 4113"+
+                " AND "+KEY_QUESTIONNAIRE_ID+" != 4114"+
+                " AND "+KEY_QUESTIONNAIRE_ID+" != 4115"+
+                " GROUP BY " + KEY_QUESTIONNAIRE_ID+
+                " ORDER BY " + KEY_IDENTITY;
 
         // 2. get reference to writable DB
         SQLiteDatabase db = this.getWritableDatabase();
@@ -253,11 +268,13 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
         values.put(KEY_PROJECT_ID, questionnaireModel.getProjectID());
         values.put(KEY_TYPE, questionnaireModel.getType());
         values.put(KEY_QUESTIONNAIRE_ID, questionnaireModel.getQuestionnaireID());
+        values.put(KEY_DEPENDENT_ID, questionnaireModel.getDependentID());
         values.put(KEY_ZORDERQUESTION, questionnaireModel.getZOrderQuestion());
         values.put(KEY_VALUE, questionnaireModel.getValue());
         values.put(KEY_ALLOW_INPUT_TEXT, questionnaireModel.getAllowInputText());
         values.put(KEY_IS_SELECTED, questionnaireModel.getIsSelected());
         values.put(KEY_MAXRESPONSECOUNT, questionnaireModel.getMaxResponseCount());
+        values.put(KEY_EXCLUSION, questionnaireModel.getExclusion());
         values.put(KEY_CODE, questionnaireModel.getCode());
         values.put(KEY_QUESTIONTEXT, questionnaireModel.getQuestionText());
         values.put(KEY_CAPTION, questionnaireModel.getCaption());

@@ -10,12 +10,14 @@ public class QuestionnaireModel implements Parcelable {
     private int ID;
     private int ProjectID;
     private int QuestionnaireID;
+    private int DependentID;
     private int Type;
     private int ZOrderQuestion;
     private int Value;
     private int AllowInputText;
     private int IsSelected;
     private int MaxResponseCount;
+    private int Exclusion;
     private String Code;
     private String QuestionText;
     private String Caption;
@@ -23,22 +25,51 @@ public class QuestionnaireModel implements Parcelable {
     private String ZOrderOption;
     private String otherOption;
 
+
     public QuestionnaireModel(Parcel in) {
         ID = in.readInt();
         ProjectID = in.readInt();
         QuestionnaireID = in.readInt();
+        DependentID = in.readInt();
         Type = in.readInt();
         ZOrderQuestion = in.readInt();
         Value = in.readInt();
         AllowInputText = in.readInt();
         IsSelected = in.readInt();
         MaxResponseCount = in.readInt();
+        Exclusion = in.readInt();
         Code = in.readString();
         QuestionText = in.readString();
         Caption = in.readString();
         Description = in.readString();
         ZOrderOption = in.readString();
         otherOption = in.readString();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(ID);
+        dest.writeInt(ProjectID);
+        dest.writeInt(QuestionnaireID);
+        dest.writeInt(DependentID);
+        dest.writeInt(Type);
+        dest.writeInt(ZOrderQuestion);
+        dest.writeInt(Value);
+        dest.writeInt(AllowInputText);
+        dest.writeInt(IsSelected);
+        dest.writeInt(MaxResponseCount);
+        dest.writeInt(Exclusion);
+        dest.writeString(Code);
+        dest.writeString(QuestionText);
+        dest.writeString(Caption);
+        dest.writeString(Description);
+        dest.writeString(ZOrderOption);
+        dest.writeString(otherOption);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
     }
 
     public static final Creator<QuestionnaireModel> CREATOR = new Creator<QuestionnaireModel>() {
@@ -75,6 +106,14 @@ public class QuestionnaireModel implements Parcelable {
 
     public void setQuestionnaireID(int questionnaireID) {
         QuestionnaireID = questionnaireID;
+    }
+
+    public int getDependentID() {
+        return DependentID;
+    }
+
+    public void setDependentID(int dependentID) {
+        DependentID = dependentID;
     }
 
     public int getType() {
@@ -125,6 +164,14 @@ public class QuestionnaireModel implements Parcelable {
         MaxResponseCount = maxResponseCount;
     }
 
+    public int getExclusion() {
+        return Exclusion;
+    }
+
+    public void setExclusion(int exclusion) {
+        Exclusion = exclusion;
+    }
+
     public String getCode() {
         return Code;
     }
@@ -171,29 +218,5 @@ public class QuestionnaireModel implements Parcelable {
 
     public void setOtherOption(String otherOption) {
         this.otherOption = otherOption;
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(ID);
-        dest.writeInt(ProjectID);
-        dest.writeInt(QuestionnaireID);
-        dest.writeInt(Type);
-        dest.writeInt(ZOrderQuestion);
-        dest.writeInt(Value);
-        dest.writeInt(AllowInputText);
-        dest.writeInt(IsSelected);
-        dest.writeInt(MaxResponseCount);
-        dest.writeString(Code);
-        dest.writeString(QuestionText);
-        dest.writeString(Caption);
-        dest.writeString(Description);
-        dest.writeString(ZOrderOption);
-        dest.writeString(otherOption);
     }
 }

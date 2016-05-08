@@ -23,8 +23,6 @@ public class ProjectSQLiteHelper extends MySQLiteHelper {
     private static final String KEY_DESCRIPTION = "Description";
     private static final String KEY_IMAGE_URL = "ImageUrl";
 
-    private static final String[] COLUMNS = {KEY_PROJECT_INDEX, KEY_ID, KEY_NAME, KEY_DESCRIPTION, KEY_IMAGE_URL};
-
     // Table Create Statements
 
     // TABLE_PROJECT table create statement
