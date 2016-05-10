@@ -168,7 +168,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
         setSupportActionBar(mToolbar);
 
+        assert mNextQuestionButton != null;
         mNextQuestionButton.setOnClickListener(this);
+        assert mToolbar != null;
         mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -219,8 +221,6 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                                 }
                             });
                             customBuilder.show();
-                        } else {
-                            //callApiToDownloadProjectData(projectModel.getID());
                         }
                     }
                 });
@@ -241,6 +241,29 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
     private void getNextQuestion() {
         mProgressBar.setVisibility(View.VISIBLE);
+
+        //check route
+        if (answerModels != null && answerModels.size() > 0 &&
+                questionnaireModelList != null && questionnaireModelList.size() >= 0) {
+            boolean isPassLogic = checkStopLogic(answerModels, questionnaireModelList);
+            if (!isPassLogic) {
+                AlertDialog.Builder customBuilder = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
+                customBuilder.setCancelable(false);
+                customBuilder.setTitle(getString(R.string.title_notice));
+                customBuilder.setMessage(getString(R.string.txt_not_suitable_option));
+                customBuilder.setPositiveButton(getString(R.string.button_ok), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        ProjectSurveyActivity.this.finish();
+                    }
+                });
+                customBuilder.show();
+            } else {
+                currentIndexQuestionID++;
+                getNextQuestion();
+            }
+        }
+
         if (currentIndexQuestionID < questionnaireIds.size()) {
             // clear questionnaireModelList
             if (questionnaireModelList == null)
@@ -254,9 +277,10 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 if (questionText.contains("[LIKED]")) {
                     AnswerModel answerModel = answerModels.get(questionnaireIds.get(currentIndexQuestionID - 1));// get answer from dependent question
                     for (Map.Entry<Integer, String> entry : answerModel.getArrText().entrySet()) {// duyet qua tac ca cac dap an da chon
-                        questionText.replace("[LIKED]", entry.getValue());
+                        questionText = questionText.replace("[LIKED]", entry.getValue());
                         break;
                     }
+
                 }
 
                 Spannable wordtoSpan = new SpannableString(questionnaireModels.get(0).getCode() + ". " + questionText);
@@ -431,10 +455,12 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                             AppCompatEditText editText;
                             if (buttonView.getId() == item.getID() && buttonView.isChecked() && item.getAllowInputText() == 1) {
                                 editText = (AppCompatEditText) findViewById(buttonView.getId() * 10);
+                                assert editText != null;
                                 editText.setVisibility(View.VISIBLE);
                                 editText.requestFocus();
                             } else if (buttonView.getId() == item.getID() && !buttonView.isChecked() && item.getAllowInputText() == 1) {
                                 editText = (AppCompatEditText) findViewById(buttonView.getId() * 10);
+                                assert editText != null;
                                 editText.setVisibility(View.GONE);
                             }
                         }
@@ -478,10 +504,12 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                             AppCompatEditText editText;
                             if (buttonView.getId() == item.getID() && buttonView.isChecked() && item.getAllowInputText() == 1) {
                                 editText = (AppCompatEditText) findViewById(buttonView.getId() * 10);
+                                assert editText != null;
                                 editText.setVisibility(View.VISIBLE);
                                 editText.requestFocus();
                             } else if (buttonView.getId() == item.getID() && !buttonView.isChecked() && item.getAllowInputText() == 1) {
                                 editText = (AppCompatEditText) findViewById(buttonView.getId() * 10);
+                                assert editText != null;
                                 editText.setVisibility(View.GONE);
                             }
                         }
@@ -641,42 +669,27 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                     return;
                 }
 
-                //check route
-                boolean isPassLogic = checkStopLogic(answerModels, questionnaireModelList);
-                if (!isPassLogic) {
-                    AlertDialog.Builder customBuilder = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
-                    customBuilder.setCancelable(false);
-                    customBuilder.setTitle(getString(R.string.title_notice));
-                    customBuilder.setMessage(getString(R.string.txt_not_suitable_option));
-                    customBuilder.setPositiveButton(getString(R.string.button_ok), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            ProjectSurveyActivity.this.finish();
-                        }
-                    });
-                    customBuilder.show();
-                } else {
-                    /////////////////////////////////////////////////////////////////
-                    // collect data to send to server
-                    String patternString = "<R QID=\"%s\" V=\"%s\" T=\"%s\"/>";
-                    switch (questionModel.getType()) {
-                        case 0:
-                        case 1:
-                            for (QuestionnaireModel item : questionnaireModelList) {
-                                String valueOption;
-                                if (item.getIsSelected() == 1) {
-                                    if (item.getAllowInputText() == 1 && !TextUtils.isEmpty(item.getOtherOption()))
-                                        valueOption = String.format(patternString, questionModel.getID(), item.getValue(), item.getOtherOption());
-                                    else
-                                        valueOption = String.format(patternString, questionModel.getID(), item.getValue(), item.getDescription());
-                                    strInputValue += valueOption;
-                                    strResponseOption += valueOption;
-                                }
+
+                /////////////////////////////////////////////////////////////////
+                // collect data to send to server
+                String patternString = "<R QID=\"%s\" V=\"%s\" T=\"%s\"/>";
+                switch (questionModel.getType()) {
+                    case 0:
+                    case 1:
+                        for (QuestionnaireModel item : questionnaireModelList) {
+                            String valueOption;
+                            if (item.getIsSelected() == 1) {
+                                if (item.getAllowInputText() == 1 && !TextUtils.isEmpty(item.getOtherOption()))
+                                    valueOption = String.format(patternString, questionModel.getID(), item.getValue(), item.getOtherOption());
+                                else
+                                    valueOption = String.format(patternString, questionModel.getID(), item.getValue(), item.getDescription());
+                                strInputValue += valueOption;
+                                strResponseOption += valueOption;
                             }
-                            pathList.add(questionModel.getID());
-                            getNextQuestion();
-                            break;
-                    }
+                        }
+                        pathList.add(questionModel.getID());
+                        getNextQuestion();
+                        break;
                 }
                 break;
         }
@@ -765,8 +778,6 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                             }
                         }
                     }
-                } else {
-
                 }
             }
         }
@@ -843,7 +854,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 // So, we must check packageManager & resolveInfo still exist
                 PackageManager packageManager = getPackageManager();
                 ResolveInfo resolveInfo = packageManager.resolveActivity(callGPSSettingIntent, PackageManager.GET_META_DATA);
-                if (packageManager != null && resolveInfo != null) {
+                if (resolveInfo != null) {
 
                     gpsAlertDialog.setMessage(getString(R.string.message_error_gps));
                     gpsAlertDialog.setPositiveButton(getString(R.string.button_setting), new DialogInterface.OnClickListener() {

@@ -93,12 +93,14 @@ public class ProjectListFragment extends Fragment implements ProjectListAdapter.
 
     @Override
     public void recyclerViewListClicked(View v, int position) {
-        List<ProjectModel> projectList = ((ProjectListAdapter) mProjectListListView.getAdapter()).getProjectList();
-        Intent intent = new Intent(mActivity, ProjectSurveyActivity.class);
-        Bundle bundle = new Bundle();
-        bundle.putParcelable(Constant.BUNDLE_QUESTION, projectList.get(position));
-        intent.putExtras(bundle);
-        startActivity(intent);
+        if (isAdded()) {
+            List<ProjectModel> projectList = ((ProjectListAdapter) mProjectListListView.getAdapter()).getProjectList();
+            Intent intent = new Intent(mActivity, ProjectSurveyActivity.class);
+            Bundle bundle = new Bundle();
+            bundle.putParcelable(Constant.BUNDLE_QUESTION, projectList.get(position));
+            intent.putExtras(bundle);
+            startActivity(intent);
+        }
     }
 
     private void callApiGetProjectList() {
