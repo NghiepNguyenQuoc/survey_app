@@ -4,6 +4,9 @@
         android:id="@+id/menu_popup_download"
         android:title="@string/menu_item_download" />
     <item
+        android:id="@+id/menu_popup_update"
+        android:title="@string/menu_item_update" />
+    <item
         android:id="@+id/menu_popup_upload"
         android:title="@string/menu_item_upload" />
 </menu>

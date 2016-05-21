@@ -240,4 +240,22 @@ public class RouteSQLiteHelper extends MySQLiteHelper {
         // 3. close
         db.close();
     }
+
+    /**
+     * Deleting all Route by projectID
+     */
+    public void deleteAllRoutes(int projectID) {
+
+        // 1. get reference to writable DB
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // 2. delete
+        db.delete(TABLE_ROUTE,
+                KEY_PROJECT_ID + " = ?",
+                new String[]{String.valueOf(projectID)});
+
+        // 3. close
+        db.close();
+    }
+
 }

@@ -56,5 +56,6 @@
     <string name="message_error_warning">GPS bị tắt trên thiết bị của bạn.</string>
 
     <string name="menu_item_download">Tải xuống dự án</string>
+    <string name="menu_item_update">Cập nhật dữ liệu</string>
     <string name="menu_item_upload">Upload dữ liệu</string>
 </resources>

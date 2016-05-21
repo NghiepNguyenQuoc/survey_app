@@ -32,7 +32,7 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
     private static final String KEY_ALLOW_INPUT_TEXT = "AllowInputText";
     private static final String KEY_IS_SELECTED = "isSelected";
     private static final String KEY_MAXRESPONSECOUNT = "MaxResponseCount";
-    private static final String KEY_EXCLUSION= "exclusion";
+    private static final String KEY_EXCLUSION = "exclusion";
     private static final String KEY_CODE = "Code";
     private static final String KEY_QUESTIONTEXT = "QuestionText";
     private static final String KEY_CAPTION = "Caption";
@@ -227,15 +227,16 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
         String query = "SELECT " + KEY_QUESTIONNAIRE_ID +
                 " FROM " + TABLE_QUESTIONNAIRE +
                 " WHERE " + KEY_PROJECT_ID + " = " + projectId +
-                " AND "+KEY_QUESTIONNAIRE_ID+" != 4109"+
+                " GROUP BY " + KEY_QUESTIONNAIRE_ID +
+                " ORDER BY " + KEY_IDENTITY;
+
+                /*" AND "+KEY_QUESTIONNAIRE_ID+" != 4109"+
                 " AND "+KEY_QUESTIONNAIRE_ID+" != 4110"+
                 " AND "+KEY_QUESTIONNAIRE_ID+" != 4111"+
                 " AND "+KEY_QUESTIONNAIRE_ID+" != 4112"+
                 " AND "+KEY_QUESTIONNAIRE_ID+" != 4113"+
                 " AND "+KEY_QUESTIONNAIRE_ID+" != 4114"+
-                " AND "+KEY_QUESTIONNAIRE_ID+" != 4115"+
-                " GROUP BY " + KEY_QUESTIONNAIRE_ID+
-                " ORDER BY " + KEY_IDENTITY;
+                " AND "+KEY_QUESTIONNAIRE_ID+" != 4115"+*/
 
         // 2. get reference to writable DB
         SQLiteDatabase db = this.getWritableDatabase();
@@ -313,5 +314,22 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
 
         Log.d("deletequestionnaire", questionnaireModel.toString());
 
+    }
+
+    /*
+    * Delete all questionarie by projectID
+    * */
+    public void deleteAllQuestionnaire(int projectID) {
+
+        // 1. get reference to writable DB
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // 2. delete
+        db.delete(TABLE_QUESTIONNAIRE,
+                KEY_PROJECT_ID + " = ?",
+                new String[]{String.valueOf(projectID)});
+
+        // 3. close
+        db.close();
     }
 }

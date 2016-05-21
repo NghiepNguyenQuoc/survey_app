@@ -46,6 +46,7 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
 
     private List<ProjectModel> projectList;
     private QuestionaireSQLiteHelper questionaireSQLiteHelper;
+    private RouteSQLiteHelper routeSQLiteHelper;
     private static RecyclerViewClickListener itemListener;
 
     public ProjectListAdapter(Context mContext, List<ProjectModel> projectList, RecyclerViewClickListener itemListener) {
@@ -63,6 +64,7 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
                 .build();
 
         questionaireSQLiteHelper = new QuestionaireSQLiteHelper(mContext);
+        routeSQLiteHelper = new RouteSQLiteHelper(mContext);
     }
 
     @Override
@@ -92,6 +94,9 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
                         if (i == R.id.menu_popup_download) {
                             holder.pbLoading.setVisibility(View.VISIBLE);
                             downloadProjectData(project, holder.pbLoading, holder.cardView);
+                            return true;
+                        } else if (i == R.id.menu_popup_update) {
+                            updateProjectData(project, holder.pbLoading, holder.cardView);
                             return true;
                         } else if (i == R.id.menu_popup_upload) {
                             //do something
@@ -178,6 +183,12 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
         void recyclerViewListClicked(View v, int position);
     }
 
+    private void updateProjectData(final ProjectModel project, final View loadingView, final CardView itemView) {
+        questionaireSQLiteHelper.deleteAllQuestionnaire(project.getID());
+        routeSQLiteHelper.deleteAllRoutes(project.getID());
+        downloadProjectData(project, loadingView, itemView);
+    }
+
     private void downloadProjectData(final ProjectModel project, final View loadingView, final CardView itemView) {
         SurveyApiWrapper.downloadProjectData(mContext, project.getID(), new ICallBack() {
             @Override
@@ -192,7 +203,6 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
                                 for (QuestionnaireModel item : allDataOfProject) {
                                     questionaireSQLiteHelper.addQuestionnaire(item, project.getID());
                                 }
-
                         }
 
                         // download project route
@@ -233,7 +243,6 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
                     @SuppressWarnings("unchecked")
                     @Override
                     public void run() {
-                        RouteSQLiteHelper routeSQLiteHelper = new RouteSQLiteHelper(mContext);
                         List<RouteModel> routeModels = (List<RouteModel>) data;
                         if (routeModels != null && routeModels.size() > 0) {
                             if (routeSQLiteHelper.countRouteByProjectId(project.getID()) == 0)
