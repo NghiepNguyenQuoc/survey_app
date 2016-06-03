@@ -9,6 +9,11 @@
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password (optional)</string>
+    <string name="prompt_full_name">Họ và tên</string>
+    <string name="prompt_number_id">Số CMND</string>
+    <string name="prompt_phone_number">Số điện thoại</string>
+    <string name="prompt_address">Địa chỉ</string>
+
     <string name="action_sign_in">Sign in or register</string>
     <string name="action_sign_in_short">Sign in</string>
     <string name="error_invalid_email">This email address is invalid</string>

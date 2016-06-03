@@ -6,10 +6,13 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import com.nghiepnguyen.survey.model.AnswerModel;
 import com.nghiepnguyen.survey.model.RouteModel;
+import com.nghiepnguyen.survey.model.SaveAnswerModel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by nghiep on 4/9/16.
@@ -17,68 +20,59 @@ import java.util.List;
 public class AnswerSQLiteHelper extends MySQLiteHelper {
 
     // Table Names
-    public static final String TABLE_ROUTE = "route";
+    public static final String TABLE_ANSWER = "answer";
 
     // TABLE_QUESTIONNAIRE Columns names
     private static final String KEY_IDENTITY = "identity";
-    private static final String KEY_CONDITION_ID = "ConditionID";
-    private static final String KEY_QUESTIONNAIRE_CHECK = "QuestionnaireID_Check";
-    private static final String KEY_QUESTIONNAIRE_CHECK_OPTION = "QuestionnaireID_Check_Option";
+    private static final String KEY_FULL_NAME = "FullName";
+    private static final String KEY_NUMBER_ID = "NumberID";
+    private static final String KEY_PHONE_NUMBER = "PhoneNumber";
+    private static final String KEY_ADDRESS = "Address";
+    private static final String KEY_EMAIL= "Email";
     private static final String KEY_PROJECT_ID = "ProjectID";
-    private static final String KEY_NEXT_QUESTION_ID= "NextQuestionnaireID";
-    private static final String KEY_METHOD = "Method";
-    private static final String KEY_GROUP_METHOD = "GroupMethod";
-    private static final String KEY_GROUP_ZORDER = "GroupZOrder";
-    private static final String KEY_RESPONSE_VALUE = "ResponseValue";
-    private static final String KEY_GROUP_METHOD_NAME = "GroupMethodName";
-    private static final String KEY_METHOD_NAME = "MethodName";
+    private static final String KEY_IS_COMPELETED = "IsCompeleted";
+    private static final String KEY_DATA= "Data";
 
     // TABLE_QUESTIONNAIRE table create statement
-    public static final String CREATE_ANSWER_TABLE = "CREATE TABLE " + TABLE_ROUTE + " ( " +
+    public static final String CREATE_ANSWER_TABLE = "CREATE TABLE " + TABLE_ANSWER + " ( " +
             KEY_IDENTITY + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-            KEY_CONDITION_ID + " INTEGER, " +
-            KEY_QUESTIONNAIRE_CHECK + " INTEGER, " +
-            KEY_QUESTIONNAIRE_CHECK_OPTION + " INTEGER, " +
-            KEY_PROJECT_ID + " INTEGER, " +
-            KEY_NEXT_QUESTION_ID+ " INTEGER, " +
-            KEY_METHOD+ " STRING, " +
-            KEY_GROUP_METHOD + " INTEGER, " +
-            KEY_GROUP_ZORDER + " INTEGER" +
-            KEY_RESPONSE_VALUE + " TEXT" +
-            KEY_GROUP_METHOD_NAME + " INTEGER, " +
-            KEY_METHOD_NAME + " INTEGER)";
+            KEY_FULL_NAME + " STRING, " +
+            KEY_NUMBER_ID + " STRING, " +
+            KEY_PHONE_NUMBER + " STRING, " +
+            KEY_ADDRESS + " STRING, " +
+            KEY_EMAIL+ " STRING, " +
+            KEY_PROJECT_ID+ " INTEGER, " +
+            KEY_IS_COMPELETED + " INTEGER, " +
+            KEY_DATA + " STRING)";
 
     public AnswerSQLiteHelper(Context context) {
         super(context);
     }
 
 
-    // ------------------------ Questionnaire table methods ----------------//
+    // ------------------------ Answer table methods ----------------//
 
     /**
-     * Creating a Questionnaire
+     * Creating a Answer
      */
-    public void addQuestionnaire(RouteModel routeModel, int projectId) {
-        Log.d("questionnaireModel", routeModel.toString());
+    public void addAnswer(SaveAnswerModel saveAnswerModel) {
+        Log.d("saveAnswerModel", saveAnswerModel.toString());
         // 1. get reference to writable DB
         SQLiteDatabase db = this.getWritableDatabase();
 
         // 2. create ContentValues to add key "column"/value
         ContentValues values = new ContentValues();
-        values.put(KEY_CONDITION_ID, routeModel.getQuestionnaireConditionsID());
-        values.put(KEY_QUESTIONNAIRE_CHECK, routeModel.getQuestionnaireID_Check());
-        values.put(KEY_QUESTIONNAIRE_CHECK_OPTION, routeModel.getQuestionnaireID_Check_Option());
-        values.put(KEY_PROJECT_ID, projectId);
-        values.put(KEY_NEXT_QUESTION_ID, routeModel.getNextQuestionnaireID());
-        values.put(KEY_METHOD, routeModel.getMethod());
-        values.put(KEY_GROUP_METHOD, routeModel.getGroupMethod());
-        values.put(KEY_GROUP_ZORDER, routeModel.getGroupZOrder());
-        values.put(KEY_RESPONSE_VALUE, routeModel.getResponseValue());
-        values.put(KEY_GROUP_METHOD_NAME, routeModel.getGroupMethodName());
-        values.put(KEY_METHOD_NAME, routeModel.getMethodName());
+        values.put(KEY_FULL_NAME, saveAnswerModel.getFullName());
+        values.put(KEY_NUMBER_ID, saveAnswerModel.getNumberID());
+        values.put(KEY_PHONE_NUMBER, saveAnswerModel.getPhoneNumber());
+        values.put(KEY_ADDRESS, saveAnswerModel.getAddress());
+        values.put(KEY_EMAIL, saveAnswerModel.getEmail());
+        values.put(KEY_PROJECT_ID, saveAnswerModel.getProjectID());
+        values.put(KEY_IS_COMPELETED, saveAnswerModel.getIsCompeleted());
+        values.put(KEY_DATA, saveAnswerModel.getData());
 
         // 3. insert
-        db.insert(TABLE_ROUTE, // table
+        db.insert(TABLE_ANSWER, // table
                 null, //nullColumnHack
                 values); // key/value -> keys = column names/ values = column values
 
@@ -87,114 +81,57 @@ public class AnswerSQLiteHelper extends MySQLiteHelper {
     }
 
     /**
-     * get number record by projectid
+     * get SaveAnswerModels
      */
-    public int countRouteByProjectId(int projectId) {
+    public List<SaveAnswerModel> getSaveAnswerModelsByProjectId(int id) {
+        List<SaveAnswerModel> saveAnswerModels = new ArrayList<>();
+
         // 1. build the query
-        String query = "SELECT  count(*) FROM " + TABLE_ROUTE + " WHERE " + KEY_PROJECT_ID + "=" + projectId;
+        String query = "SELECT  * FROM " + TABLE_ANSWER + " WHERE " + KEY_PROJECT_ID+ "=" + id;
 
         // 2. get reference to writable DB
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(query, null);
 
-        // 3. go over each row
-        if (cursor.moveToFirst()) {
-            return Integer.parseInt(cursor.getString(0));
-        }
-        return 0;
-    }
-
-    /**
-     * get Route
-     */
-    public List<RouteModel> getRoutesByQuestionaireId(int id) {
-        List<RouteModel> routeModels = new ArrayList<>();
-
-        // 1. build the query
-        String query = "SELECT  * FROM " + TABLE_ROUTE + " WHERE " + KEY_QUESTIONNAIRE_CHECK + "=" + id;
-
-        // 2. get reference to writable DB
-        SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery(query, null);
-
-        // 3. go over each row, build questionnaireModel and add it to list
-        RouteModel routeModel = null;
+        // 3. go over each row, build SaveAnswerModel and add it to list
+        SaveAnswerModel saveAnswerModel = null;
         if (cursor.moveToFirst()) {
             do {
-                routeModel = new RouteModel();
-                routeModel.setQuestionnaireConditionsID(Integer.parseInt(cursor.getString(1)));
-                routeModel.setQuestionnaireID_Check(Integer.parseInt(cursor.getString(2)));
-                routeModel.setQuestionnaireID_Check_Option(Integer.parseInt(cursor.getString(3)));
-                routeModel.setProjectID(Integer.parseInt(cursor.getString(4)));
-                routeModel.setNextQuestionnaireID(Integer.parseInt(cursor.getString(5)));
-                routeModel.setMethod(Integer.parseInt(cursor.getString(6)));
-                routeModel.setGroupMethod(Integer.parseInt(cursor.getString(7)));
-                routeModel.setGroupZOrder(Integer.parseInt(cursor.getString(8)));
-                routeModel.setResponseValue(cursor.getString(9));
-                routeModel.setGroupMethodName(cursor.getString(10));
-                routeModel.setMethodName(cursor.getString(11));
+                saveAnswerModel = new SaveAnswerModel();
+                saveAnswerModel.setIdentity(Integer.parseInt(cursor.getString(0)));
+                saveAnswerModel.setFullName(cursor.getString(1));
+                saveAnswerModel.setNumberID(cursor.getString(2));
+                saveAnswerModel.setPhoneNumber(cursor.getString(3));
+                saveAnswerModel.setAddress(cursor.getString(4));
+                saveAnswerModel.setEmail(cursor.getString(5));
+                saveAnswerModel.setProjectID(Integer.parseInt(cursor.getString(6)));
+                saveAnswerModel.setIsCompeleted(Integer.parseInt(cursor.getString(7)));
+                saveAnswerModel.setData(cursor.getString(8));
 
-                // Add route to routes
-                routeModels.add(routeModel);
+
+
+                // Add saveAnswerModel to saveAnswerModels
+                saveAnswerModels.add(saveAnswerModel);
             } while (cursor.moveToNext());
         }
 
-        // return routes
-        return routeModels;
+        // return saveAnswerModels
+        return saveAnswerModels;
 
     }
 
     /**
-     * getting all route
+     * Deleting a Answer
      */
-    public List<RouteModel> getAllRoutes() {
-        List<RouteModel> routeModels = new ArrayList<>();
-
-        // 1. build the query
-        String query = "SELECT  * FROM " + TABLE_ROUTE;
-
-        // 2. get reference to writable DB
-        SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery(query, null);
-
-        // 3. go over each row, build route and add it to list
-        RouteModel routeModel = null;
-        if (cursor.moveToFirst()) {
-            do {
-                routeModel = new RouteModel();
-                routeModel.setQuestionnaireConditionsID(Integer.parseInt(cursor.getString(1)));
-                routeModel.setQuestionnaireID_Check(Integer.parseInt(cursor.getString(2)));
-                routeModel.setQuestionnaireID_Check_Option(Integer.parseInt(cursor.getString(3)));
-                routeModel.setProjectID(Integer.parseInt(cursor.getString(4)));
-                routeModel.setNextQuestionnaireID(Integer.parseInt(cursor.getString(5)));
-                routeModel.setMethod(Integer.parseInt(cursor.getString(6)));
-                routeModel.setGroupMethod(Integer.parseInt(cursor.getString(7)));
-                routeModel.setGroupZOrder(Integer.parseInt(cursor.getString(8)));
-                routeModel.setResponseValue(cursor.getString(9));
-                routeModel.setGroupMethodName(cursor.getString(10));
-                routeModel.setMethodName(cursor.getString(11));
-
-                // Add route to routes
-                routeModels.add(routeModel);
-            } while (cursor.moveToNext());
-        }
-
-        // return routes
-        return routeModels;
-    }
-
-    /**
-     * Deleting a Route
-     */
-    public void deleteRoute(RouteModel routeModel) {
+    public void deleteAnswer(SaveAnswerModel saveAnswerModel) {
 
         // 1. get reference to writable DB
         SQLiteDatabase db = this.getWritableDatabase();
 
         // 2. delete
-        db.delete(TABLE_ROUTE,
-                KEY_CONDITION_ID + " = ?",
-                new String[]{String.valueOf(routeModel.getQuestionnaireConditionsID())});
+        db.delete(TABLE_ANSWER,
+                KEY_IDENTITY + " = ?",
+                new String[]{String.valueOf(saveAnswerModel.getIdentity())});
 
         // 3. close
         db.close();

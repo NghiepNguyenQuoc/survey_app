@@ -36,12 +36,14 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import com.nghiepnguyen.survey.R;
+import com.nghiepnguyen.survey.UserInfoDialog;
 import com.nghiepnguyen.survey.model.AnswerModel;
 import com.nghiepnguyen.survey.model.MemberModel;
 import com.nghiepnguyen.survey.model.ProjectModel;
 import com.nghiepnguyen.survey.model.QuestionModel;
 import com.nghiepnguyen.survey.model.QuestionnaireModel;
 import com.nghiepnguyen.survey.model.RouteModel;
+import com.nghiepnguyen.survey.model.SaveAnswerModel;
 import com.nghiepnguyen.survey.model.sqlite.QuestionaireSQLiteHelper;
 import com.nghiepnguyen.survey.model.sqlite.RouteSQLiteHelper;
 import com.nghiepnguyen.survey.storage.UserInfoManager;
@@ -77,15 +79,13 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     private TextView mQuestionContentTextView;
     private LinearLayout mOptionLinearLayout;
 
-
     //private UserInfoModel currentUser;
     private MemberModel currentMember;
+    private SaveAnswerModel saveAnswerModel;
     private List<QuestionnaireModel> questionnaireModelList;
     private QuestionModel questionModel;
     private ProjectModel projectModel;
 
-    private String strInputValue = "";
-    private String strResponseOption = "";
     private List<Integer> pathList;
     private List<Integer> questionnaireIds;
     private Map<Integer, AnswerModel> answerModels;
@@ -118,6 +118,14 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         //callApiToCheckCompletedProject(currentMember.getSecrectToken(), currentMember.getID(), projectModel.getID());
         questionnaireIds = questionaireSQLiteHelper.getAllQuestionIDByProjectId(projectModel.getID());
         getNextQuestion();
+
+        UserInfoDialog userInfoDialog = new UserInfoDialog(this, R.style.AppCompatAlertDialogStyle, new UserInfoDialog.ICallBackSaveUserInfo() {
+            @Override
+            public void onSaveUserInfo(SaveAnswerModel saveAnswerModel) {
+                ProjectSurveyActivity.this.saveAnswerModel = saveAnswerModel;
+            }
+        });
+        userInfoDialog.show();
     }
 
     @Override
@@ -261,6 +269,19 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             });
             customBuilder.show();
         } else {
+            /*/////////////////////////////////////////////////////////////////
+            // collect data to send to server
+            String patternString = "<R QID=\"%s\" V=\"%s\" T=\"%s\"/>";
+            for (QuestionnaireModel item : questionnaireModelList) {
+                String valueOption;
+                if (item.getIsSelected() == 1) {
+                    if (item.getAllowInputText() == 1 && !TextUtils.isEmpty(item.getOtherOption()))
+                        valueOption = String.format(patternString, questionModel.getID(), item.getValue(), item.getOtherOption());
+                    else
+                        valueOption = String.format(patternString, questionModel.getID(), item.getValue(), item.getDescription());
+                }
+            }*/
+
             AlertDialog.Builder customBuilder = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
             customBuilder.setCancelable(false);
             customBuilder.setTitle(getString(R.string.title_notice));
@@ -545,23 +566,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                     });
                     customBuilder.show();
                 } else {
-                    /////////////////////////////////////////////////////////////////
-                    // collect data to send to server
-                    String patternString = "<R QID=\"%s\" V=\"%s\" T=\"%s\"/>";
                     switch (questionModel.getType()) {
                         case 0:
                         case 1:
-                            for (QuestionnaireModel item : questionnaireModelList) {
-                                String valueOption;
-                                if (item.getIsSelected() == 1) {
-                                    if (item.getAllowInputText() == 1 && !TextUtils.isEmpty(item.getOtherOption()))
-                                        valueOption = String.format(patternString, questionModel.getID(), item.getValue(), item.getOtherOption());
-                                    else
-                                        valueOption = String.format(patternString, questionModel.getID(), item.getValue(), item.getDescription());
-                                    strInputValue += valueOption;
-                                    strResponseOption += valueOption;
-                                }
-                            }
                             pathList.add(questionModel.getID());
                             getNextQuestion();
                             break;
