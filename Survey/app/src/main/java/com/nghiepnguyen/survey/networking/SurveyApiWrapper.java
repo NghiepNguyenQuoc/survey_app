@@ -13,6 +13,7 @@ import com.nghiepnguyen.survey.model.CompletedProject;
 import com.nghiepnguyen.survey.model.ProjectModel;
 import com.nghiepnguyen.survey.model.QuestionnaireModel;
 import com.nghiepnguyen.survey.model.RouteModel;
+import com.nghiepnguyen.survey.model.SaveAnswerModel;
 import com.nghiepnguyen.survey.utils.Constant;
 import com.nghiepnguyen.survey.utils.Utils;
 
@@ -202,7 +203,7 @@ public class SurveyApiWrapper {
 
         RequestParams para = new RequestParams();
         para.put("ProjectIDCondition", projectID);
-        client.get(Endpoint.DOWNLOAD_PROJECT_ROUTE , para, new StringHttpResponseHandler() {
+        client.get(Endpoint.DOWNLOAD_PROJECT_ROUTE, para, new StringHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Map<String, List<String>> headers, String content) {
                 try {
@@ -238,16 +239,23 @@ public class SurveyApiWrapper {
     }
 
     /*save survey*/
-    public static synchronized void saveResultSurvey(final Context context, String inputValue, final ICallBack callBack) {
+    public static synchronized void saveResultSurvey(final Context context, SaveAnswerModel saveAnswerModel, final ICallBack callBack) {
         HttpClient client = new AsyncHttpClient();
-
         RequestParams para = new RequestParams();
-        para.put("inputValue", inputValue);
-        client.get(Endpoint.SAVE_RESULT_SURVEY, para, new StringHttpResponseHandler() {
+        para.put("FullName", saveAnswerModel.getFullName());
+        para.put("NumberID", saveAnswerModel.getNumberID());
+        para.put("PhoneNumber", saveAnswerModel.getPhoneNumber());
+        para.put("Address", saveAnswerModel.getAddress());
+        para.put("Email", saveAnswerModel.getEmail());
+        para.put("ProjectID", saveAnswerModel.getProjectID());
+        para.put("IsCompeleted", saveAnswerModel.getIsCompeleted());
+        para.put("Action", "INSERT");
+        para.put("Data", saveAnswerModel.getData());
+
+        client.post(Endpoint.SAVE_RESULT_SURVEY, para, new StringHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Map<String, List<String>> headers, String content) {
-                AppMessageModel message = new Gson().fromJson(content, AppMessageModel.class);
-                callBack.onSuccess(message);
+                callBack.onSuccess(content);
             }
 
             @Override

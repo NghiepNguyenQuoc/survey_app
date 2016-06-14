@@ -8,6 +8,7 @@
         android:id="@+id/card_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:foreground="?android:attr/selectableItemBackground"
         app:cardElevation="@dimen/margin_dialog_small"
         app:cardUseCompatPadding="true">
 
@@ -18,38 +19,56 @@
 
             <ImageView
                 android:id="@+id/iv_project_image"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
                 android:layout_marginRight="@dimen/margin_dialog_small"
-                android:scaleType="centerInside" />
+                android:scaleType="centerInside"
+                android:src="@drawable/img_place_holder" />
 
             <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="120dp"
                 android:layout_toRightOf="@+id/iv_project_image">
 
                 <TextView
                     android:id="@+id/tv_project_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:maxLines="2"
                     android:layout_toLeftOf="@+id/iv_menu_popup"
+                    android:maxLines="2"
+                    android:text="DFGHJKTYUIOP"
                     android:textColor="@color/colorBlack"
-                    android:textSize="@dimen/text_size_subhead" />
+                    android:textSize="@dimen/text_size_title" />
 
                 <TextView
                     android:id="@+id/tv_project_description"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/tv_project_name"
-                    android:maxLines="3" />
+                    android:layout_marginTop="@dimen/margin_dialog_small"
+                    android:maxLines="3"
+                    android:text="ABCDEFDFGHJKTYUIOP"
+                    android:textSize="@dimen/text_size_subhead" />
+
+                <TextView
+                    android:id="@+id/tv_number_result"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    android:layout_below="@+id/tv_project_description"
+                    android:layout_marginTop="@dimen/margin_dialog_small"
+                    android:gravity="bottom"
+                    android:text="Total: 10/ Uploaded : 5"
+                    android:textColor="@color/colorBlack"
+                    android:textSize="@dimen/text_size_subhead" />
 
                 <ImageView
                     android:id="@+id/iv_menu_popup"
-                    android:layout_width="30dp"
-                    android:layout_height="20dp"
+                    android:layout_width="50dp"
+                    android:layout_height="30dp"
                     android:layout_alignParentRight="true"
-                    android:scaleType="fitEnd"
+                    android:padding="10dp"
+                    android:scaleType="center"
                     android:src="@drawable/ic_menu_moreover" />
             </RelativeLayout>
 

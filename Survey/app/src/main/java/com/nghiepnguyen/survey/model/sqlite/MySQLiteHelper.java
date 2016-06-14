@@ -35,7 +35,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         db.execSQL(ProjectSQLiteHelper.CREATE_PROJECT_TABLE);
         db.execSQL(QuestionaireSQLiteHelper.CREATE_QUESTIONNAIRE_TABLE);
         db.execSQL(RouteSQLiteHelper.CREATE_ROUTE_TABLE);
-        //db.execSQL(AnswerSQLiteHelper.CREATE_ANSWER_TABLE);
+        db.execSQL(AnswerSQLiteHelper.CREATE_ANSWER_TABLE);
     }
 
     @Override

@@ -11,6 +11,7 @@ public class ProjectModel implements Parcelable {
     private String Name;
     private String Description;
     private String Image1;
+    private int numberResult;
 
 
     public ProjectModel(Parcel in) {
@@ -18,6 +19,7 @@ public class ProjectModel implements Parcelable {
         Name = in.readString();
         Description = in.readString();
         Image1 = in.readString();
+        numberResult = in.readInt();
     }
 
     @Override
@@ -26,6 +28,7 @@ public class ProjectModel implements Parcelable {
         dest.writeString(Name);
         dest.writeString(Description);
         dest.writeString(Image1);
+        dest.writeInt(numberResult);
     }
 
     @Override
@@ -77,7 +80,15 @@ public class ProjectModel implements Parcelable {
         Image1 = image1;
     }
 
-    /*private int ID;
+    public int getNumberResult() {
+        return numberResult;
+    }
+
+    public void setNumberResult(int numberResult) {
+        this.numberResult = numberResult;
+    }
+
+/*private int ID;
     private String Code;
     private String Name;
     private String Summary;

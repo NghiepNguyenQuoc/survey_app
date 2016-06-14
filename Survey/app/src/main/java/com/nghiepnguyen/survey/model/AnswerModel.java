@@ -8,8 +8,12 @@ import java.util.Map;
  */
 public class AnswerModel {
     private int questionaireID;
-    private Map<Integer, String> arrText;// danh sach lưa chon, bao gom value la key, ten cua option là text.
-    private Map<Integer, String> arrValue;// danh sach lưa chon, bao gom value la key, other option là text.
+    private List<SelectedOption> selectedOptions;
+
+    public AnswerModel(int questionaireID, List<SelectedOption> selectedOptions) {
+        this.questionaireID = questionaireID;
+        this.selectedOptions = selectedOptions;
+    }
 
     public int getQuestionaireID() {
         return questionaireID;
@@ -19,30 +23,11 @@ public class AnswerModel {
         this.questionaireID = questionaireID;
     }
 
-    public Map<Integer, String> getArrValue() {
-        return arrValue;
+    public List<SelectedOption> getSelectedOptions() {
+        return selectedOptions;
     }
 
-    public void setArrValue(Map<Integer, String> arrValue) {
-        this.arrValue = arrValue;
-    }
-
-    public Map<Integer, String> getArrText() {
-        return arrText;
-    }
-
-    public void setArrText(Map<Integer, String> arrText) {
-        this.arrText = arrText;
-    }
-
-    public AnswerModel(int questionaireID, Map<Integer, String> arrValue) {
-        this.questionaireID = questionaireID;
-        this.arrValue = arrValue;
-    }
-
-    public AnswerModel(int questionaireID, Map<Integer, String> arrText, Map<Integer, String> arrValue) {
-        this.questionaireID = questionaireID;
-        this.arrText = arrText;
-        this.arrValue = arrValue;
+    public void setSelectedOptions(List<SelectedOption> selectedOptions) {
+        this.selectedOptions = selectedOptions;
     }
 }

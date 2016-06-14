@@ -28,10 +28,10 @@ public class AnswerSQLiteHelper extends MySQLiteHelper {
     private static final String KEY_NUMBER_ID = "NumberID";
     private static final String KEY_PHONE_NUMBER = "PhoneNumber";
     private static final String KEY_ADDRESS = "Address";
-    private static final String KEY_EMAIL= "Email";
+    private static final String KEY_EMAIL = "Email";
     private static final String KEY_PROJECT_ID = "ProjectID";
     private static final String KEY_IS_COMPELETED = "IsCompeleted";
-    private static final String KEY_DATA= "Data";
+    private static final String KEY_DATA = "Data";
 
     // TABLE_QUESTIONNAIRE table create statement
     public static final String CREATE_ANSWER_TABLE = "CREATE TABLE " + TABLE_ANSWER + " ( " +
@@ -40,8 +40,8 @@ public class AnswerSQLiteHelper extends MySQLiteHelper {
             KEY_NUMBER_ID + " STRING, " +
             KEY_PHONE_NUMBER + " STRING, " +
             KEY_ADDRESS + " STRING, " +
-            KEY_EMAIL+ " STRING, " +
-            KEY_PROJECT_ID+ " INTEGER, " +
+            KEY_EMAIL + " STRING, " +
+            KEY_PROJECT_ID + " INTEGER, " +
             KEY_IS_COMPELETED + " INTEGER, " +
             KEY_DATA + " STRING)";
 
@@ -83,11 +83,9 @@ public class AnswerSQLiteHelper extends MySQLiteHelper {
     /**
      * get SaveAnswerModels
      */
-    public List<SaveAnswerModel> getSaveAnswerModelsByProjectId(int id) {
-        List<SaveAnswerModel> saveAnswerModels = new ArrayList<>();
-
+    public SaveAnswerModel getSaveAnswerModelByProjectId(int id) {
         // 1. build the query
-        String query = "SELECT  * FROM " + TABLE_ANSWER + " WHERE " + KEY_PROJECT_ID+ "=" + id;
+        String query = "SELECT  * FROM " + TABLE_ANSWER + " WHERE " + KEY_PROJECT_ID + "=" + id + " ORDER BY " + KEY_IDENTITY + " ASC LIMIT 1";
 
         // 2. get reference to writable DB
         SQLiteDatabase db = this.getWritableDatabase();
@@ -96,34 +94,28 @@ public class AnswerSQLiteHelper extends MySQLiteHelper {
         // 3. go over each row, build SaveAnswerModel and add it to list
         SaveAnswerModel saveAnswerModel = null;
         if (cursor.moveToFirst()) {
-            do {
-                saveAnswerModel = new SaveAnswerModel();
-                saveAnswerModel.setIdentity(Integer.parseInt(cursor.getString(0)));
-                saveAnswerModel.setFullName(cursor.getString(1));
-                saveAnswerModel.setNumberID(cursor.getString(2));
-                saveAnswerModel.setPhoneNumber(cursor.getString(3));
-                saveAnswerModel.setAddress(cursor.getString(4));
-                saveAnswerModel.setEmail(cursor.getString(5));
-                saveAnswerModel.setProjectID(Integer.parseInt(cursor.getString(6)));
-                saveAnswerModel.setIsCompeleted(Integer.parseInt(cursor.getString(7)));
-                saveAnswerModel.setData(cursor.getString(8));
 
-
-
-                // Add saveAnswerModel to saveAnswerModels
-                saveAnswerModels.add(saveAnswerModel);
-            } while (cursor.moveToNext());
+            saveAnswerModel = new SaveAnswerModel();
+            saveAnswerModel.setIdentity(Integer.parseInt(cursor.getString(0)));
+            saveAnswerModel.setFullName(cursor.getString(1));
+            saveAnswerModel.setNumberID(cursor.getString(2));
+            saveAnswerModel.setPhoneNumber(cursor.getString(3));
+            saveAnswerModel.setAddress(cursor.getString(4));
+            saveAnswerModel.setEmail(cursor.getString(5));
+            saveAnswerModel.setProjectID(Integer.parseInt(cursor.getString(6)));
+            saveAnswerModel.setIsCompeleted(Integer.parseInt(cursor.getString(7)));
+            saveAnswerModel.setData(cursor.getString(8));
         }
 
         // return saveAnswerModels
-        return saveAnswerModels;
+        return saveAnswerModel;
 
     }
 
     /**
      * Deleting a Answer
      */
-    public void deleteAnswer(SaveAnswerModel saveAnswerModel) {
+    public void deleteAnswer(int identity) {
 
         // 1. get reference to writable DB
         SQLiteDatabase db = this.getWritableDatabase();
@@ -131,7 +123,7 @@ public class AnswerSQLiteHelper extends MySQLiteHelper {
         // 2. delete
         db.delete(TABLE_ANSWER,
                 KEY_IDENTITY + " = ?",
-                new String[]{String.valueOf(saveAnswerModel.getIdentity())});
+                new String[]{String.valueOf(identity)});
 
         // 3. close
         db.close();

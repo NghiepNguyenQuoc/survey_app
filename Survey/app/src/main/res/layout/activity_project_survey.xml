@@ -39,7 +39,7 @@
             android:padding="@dimen/padding_dialog_medium_1"
             android:text="Tên câu hỏi"
             android:textColor="@color/cl_black"
-            android:textSize="@dimen/text_size_title" />
+            android:textSize="@dimen/text_size_headline" />
 
         <ScrollView
             android:layout_width="match_parent"

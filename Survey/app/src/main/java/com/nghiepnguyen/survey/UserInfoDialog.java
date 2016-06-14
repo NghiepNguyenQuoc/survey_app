@@ -4,9 +4,11 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
@@ -38,8 +40,8 @@ public class UserInfoDialog extends Dialog implements View.OnClickListener {
 
     private SaveAnswerModel saveAnswerModel;
 
-    public UserInfoDialog(Context context, int themeResId, ICallBackSaveUserInfo iCallBackSaveUserInfo) {
-        super(context, themeResId);
+    public UserInfoDialog(Context context, ICallBackSaveUserInfo iCallBackSaveUserInfo) {
+        super(context, android.R.style.Theme_Holo_Light_DarkActionBar);
         this.mContext = context;
         this.iCallBackSaveUserInfo = iCallBackSaveUserInfo;
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -51,8 +53,7 @@ public class UserInfoDialog extends Dialog implements View.OnClickListener {
         DisplayMetrics displaymetrics = new DisplayMetrics();
         ((Activity) context).getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
         int width = (int) (displaymetrics.widthPixels * 0.9);
-        int height = (int) (displaymetrics.widthPixels * 0.9);
-        FrameLayout.LayoutParams layoutPara = new FrameLayout.LayoutParams(width, height);
+        FrameLayout.LayoutParams layoutPara = new FrameLayout.LayoutParams(width, ViewGroup.LayoutParams.WRAP_CONTENT);
         layoutPara.gravity = Gravity.CENTER;
         mDialogView.setLayoutParams(layoutPara);
 
@@ -130,20 +131,49 @@ public class UserInfoDialog extends Dialog implements View.OnClickListener {
         switch (id) {
             case R.id.dialog_user_info_cancel_button:
                 UserInfoDialog.this.dismiss();
+                ((Activity) mContext).finish();
                 break;
             case R.id.dialog_user_info_ok_button:
-                saveAnswerModel = new SaveAnswerModel(
-                        mFullNameTextView.getText().toString(),
-                        mNumberIdTextView.getText().toString(),
-                        mPhoneNumberTextView.getText().toString(),
-                        mEmailTextView.getText().toString(),
-                        mAddressTextView.getText().toString());
+                if (validateInformation()) {
+                    saveAnswerModel = new SaveAnswerModel(
+                            mFullNameTextView.getText().toString(),
+                            mNumberIdTextView.getText().toString(),
+                            mPhoneNumberTextView.getText().toString(),
+                            mEmailTextView.getText().toString(),
+                            mAddressTextView.getText().toString());
 
-                UserInfoDialog.this.dismiss();
-                if (iCallBackSaveUserInfo != null)
-                    iCallBackSaveUserInfo.onSaveUserInfo(saveAnswerModel);
+                    UserInfoDialog.this.dismiss();
+
+                    if (iCallBackSaveUserInfo != null)
+                        iCallBackSaveUserInfo.onSaveUserInfo(saveAnswerModel);
+
+                }
                 break;
         }
+    }
+
+    private boolean validateInformation() {
+        if (TextUtils.isEmpty(mFullNameTextView.getText().toString())) {
+            String message_error = mContext.getString(R.string.message_fullname_empty);
+            mFullNameTextView.requestFocus();
+            mFullNameTextView.setError(message_error);
+            return false;
+        }
+
+        if (TextUtils.isEmpty(mAddressTextView.getText().toString())) {
+            String message_error = mContext.getString(R.string.message_address_empty);
+            mAddressTextView.requestFocus();
+            mAddressTextView.setError(message_error);
+            return false;
+        }
+
+        if (TextUtils.isEmpty(mEmailTextView.getText().toString())) {
+            String message_error = mContext.getString(R.string.message_email_empty);
+            mAddressTextView.requestFocus();
+            mAddressTextView.setError(message_error);
+            return false;
+        }
+        return true;
     }
 
     public interface ICallBackSaveUserInfo {

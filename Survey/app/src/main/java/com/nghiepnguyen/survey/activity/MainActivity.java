@@ -1,6 +1,7 @@
 package com.nghiepnguyen.survey.activity;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -13,6 +14,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.nghiepnguyen.survey.R;
+import com.nghiepnguyen.survey.application.MainApplication;
 import com.nghiepnguyen.survey.fragment.ProjectListFragment;
 import com.nghiepnguyen.survey.model.MemberModel;
 import com.nghiepnguyen.survey.model.UserInfoModel;
@@ -126,7 +128,14 @@ public class MainActivity extends BaseActivity
         View headerView = navigationView.inflateHeaderView(R.layout.nav_header_main);
         TextView tvUsername = (TextView) headerView.findViewById(R.id.tv_user_name);
         TextView tvUserEmail = (TextView) headerView.findViewById(R.id.tv_user_email);
+        TextView tvAppVersion = (TextView) findViewById(R.id.activity_main_version_textview);
+        assert tvAppVersion != null;
 
+        try {
+            tvAppVersion.setText(getResources().getString(R.string.app_version, getPackageManager().getPackageInfo(getPackageName(), 0).versionName));
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
 
         /*currentUser = UserInfoManager.getUserInfo(this);
         tvUsername.setText(currentUser.getFullName());

@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.nghiepnguyen.survey.Interface.ICallBack;
 import com.nghiepnguyen.survey.R;
@@ -23,6 +24,8 @@ import com.nghiepnguyen.survey.model.CommonErrorModel;
 import com.nghiepnguyen.survey.model.ProjectModel;
 import com.nghiepnguyen.survey.model.QuestionnaireModel;
 import com.nghiepnguyen.survey.model.RouteModel;
+import com.nghiepnguyen.survey.model.SaveAnswerModel;
+import com.nghiepnguyen.survey.model.sqlite.AnswerSQLiteHelper;
 import com.nghiepnguyen.survey.model.sqlite.QuestionaireSQLiteHelper;
 import com.nghiepnguyen.survey.model.sqlite.RouteSQLiteHelper;
 import com.nghiepnguyen.survey.networking.SurveyApiWrapper;
@@ -47,6 +50,7 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
     private List<ProjectModel> projectList;
     private QuestionaireSQLiteHelper questionaireSQLiteHelper;
     private RouteSQLiteHelper routeSQLiteHelper;
+    private AnswerSQLiteHelper answerSQLiteHelper;
     private static RecyclerViewClickListener itemListener;
 
     public ProjectListAdapter(Context mContext, List<ProjectModel> projectList, RecyclerViewClickListener itemListener) {
@@ -65,6 +69,7 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
 
         questionaireSQLiteHelper = new QuestionaireSQLiteHelper(mContext);
         routeSQLiteHelper = new RouteSQLiteHelper(mContext);
+        answerSQLiteHelper = new AnswerSQLiteHelper(mContext);
     }
 
     @Override
@@ -79,6 +84,7 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
 
         holder.tvProjectName.setText(project.getName());
         holder.tvProjectDescription.setText(Html.fromHtml(project.getDescription()));
+        //holder.tvNumberResult
         String urlImage = "http://6sao.vn" + project.getImage1();
 
         display(holder.ivProjectImage, urlImage);
@@ -99,6 +105,9 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
                             updateProjectData(project, holder.pbLoading, holder.cardView);
                             return true;
                         } else if (i == R.id.menu_popup_upload) {
+                            holder.pbLoading.setVisibility(View.VISIBLE);
+                            uploadProjectData(mContext, holder.pbLoading, project.getID());
+
                             //do something
                             return true;
                         } else {
@@ -135,6 +144,7 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
         public CardView cardView;
         public TextView tvProjectName;
         public TextView tvProjectDescription;
+        public TextView tvNumberResult;
         public ImageView ivProjectImage;
         public ImageView ivMenuPopup;
         public ProgressBar pbLoading;
@@ -145,6 +155,7 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
             cardView = (CardView) itemView.findViewById(R.id.card_view);
             tvProjectName = (TextView) itemView.findViewById(R.id.tv_project_name);
             tvProjectDescription = (TextView) itemView.findViewById(R.id.tv_project_description);
+            tvNumberResult = (TextView) itemView.findViewById(R.id.tv_number_result);
             ivProjectImage = (ImageView) itemView.findViewById(R.id.iv_project_image);
             ivMenuPopup = (ImageView) itemView.findViewById(R.id.iv_menu_popup);
             pbLoading = (ProgressBar) itemView.findViewById(R.id.pb_loading);
@@ -251,7 +262,6 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
 
                         }
 
-                        List<RouteModel> routeModels1 = routeSQLiteHelper.getAllRoute();
                         loadingView.setVisibility(View.GONE);
                         itemView.setCardBackgroundColor(ContextCompat.getColor(mContext, R.color.cl_default_trans));
                         Utils.showToastLong(mContext, String.format(mContext.getString(R.string.message_download_compeleted), project.getName()));
@@ -283,4 +293,33 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
         });
     }
 
+    private void uploadProjectData(final Context mContext, final View view, final int projectId) {
+        final SaveAnswerModel saveAnswerModel = answerSQLiteHelper.getSaveAnswerModelByProjectId(projectId);
+        if (saveAnswerModel == null) {
+            ((Activity) mContext).runOnUiThread(new Runnable() {
+                public void run() {
+                    Toast.makeText(mContext, mContext.getString(R.string.message_upload_compeleted), Toast.LENGTH_LONG).show();
+                    view.setVisibility(View.GONE);
+                }
+            });
+        } else {
+            SurveyApiWrapper.saveResultSurvey(mContext, saveAnswerModel, new ICallBack() {
+                @Override
+                public void onSuccess(Object data) {
+                    answerSQLiteHelper.deleteAnswer(saveAnswerModel.getIdentity());
+                    uploadProjectData(mContext, view, projectId);
+                }
+
+                @Override
+                public void onFailure(CommonErrorModel error) {
+
+                }
+
+                @Override
+                public void onCompleted() {
+
+                }
+            });
+        }
+    }
 }

@@ -12,7 +12,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.util.ArrayMap;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.AppCompatEditText;
@@ -44,6 +43,8 @@ import com.nghiepnguyen.survey.model.QuestionModel;
 import com.nghiepnguyen.survey.model.QuestionnaireModel;
 import com.nghiepnguyen.survey.model.RouteModel;
 import com.nghiepnguyen.survey.model.SaveAnswerModel;
+import com.nghiepnguyen.survey.model.SelectedOption;
+import com.nghiepnguyen.survey.model.sqlite.AnswerSQLiteHelper;
 import com.nghiepnguyen.survey.model.sqlite.QuestionaireSQLiteHelper;
 import com.nghiepnguyen.survey.model.sqlite.RouteSQLiteHelper;
 import com.nghiepnguyen.survey.storage.UserInfoManager;
@@ -53,7 +54,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -88,7 +88,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
     private List<Integer> pathList;
     private List<Integer> questionnaireIds;
-    private Map<Integer, AnswerModel> answerModels;
+    private List<AnswerModel> answerModels;
     private int currentIndexQuestionID = 0;
 
     private AppCompatRadioButton mSelectedRB;// current RadioButton when user focus
@@ -96,6 +96,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
     private QuestionaireSQLiteHelper questionaireSQLiteHelper;
     private RouteSQLiteHelper routeSQLiteHelper;
+    private AnswerSQLiteHelper answerSQLiteHelper;
     private LocationManager locationManager;
 
     // flag for GPS status
@@ -114,15 +115,14 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         initView();
         initDataToComponets();
 
-        answerModels = new ArrayMap<>();
-        //callApiToCheckCompletedProject(currentMember.getSecrectToken(), currentMember.getID(), projectModel.getID());
+        answerModels = new ArrayList<>();
         questionnaireIds = questionaireSQLiteHelper.getAllQuestionIDByProjectId(projectModel.getID());
-        getNextQuestion();
 
-        UserInfoDialog userInfoDialog = new UserInfoDialog(this, R.style.AppCompatAlertDialogStyle, new UserInfoDialog.ICallBackSaveUserInfo() {
+        UserInfoDialog userInfoDialog = new UserInfoDialog(this, new UserInfoDialog.ICallBackSaveUserInfo() {
             @Override
             public void onSaveUserInfo(SaveAnswerModel saveAnswerModel) {
                 ProjectSurveyActivity.this.saveAnswerModel = saveAnswerModel;
+                getNextQuestion();
             }
         });
         userInfoDialog.show();
@@ -154,12 +154,6 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 ProjectSurveyActivity.this.finish();
-            }
-        });
-        customBuilder.setNegativeButton(getString(R.string.button_save_survey), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                // save survey ...
             }
         });
         customBuilder.show();
@@ -202,6 +196,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         // Database Helper
         questionaireSQLiteHelper = new QuestionaireSQLiteHelper(getApplicationContext());
         routeSQLiteHelper = new RouteSQLiteHelper(this);
+        answerSQLiteHelper = new AnswerSQLiteHelper(this);
     }
 
     private void getNextQuestion() {
@@ -269,36 +264,13 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             });
             customBuilder.show();
         } else {
-            /*/////////////////////////////////////////////////////////////////
-            // collect data to send to server
-            String patternString = "<R QID=\"%s\" V=\"%s\" T=\"%s\"/>";
-            for (QuestionnaireModel item : questionnaireModelList) {
-                String valueOption;
-                if (item.getIsSelected() == 1) {
-                    if (item.getAllowInputText() == 1 && !TextUtils.isEmpty(item.getOtherOption()))
-                        valueOption = String.format(patternString, questionModel.getID(), item.getValue(), item.getOtherOption());
-                    else
-                        valueOption = String.format(patternString, questionModel.getID(), item.getValue(), item.getDescription());
-                }
-            }*/
-
-            AlertDialog.Builder customBuilder = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
-            customBuilder.setCancelable(false);
-            customBuilder.setTitle(getString(R.string.title_notice));
-            customBuilder.setMessage(getString(R.string.txt_completed_survey));
-            customBuilder.setPositiveButton(getString(R.string.button_ok), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    ProjectSurveyActivity.this.finish();
-                }
-            });
-            customBuilder.show();
+            finishSurvey(true);
         }
         mProgressBar.setVisibility(View.GONE);
     }
 
     private void findQuestionnaireModelsByDependentID(int rootQuestionnaireID, int rootDependentID, int dependentID,
-                                                      Map<Integer, AnswerModel> answerModels, QuestionModel questionModel,
+                                                      List<AnswerModel> answerModels, QuestionModel questionModel,
                                                       List<QuestionnaireModel> questionnaireModelList) {
 
         List<QuestionnaireModel> questionnaireModels = questionaireSQLiteHelper.getListQuestionnaireByQuestionId(dependentID);
@@ -308,9 +280,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
 
         for (int i = 0; i < questionnaireModels.size(); i++) {
-            AnswerModel answerModel = answerModels.get(rootDependentID);// get answer from dependent question
-            for (Map.Entry<Integer, String> entry : answerModel.getArrValue().entrySet()) {// duyet qua tac ca cac dap an da chon
-                if (entry.getKey() == questionnaireModels.get(i).getValue()) {
+            AnswerModel answerModel = getAnswerByQuestionaireId(answerModels, rootDependentID);// get answer from dependent question
+            for (SelectedOption selectedOption : answerModel.getSelectedOptions()) {// duyet qua tac ca cac dap an da chon
+                if (selectedOption.getValue() == questionnaireModels.get(i).getValue()) {
                     questionnaireModels.get(i).setQuestionnaireID(rootQuestionnaireID);
                     questionnaireModels.get(i).setType(questionModel.getType());
                     questionnaireModels.get(i).setIsSelected(0);
@@ -320,11 +292,14 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         }
     }
 
-    private void generateTitleQuestion(String oldTitle, Map<Integer, AnswerModel> answerModels, List<Integer> questionnaireIds, int preQuestionId, String questionCode, TextView textView) {
+    private void generateTitleQuestion(String oldTitle, List<AnswerModel> answerModels, List<Integer> questionnaireIds, int preQuestionId, String questionCode, TextView textView) {
         if (oldTitle.contains("[LIKED]")) {
-            AnswerModel answerModel = answerModels.get(questionnaireIds.get(preQuestionId));// get answer from dependent question
-            for (Map.Entry<Integer, String> entry : answerModel.getArrText().entrySet()) {// duyet qua tac ca cac dap an da chon
-                oldTitle = oldTitle.replace("[LIKED]", entry.getValue());
+            AnswerModel answerModel = getAnswerByQuestionaireId(answerModels, questionnaireIds.get(preQuestionId));// get answer from dependent question
+            for (SelectedOption selectedOption : answerModel.getSelectedOptions()) {// duyet qua tac ca cac dap an da chon
+                if (selectedOption.getAllowInputText() == 1)
+                    oldTitle = oldTitle.replace("[LIKED]", selectedOption.getText());
+                else
+                    oldTitle = oldTitle.replace("[LIKED]", selectedOption.getOtherValue());
             }
         }
 
@@ -354,7 +329,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 radioButton.setId(item.getID());
                 radioButton.setText(item.getDescription());
                 radioButton.setPadding(0, Constant.dpToPx(10, this), 0, Constant.dpToPx(10, this));
-
+                radioButton.setTextSize(getResources().getDimension(R.dimen.text_size_caption));
                 if (item.getAllowInputText() == 1) {
 
                     // create linearlayout add radio button
@@ -414,6 +389,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 AppCompatCheckBox checkBox = new AppCompatCheckBox(this);
                 checkBox.setId(item.getID());
                 checkBox.setText(item.getDescription());
+                checkBox.setTextSize(getResources().getDimension(R.dimen.text_size_caption));
                 checkBox.setPadding(0, Constant.dpToPx(10, this), 0, Constant.dpToPx(10, this));
 
                 if (item.getAllowInputText() == 1) {
@@ -478,44 +454,37 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 dialog.setTitle(getString(R.string.title_attention));
                 dialog.setPositiveButton(getString(R.string.button_ok), null);
 
-                Map<Integer, String> selectedValueMap = new ArrayMap<>();
-                Map<Integer, String> selectedTextMap = new ArrayMap<>();
+                List<SelectedOption> selectedOptions = new ArrayList<>();
                 // collect data from view
                 for (QuestionnaireModel item : questionnaireModelList) {
                     if (questionModel.getType() == 0 || questionModel.getType() == 2) {
                         RadioButton radioButon = (RadioButton) mOptionLinearLayout.findViewById(item.getID());
                         item.setIsSelected(radioButon.isChecked() ? 1 : 0);
 
-                        if (radioButon.isChecked()) {
-                            selectedValueMap.put(item.getValue(), "");
-                            selectedTextMap.put(item.getValue(), item.getDescription());
-                        }
-
                         if (radioButon.isChecked() && item.getAllowInputText() == 1) {
                             EditText editText = (EditText) mOptionLinearLayout.findViewById(item.getID() * 10);
                             item.setOtherOption(editText.getText().toString());
-                            selectedValueMap.put(item.getValue(), editText.getText().toString());
+                            selectedOptions.add(new SelectedOption(item.getValue(), editText.getText().toString(), item.getDescription(), 1));
+                        } else if (radioButon.isChecked()) {
+                            selectedOptions.add(new SelectedOption(item.getValue(), "", item.getDescription(), 0));
                         }
                     } else {
                         CheckBox checkBox = (CheckBox) mOptionLinearLayout.findViewById(item.getID());
                         item.setIsSelected(checkBox.isChecked() ? 1 : 0);
 
-                        if (checkBox.isChecked()) {
-                            selectedValueMap.put(item.getValue(), "");
-                            selectedTextMap.put(item.getValue(), item.getDescription());
-                        }
 
                         if (checkBox.isChecked() && item.getAllowInputText() == 1) {
                             EditText editText = (EditText) mOptionLinearLayout.findViewById(item.getID() * 10);
                             item.setOtherOption(editText.getText().toString());
-                            selectedValueMap.put(item.getValue(), editText.getText().toString());
+                            selectedOptions.add(new SelectedOption(item.getValue(), editText.getText().toString(), item.getDescription(), 1));
+                        } else if (checkBox.isChecked()) {
+                            selectedOptions.add(new SelectedOption(item.getValue(), "", item.getDescription(), 0));
                         }
                     }
                 }
 
                 // save to answer list
-                answerModels.put(questionnaireModelList.get(0).getQuestionnaireID(),
-                        new AnswerModel(questionnaireModelList.get(0).getQuestionnaireID(), selectedTextMap, selectedValueMap));
+                answerModels.add(new AnswerModel(questionnaireModelList.get(0).getQuestionnaireID(), selectedOptions));
 
                 //////////////////////////////////////////////////////////////////
                 //check maxAnswer
@@ -554,17 +523,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 //check route
                 boolean isPassLogic = checkStopLogic(answerModels, questionnaireModelList);
                 if (!isPassLogic) {
-                    AlertDialog.Builder customBuilder = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
-                    customBuilder.setCancelable(false);
-                    customBuilder.setTitle(getString(R.string.title_notice));
-                    customBuilder.setMessage(getString(R.string.txt_not_suitable_option));
-                    customBuilder.setPositiveButton(getString(R.string.button_ok), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            ProjectSurveyActivity.this.finish();
-                        }
-                    });
-                    customBuilder.show();
+                    finishSurvey(false);
                 } else {
                     switch (questionModel.getType()) {
                         case 0:
@@ -643,16 +602,19 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         return count <= maxAnswer;
     }
 
-    private boolean checkStopLogic(Map<Integer, AnswerModel> answerModels, List<QuestionnaireModel> questionnaireList) {
+    private boolean checkStopLogic(List<AnswerModel> answerModels, List<QuestionnaireModel> questionnaireList) {
         List<RouteModel> routeModels = routeSQLiteHelper.getRoutesByQuestionaireId(questionnaireList.get(0).getQuestionnaireID());
         if (routeModels != null && routeModels.size() > 0) {// check stop logic
             for (int i = 0; i < routeModels.size(); i++) {// duyet qua tat ca cac route
                 if (routeModels.get(i).getNextQuestionnaireID() < 0) {// Dieu kien dung
                     if (routeModels.get(i).getMethod() == 0) {// OR
-                        AnswerModel answerModel = answerModels.get(routeModels.get(i).getQuestionnaireID_Check_Option());
+                        AnswerModel answerModel = getAnswerByQuestionaireId(answerModels, routeModels.get(i).getQuestionnaireID_Check_Option());
                         if (answerModel != null) {
                             String[] arrResponseValue = routeModels.get(i).getResponseValue().trim().split(",");
-                            Set<Integer> setAnswer = answerModel.getArrValue().keySet();
+                            List<Integer> setAnswer = new ArrayList<>();
+                            for (SelectedOption selectedOption : answerModel.getSelectedOptions()) {
+                                setAnswer.add(selectedOption.getValue());
+                            }
 
                             Integer[] arrTest = new Integer[arrResponseValue.length];
                             for (int k = 0; k < arrResponseValue.length; k++)
@@ -668,9 +630,12 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
 
                     } else if (routeModels.get(i).getMethod() == 2) {// OR NOT
-                        AnswerModel answerModel = answerModels.get(routeModels.get(i).getQuestionnaireID_Check_Option());
+                        AnswerModel answerModel = getAnswerByQuestionaireId(answerModels, routeModels.get(i).getQuestionnaireID_Check_Option());
                         if (answerModel != null) {
-                            Set<Integer> setAnswer = answerModel.getArrValue().keySet();
+                            List<Integer> setAnswer = new ArrayList<>();
+                            for (SelectedOption selectedOption : answerModel.getSelectedOptions()) {
+                                setAnswer.add(selectedOption.getValue());
+                            }
 
                             String[] arrResponseValue = routeModels.get(i).getResponseValue().trim().split(",");
                             Integer[] arrResponseValueInteger = new Integer[arrResponseValue.length];
@@ -687,9 +652,12 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                                 return false;
                         }
                     } else if (routeModels.get(i).getMethod() == 1) {// AND
-                        AnswerModel answerModel = answerModels.get(routeModels.get(i).getQuestionnaireID_Check_Option());
+                        AnswerModel answerModel = getAnswerByQuestionaireId(answerModels, routeModels.get(i).getQuestionnaireID_Check_Option());
                         if (answerModel != null) {
-                            Set<Integer> setAnswer = answerModel.getArrValue().keySet();
+                            List<Integer> setAnswer = new ArrayList<>();
+                            for (SelectedOption selectedOption : answerModel.getSelectedOptions()) {
+                                setAnswer.add(selectedOption.getValue());
+                            }
 
                             String[] arrResponseValue = routeModels.get(i).getResponseValue().trim().split(",");
                             Integer[] arrResponseValueInteger = new Integer[arrResponseValue.length];
@@ -704,9 +672,12 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                                 return false;
                         }
                     } else if (routeModels.get(i).getMethod() == 3) {// AND NOT
-                        AnswerModel answerModel = answerModels.get(routeModels.get(i).getQuestionnaireID_Check_Option());
+                        AnswerModel answerModel = getAnswerByQuestionaireId(answerModels, routeModels.get(i).getQuestionnaireID_Check_Option());
                         if (answerModel != null) {
-                            Set<Integer> setAnswer = answerModel.getArrValue().keySet();
+                            List<Integer> setAnswer = new ArrayList<>();
+                            for (SelectedOption selectedOption : answerModel.getSelectedOptions()) {
+                                setAnswer.add(selectedOption.getValue());
+                            }
 
                             String[] arrResponseValue = routeModels.get(i).getResponseValue().trim().split(",");
                             Integer[] arrResponseValueInteger = new Integer[arrResponseValue.length];
@@ -743,7 +714,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 // 1.check question logic
                 for (int i = 0; i < routeModels.size(); i++) {// duyet qua tat ca cac route
                     if (routeModels.get(i).getMethod() == 0) {// OR
-                        AnswerModel answerModel = answerModels.get(routeModels.get(i).getQuestionnaireID_Check_Option());
+                        AnswerModel answerModel = getAnswerByQuestionaireId(answerModels, routeModels.get(i).getQuestionnaireID_Check_Option());
                         if (answerModel != null) {
                             String[] arrResponseValue = routeModels.get(i).getResponseValue().trim().split(",");
                             Integer[] arrTest = new Integer[arrResponseValue.length];
@@ -752,16 +723,22 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
                             Set<Integer> set = new HashSet<>();
                             Collections.addAll(set, arrTest);
-                            Set<Integer> integers = answerModel.getArrValue().keySet();
+                            List<Integer> setAnswer = new ArrayList<>();
+                            for (SelectedOption selectedOption : answerModel.getSelectedOptions()) {
+                                setAnswer.add(selectedOption.getValue());
+                            }
 
-                            set.retainAll(integers);
+                            set.retainAll(setAnswer);
                             if (set.size() > 0)
                                 arrResultLogic.set(i, true);
                         }
                     } else if (routeModels.get(i).getMethod() == 2) {// OR NOT
-                        AnswerModel answerModel = answerModels.get(routeModels.get(i).getQuestionnaireID_Check_Option());
+                        AnswerModel answerModel = getAnswerByQuestionaireId(answerModels, routeModels.get(i).getQuestionnaireID_Check_Option());
                         if (answerModel != null) {
-                            Set<Integer> setAnswer = answerModel.getArrValue().keySet();
+                            List<Integer> setAnswer = new ArrayList<>();
+                            for (SelectedOption selectedOption : answerModel.getSelectedOptions()) {
+                                setAnswer.add(selectedOption.getValue());
+                            }
 
                             String[] arrResponseValue = routeModels.get(i).getResponseValue().trim().split(",");
                             Integer[] arrResponseValueInteger = new Integer[arrResponseValue.length];
@@ -778,9 +755,12 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                                 arrResultLogic.set(i, true);
                         }
                     } else if (routeModels.get(i).getMethod() == 1) {// AND
-                        AnswerModel answerModel = answerModels.get(routeModels.get(i).getQuestionnaireID_Check_Option());
+                        AnswerModel answerModel = getAnswerByQuestionaireId(answerModels, routeModels.get(i).getQuestionnaireID_Check_Option());
                         if (answerModel != null) {
-                            Set<Integer> setAnswer = answerModel.getArrValue().keySet();
+                            List<Integer> setAnswer = new ArrayList<>();
+                            for (SelectedOption selectedOption : answerModel.getSelectedOptions()) {
+                                setAnswer.add(selectedOption.getValue());
+                            }
 
                             String[] arrResponseValue = routeModels.get(i).getResponseValue().trim().split(",");
                             Integer[] arrResponseValueInteger = new Integer[arrResponseValue.length];
@@ -795,9 +775,12 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                                 arrResultLogic.set(i, true);
                         }
                     } else if (routeModels.get(i).getMethod() == 3) {// AND NOT
-                        AnswerModel answerModel = answerModels.get(routeModels.get(i).getQuestionnaireID_Check_Option());
+                        AnswerModel answerModel = getAnswerByQuestionaireId(answerModels, routeModels.get(i).getQuestionnaireID_Check_Option());
                         if (answerModel != null) {
-                            Set<Integer> setAnswer = answerModel.getArrValue().keySet();
+                            List<Integer> setAnswer = new ArrayList<>();
+                            for (SelectedOption selectedOption : answerModel.getSelectedOptions()) {
+                                setAnswer.add(selectedOption.getValue());
+                            }
 
                             String[] arrResponseValue = routeModels.get(i).getResponseValue().trim().split(",");
                             Integer[] arrResponseValueInteger = new Integer[arrResponseValue.length];
@@ -850,6 +833,56 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             return true;
         currentIndexQuestionID++;
         return checkNextLogic();
+    }
+
+
+    private AnswerModel getAnswerByQuestionaireId(List<AnswerModel> answerModels, int questionaireId) {
+        for (AnswerModel answerModel : answerModels) {
+            if (answerModel.getQuestionaireID() == questionaireId)
+                return answerModel;
+        }
+        return null;
+    }
+
+    private void finishSurvey(boolean isCompeleted) {
+        /////////////////////////////////////////////////////////////////
+        // collect data to send to server
+        String patternString = "<R QID=\'%s\' V=\'%s\' T=\'%s\'/>";
+        String resultData = "";
+        for (AnswerModel answerModel : answerModels) {
+            for (SelectedOption selectedOption : answerModel.getSelectedOptions()) {
+                if (selectedOption.getAllowInputText() == 1)
+                    resultData += String.format(patternString, answerModel.getQuestionaireID(), selectedOption.getValue(), selectedOption.getOtherValue());
+                else
+                    resultData += String.format(patternString, answerModel.getQuestionaireID(), selectedOption.getValue(), selectedOption.getText());
+            }
+        }
+
+        Log.e("RESULT", resultData);
+
+        saveAnswerModel.setIsCompeleted(isCompeleted ? 1 : 0);
+        saveAnswerModel.setProjectID(projectModel.getID());
+        saveAnswerModel.setData(resultData);
+        answerSQLiteHelper.addAnswer(saveAnswerModel);
+
+
+        // show alert
+        AlertDialog.Builder customBuilder = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
+        customBuilder.setCancelable(false);
+        customBuilder.setPositiveButton(getString(R.string.button_ok), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                ProjectSurveyActivity.this.finish();
+            }
+        });
+        if (isCompeleted) {
+            customBuilder.setTitle(getString(R.string.title_notice));
+            customBuilder.setMessage(getString(R.string.txt_completed_survey));
+        } else {
+            customBuilder.setTitle(getString(R.string.title_notice));
+            customBuilder.setMessage(getString(R.string.txt_not_suitable_option));
+        }
+        customBuilder.show();
     }
 
     // Get location
