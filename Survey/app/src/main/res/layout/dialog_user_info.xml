@@ -41,6 +41,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/prompt_full_name"
+                    android:text="nnnn qqqq nnnn"
                     android:inputType="textPersonName"
                     android:maxLines="1"
                     android:singleLine="true" />
@@ -57,6 +58,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/prompt_number_id"
+                    android:text="111122223333"
                     android:maxLines="1"
                     android:singleLine="true" />
 
@@ -73,6 +75,7 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/prompt_phone_number"
                     android:maxLines="1"
+                    android:text="0989098098"
                     android:singleLine="true" />
 
             </android.support.design.widget.TextInputLayout>
@@ -88,6 +91,7 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/prompt_address"
                     android:maxLines="1"
+                    android:text="TpHCM"
                     android:singleLine="true" />
 
             </android.support.design.widget.TextInputLayout>
@@ -102,6 +106,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/prompt_email"
+                    android:text="abc@gmail.com"
                     android:maxLines="1"
                     android:singleLine="true" />
 

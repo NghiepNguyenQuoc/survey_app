@@ -109,7 +109,23 @@ public class AnswerSQLiteHelper extends MySQLiteHelper {
 
         // return saveAnswerModels
         return saveAnswerModel;
+    }
 
+    /**
+     * count SaveAnswerModels by projectID
+     */
+    public int countAnswerModelByProjectId(int id) {
+        // 1. build the query
+        String query = "SELECT COUNT(*) FROM " + TABLE_ANSWER + " WHERE " + KEY_PROJECT_ID + "=" + id;
+        // 2. get reference to writable DB
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+
+        // 3. go over each row
+        if (cursor.moveToFirst()) {
+            return Integer.parseInt(cursor.getString(0));
+        }
+        return 0;
     }
 
     /**

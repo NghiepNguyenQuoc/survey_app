@@ -872,6 +872,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         customBuilder.setPositiveButton(getString(R.string.button_ok), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
+                setResult(RESULT_OK);
                 ProjectSurveyActivity.this.finish();
             }
         });

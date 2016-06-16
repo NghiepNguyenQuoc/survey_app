@@ -3,6 +3,7 @@ package com.nghiepnguyen.survey.fragment;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
@@ -20,10 +21,13 @@ import com.nghiepnguyen.survey.adapter.ProjectListAdapter;
 import com.nghiepnguyen.survey.model.CommonErrorModel;
 import com.nghiepnguyen.survey.model.MemberModel;
 import com.nghiepnguyen.survey.model.ProjectModel;
+import com.nghiepnguyen.survey.model.sqlite.AnswerSQLiteHelper;
 import com.nghiepnguyen.survey.model.sqlite.ProjectSQLiteHelper;
+import com.nghiepnguyen.survey.model.sqlite.QuestionaireSQLiteHelper;
 import com.nghiepnguyen.survey.networking.SurveyApiWrapper;
 import com.nghiepnguyen.survey.storage.UserInfoManager;
 import com.nghiepnguyen.survey.utils.Constant;
+import com.nghiepnguyen.survey.utils.Utils;
 
 import java.util.List;
 
@@ -33,6 +37,7 @@ import java.util.List;
 public class ProjectListFragment extends Fragment implements ProjectListAdapter.RecyclerViewClickListener {
 
     private final static String TAG = "ProjectListFragment";
+    private final static int REQUEST_CODE = 1001;
     private ProgressBar loadingProgressBar;
     private Activity mActivity;
     //UserInfoModel userInfo;
@@ -40,7 +45,7 @@ public class ProjectListFragment extends Fragment implements ProjectListAdapter.
 
     private RecyclerView mProjectListListView;
     private ProjectSQLiteHelper projectSQLiteHelper;
-
+    private QuestionaireSQLiteHelper questionaireSQLiteHelper;
 
     @Override
     public void onAttach(Activity activity) {
@@ -65,6 +70,7 @@ public class ProjectListFragment extends Fragment implements ProjectListAdapter.
         initView();
         memberInfo = UserInfoManager.getMemberInfo(mActivity);
         projectSQLiteHelper = new ProjectSQLiteHelper(mActivity);
+        questionaireSQLiteHelper = new QuestionaireSQLiteHelper(mActivity);
 
         callApiGetProjectList();
     }
@@ -95,11 +101,15 @@ public class ProjectListFragment extends Fragment implements ProjectListAdapter.
     public void recyclerViewListClicked(View v, int position) {
         if (isAdded()) {
             List<ProjectModel> projectList = ((ProjectListAdapter) mProjectListListView.getAdapter()).getProjectList();
-            Intent intent = new Intent(mActivity, ProjectSurveyActivity.class);
-            Bundle bundle = new Bundle();
-            bundle.putParcelable(Constant.BUNDLE_QUESTION, projectList.get(position));
-            intent.putExtras(bundle);
-            startActivity(intent);
+            if (questionaireSQLiteHelper.getAllQuestionIDByProjectId(projectList.get(position).getID()).size() > 0) {
+                Intent intent = new Intent(mActivity, ProjectSurveyActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putParcelable(Constant.BUNDLE_QUESTION, projectList.get(position));
+                intent.putExtras(bundle);
+                startActivityForResult(intent, REQUEST_CODE);
+            } else {
+                Utils.showToastLong(mActivity, getString(R.string.message_project_not_ready));
+            }
         }
     }
 
@@ -157,5 +167,13 @@ public class ProjectListFragment extends Fragment implements ProjectListAdapter.
 
             }
         });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK && requestCode == REQUEST_CODE) {
+            mProjectListListView.getAdapter().notifyDataSetChanged();
+        }
     }
 }

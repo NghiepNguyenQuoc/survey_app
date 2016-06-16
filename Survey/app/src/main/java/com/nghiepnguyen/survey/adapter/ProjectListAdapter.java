@@ -84,7 +84,7 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
 
         holder.tvProjectName.setText(project.getName());
         holder.tvProjectDescription.setText(Html.fromHtml(project.getDescription()));
-        //holder.tvNumberResult
+        holder.tvNumberResult.setText("Số lần khảo sát: " + answerSQLiteHelper.countAnswerModelByProjectId(project.getID()));
         String urlImage = "http://6sao.vn" + project.getImage1();
 
         display(holder.ivProjectImage, urlImage);
@@ -293,13 +293,16 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
         });
     }
 
+    int numberOfUpload = 0;
+
     private void uploadProjectData(final Context mContext, final View view, final int projectId) {
         final SaveAnswerModel saveAnswerModel = answerSQLiteHelper.getSaveAnswerModelByProjectId(projectId);
         if (saveAnswerModel == null) {
             ((Activity) mContext).runOnUiThread(new Runnable() {
                 public void run() {
-                    Toast.makeText(mContext, mContext.getString(R.string.message_upload_compeleted), Toast.LENGTH_LONG).show();
+                    Toast.makeText(mContext, String.format(mContext.getString(R.string.message_upload_compeleted), numberOfUpload), Toast.LENGTH_LONG).show();
                     view.setVisibility(View.GONE);
+                    notifyDataSetChanged();
                 }
             });
         } else {
@@ -308,6 +311,7 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
                 public void onSuccess(Object data) {
                     answerSQLiteHelper.deleteAnswer(saveAnswerModel.getIdentity());
                     uploadProjectData(mContext, view, projectId);
+                    numberOfUpload++;
                 }
 
                 @Override

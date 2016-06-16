@@ -58,9 +58,9 @@
                     android:layout_below="@+id/tv_project_description"
                     android:layout_marginTop="@dimen/margin_dialog_small"
                     android:gravity="bottom"
-                    android:text="Total: 10/ Uploaded : 5"
-                    android:textColor="@color/colorBlack"
-                    android:textSize="@dimen/text_size_subhead" />
+                    android:text="Total: 10 / Uploaded : 5"
+                    android:textSize="@dimen/text_size_subhead"
+                    android:textStyle="italic" />
 
                 <ImageView
                     android:id="@+id/iv_menu_popup"
