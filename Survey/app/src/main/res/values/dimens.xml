@@ -12,6 +12,7 @@
 
     <!--new text size-->
     <dimen name="text_size_button">14sp</dimen>
+    <dimen name="text_size_small">10sp</dimen>
     <dimen name="text_size_caption">12sp</dimen>
     <dimen name="text_size_body_1">14sp</dimen>
     <dimen name="text_size_body_2">14sp</dimen>

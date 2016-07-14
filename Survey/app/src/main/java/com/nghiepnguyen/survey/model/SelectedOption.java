@@ -1,5 +1,7 @@
 package com.nghiepnguyen.survey.model;
 
+import java.util.List;
+
 /**
  * Created by nghiep on 6/6/16.
  */
@@ -8,12 +10,17 @@ public class SelectedOption {
     private String otherValue;// other option là text
     private String text;//ten cua option là text
     private int allowInputText;
+    private List<AnswerModel> answerModelList;
 
     public SelectedOption(int value, String otherValue, String text, int allowInputText) {
         this.value = value;
         this.otherValue = otherValue;
         this.text = text;
         this.allowInputText = allowInputText;
+    }
+
+    public SelectedOption(List<AnswerModel> answerModelList) {
+        this.answerModelList = answerModelList;
     }
 
     public int getValue() {
@@ -46,5 +53,13 @@ public class SelectedOption {
 
     public void setAllowInputText(int allowInputText) {
         this.allowInputText = allowInputText;
+    }
+
+    public List<AnswerModel> getAnswerModelList() {
+        return answerModelList;
+    }
+
+    public void setAnswerModelList(List<AnswerModel> answerModelList) {
+        this.answerModelList = answerModelList;
     }
 }

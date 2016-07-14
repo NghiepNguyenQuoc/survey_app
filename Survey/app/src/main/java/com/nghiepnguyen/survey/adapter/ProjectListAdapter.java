@@ -3,6 +3,7 @@ package com.nghiepnguyen.survey.adapter;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.os.Handler;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.CardView;
@@ -294,7 +295,8 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
     }
 
     int numberOfUpload = 0;
-
+    final Handler handler = new Handler();
+    Runnable runable;
     private void uploadProjectData(final Context mContext, final View view, final int projectId) {
         final SaveAnswerModel saveAnswerModel = answerSQLiteHelper.getSaveAnswerModelByProjectId(projectId);
         if (saveAnswerModel == null) {
@@ -303,20 +305,28 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
                     Toast.makeText(mContext, String.format(mContext.getString(R.string.message_upload_compeleted), numberOfUpload), Toast.LENGTH_LONG).show();
                     view.setVisibility(View.GONE);
                     notifyDataSetChanged();
+                    if(runable !=null)
+                            handler.removeCallbacks(runable);
                 }
             });
         } else {
             SurveyApiWrapper.saveResultSurvey(mContext, saveAnswerModel, new ICallBack() {
                 @Override
                 public void onSuccess(Object data) {
-                    answerSQLiteHelper.deleteAnswer(saveAnswerModel.getIdentity());
-                    uploadProjectData(mContext, view, projectId);
-                    numberOfUpload++;
+                    runable = new Runnable() {
+                        public void run() {
+                            answerSQLiteHelper.deleteAnswer(saveAnswerModel.getIdentity());
+                            uploadProjectData(mContext, view, projectId);
+                            numberOfUpload++;
+                        }
+                    };
+                    handler.postDelayed(runable, 1000);
                 }
 
                 @Override
                 public void onFailure(CommonErrorModel error) {
-
+                    error.getError();
+                    Utils.showToastLong(mContext, mContext.getString(R.string.lost_internet_connection_message));
                 }
 
                 @Override

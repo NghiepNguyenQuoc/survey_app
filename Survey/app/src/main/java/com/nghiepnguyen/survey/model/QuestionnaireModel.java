@@ -11,6 +11,7 @@ public class QuestionnaireModel implements Parcelable {
     private int ProjectID;
     private int QuestionnaireID;
     private int DependentID;
+    private int ParentID;
     private int Type;
     private int ZOrderQuestion;
     private int Value;
@@ -31,6 +32,7 @@ public class QuestionnaireModel implements Parcelable {
         ProjectID = in.readInt();
         QuestionnaireID = in.readInt();
         DependentID = in.readInt();
+        ParentID = in.readInt();
         Type = in.readInt();
         ZOrderQuestion = in.readInt();
         Value = in.readInt();
@@ -52,6 +54,7 @@ public class QuestionnaireModel implements Parcelable {
         dest.writeInt(ProjectID);
         dest.writeInt(QuestionnaireID);
         dest.writeInt(DependentID);
+        dest.writeInt(ParentID);
         dest.writeInt(Type);
         dest.writeInt(ZOrderQuestion);
         dest.writeInt(Value);
@@ -114,6 +117,14 @@ public class QuestionnaireModel implements Parcelable {
 
     public void setDependentID(int dependentID) {
         DependentID = dependentID;
+    }
+
+    public int getParentID() {
+        return ParentID;
+    }
+
+    public void setParentID(int parentID) {
+        ParentID = parentID;
     }
 
     public int getType() {

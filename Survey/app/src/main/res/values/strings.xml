@@ -48,6 +48,7 @@
     <string name="txt_over_max_answer">Câu hỏi hiện tại bạn chỉ có thể chọn nhiều nhất %d phương án trả lời.</string>
     <string name="txt_emty_answer">Bạn chưa chọn phương án cho câu trả lời này.</string>
     <string name="txt_emty_other_option">Vui lòng ghi rõ thông tin.</string>
+    <string name="txt_ma_logic">Bạn chưa check đủ %1$d câu cần thiết.</string>
     <string name="txt_exclusion">Đã chọn một trong các yếu tố %s thì không được chọn các yếu tố khác.</string>
     <string name="txt_not_suitable_option">Cám ơn bạn đã tham gia khảo sát. Tuy nhiên bạn không thuộc đối tượng khảo sát. Xin mời bạn tham gia dự án khác.</string>
     <string name="txt_completed_survey_mark">Chúc mừng bạn đã hoàn thành xong khảo sát. Bạn đã được cộng %s vào tài khoản. Mời bạn đến thăm hồ sơ thành viên của mình để xem tổng điểm.</string>
