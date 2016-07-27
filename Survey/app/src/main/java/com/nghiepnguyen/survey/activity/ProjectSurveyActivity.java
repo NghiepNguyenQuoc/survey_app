@@ -213,7 +213,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
             // get all option and question
             List<QuestionnaireModel> questionnaireModels = questionaireSQLiteHelper.getListQuestionnaireByQuestionId(questionnaireIds.get(currentIndexQuestionID));
-            if (questionnaireModels.get(0).getID() != 0) {
+            if (questionnaireModels.get(0).getParentID() == 0) {
                 if (questionnaireModels.get(0).getDependentID() != 0) {
                     // cap nhau tieu de cau khoi khi co ki tu [LIKED]
                     generateTitleQuestion(questionnaireModels.get(0).getQuestionText(), answerModels, questionnaireIds, currentIndexQuestionID - 1, questionnaireModels.get(0).getCode(), mQuestionContentTextView);
@@ -499,8 +499,108 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
                 }
                 break;
-            /*} else if (item.getType() == 9) {*/
+            } else if (item.getType() == 10) {
+                WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+                DisplayMetrics displaymetrics = new DisplayMetrics();
+                wm.getDefaultDisplay().getMetrics(displaymetrics);
+                int width = displaymetrics.widthPixels / (questionnaireList.size() + 1);
+                LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(width, ViewGroup.LayoutParams.MATCH_PARENT);
 
+                LinearLayout horizontalLayout = new LinearLayout(this);
+                horizontalLayout.setOrientation(LinearLayout.HORIZONTAL);
+
+                List<QuestionnaireModel> childQuestionnaireModels = questionaireSQLiteHelper.getListQuestionnaireByParentQuestionId(questionnaireList.get(0).getQuestionnaireID());
+                for (int i = 0; i < questionnaireList.size() + 1; i++) {
+                    LinearLayout verticalLinearLayout = new LinearLayout(this);
+                    verticalLinearLayout.setOrientation(LinearLayout.VERTICAL);
+
+                    if (i == 0) {
+                        for (int j = 0; j < childQuestionnaireModels.size() + 1; j++) {
+                            TextView textView = new TextView(this);
+                            textView.setLayoutParams(layoutParams);
+                            textView.setBackgroundColor(getResources().getColor(R.color.cl_default_trans));
+                            textView.setTextSize(getResources().getDimension(R.dimen.text_size_small));
+                            if (j != 0) {
+                                textView.setText(childQuestionnaireModels.get(j - 1).getQuestionText());
+                            }
+                            verticalLinearLayout.addView(textView);
+                        }
+                    } else {
+                        RadioGroup radioGroup = new RadioGroup(this);
+                        radioGroup.setOrientation(RadioGroup.VERTICAL);
+                        radioGroup.setId(questionnaireList.get(i - 1).getQuestionnaireID());
+                        for (int j = 0; j < childQuestionnaireModels.size() + 1; j++) {
+                            if (j == 0) {
+                                TextView textView = new TextView(this);
+                                textView.setTextSize(getResources().getDimension(R.dimen.text_size_small));
+                                textView.setText(" " + questionnaireList.get(i - 1).getDescription());
+                                textView.setLayoutParams(layoutParams);
+                                radioGroup.addView(textView);
+                            } else {
+                                AppCompatRadioButton radioButton = new AppCompatRadioButton(this);
+                                radioButton.setId(childQuestionnaireModels.get(j - 1).getQuestionnaireID() * 100 + questionnaireList.get(i - 1).getValue());
+                                radioButton.setLayoutParams(layoutParams);
+                                radioButton.setBackgroundColor(getResources().getColor(R.color.cl_bg_upcoming));
+                                radioGroup.addView(radioButton);
+                            }
+                        }
+                        horizontalLayout.addView(radioGroup);
+                    }
+
+                    horizontalLayout.addView(verticalLinearLayout);
+
+                }
+                linearLayout1.addView(horizontalLayout);
+                break;
+            } else if (item.getType() == 6) {
+                // create checkbox
+                final AppCompatCheckBox checkBox = new AppCompatCheckBox(this);
+                checkBox.setId(item.getID());
+                checkBox.setText(item.getDescription());
+                checkBox.setTextSize(getResources().getDimension(R.dimen.text_size_caption));
+                checkBox.setPadding(0, Constant.dpToPx(10, this), 0, Constant.dpToPx(10, this));
+
+                TextView textView = new TextView(this);
+                textView.setTextColor(ContextCompat.getColor(this, R.color.red));
+                textView.setTextSize(getResources().getDimension(R.dimen.text_size_small));
+                textView.setId(item.getID() * 10);
+                LinearLayout horizontalLayout = new LinearLayout(this);
+                horizontalLayout.setOrientation(LinearLayout.HORIZONTAL);
+                horizontalLayout.addView(checkBox);
+                horizontalLayout.addView(textView);
+
+                // create radio button
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
+                    horizontalLayout.setBackground(ContextCompat.getDrawable(this, R.drawable.radio_group_divider));
+
+                // add it to radio group
+                linearLayout1.addView(horizontalLayout, params);
+
+                horizontalLayout.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        checkBox.performClick();
+                    }
+                });
+                checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        for (QuestionnaireModel item : questionnaireList) {
+                            // set allow input
+                            /*AppCompatEditText editText;
+                            if (buttonView.getId() == item.getID() && buttonView.isChecked() && item.getAllowInputText() == 1) {
+                                editText = (AppCompatEditText) findViewById(buttonView.getId() * 10);
+                                assert editText != null;
+                                editText.setVisibility(View.VISIBLE);
+                                editText.requestFocus();
+                            } else if (buttonView.getId() == item.getID() && !buttonView.isChecked() && item.getAllowInputText() == 1) {
+                                editText = (AppCompatEditText) findViewById(buttonView.getId() * 10);
+                                assert editText != null;
+                                editText.setVisibility(View.GONE);
+                            }*/
+                        }
+                    }
+                });
             }
         }
 
@@ -559,6 +659,19 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                         }
                         selectedOptions.add(new SelectedOption(answerModels));
                         break;
+                    } else if (questionModel.getType() == 10) {
+                        List<AnswerModel> answerModels = new ArrayList<>();
+                        List<QuestionnaireModel> childQuestionnaireModels = questionaireSQLiteHelper.getListQuestionnaireByParentQuestionId(item.getQuestionnaireID());
+                        for (int i = 0; i < childQuestionnaireModels.size(); i++) {
+                            List<SelectedOption> childSelectedOptions = new ArrayList<>();
+                            RadioGroup radioGroup = (RadioGroup) mOptionLinearLayout.findViewById(childQuestionnaireModels.get(i).getQuestionnaireID());
+                            int selectedValue = radioGroup.getCheckedRadioButtonId() % 100;
+                            childSelectedOptions.add(new SelectedOption(selectedValue, "", childQuestionnaireModels.get(i).getQuestionText(), 0));
+                            answerModels.add(new AnswerModel(childQuestionnaireModels.get(i).getQuestionnaireID(), childSelectedOptions));
+                        }
+                        selectedOptions.add(new SelectedOption(answerModels));
+                        break;
+
                     }
                 }
 

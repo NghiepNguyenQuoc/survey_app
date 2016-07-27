@@ -277,6 +277,11 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
         String query = "SELECT " + KEY_QUESTIONNAIRE_ID +
                 " FROM " + TABLE_QUESTIONNAIRE +
                 " WHERE " + KEY_PROJECT_ID + " = " + projectId +
+                " AND " + KEY_QUESTIONNAIRE_ID + " != 4322" +
+                " AND " + KEY_QUESTIONNAIRE_ID + " != 4323" +
+                " AND " + KEY_QUESTIONNAIRE_ID + " != 4324" +
+                " AND " + KEY_QUESTIONNAIRE_ID + " != 4357" +
+                " AND " + KEY_QUESTIONNAIRE_ID + " != 4325" +
                 " GROUP BY " + KEY_QUESTIONNAIRE_ID +
                 " ORDER BY " + KEY_IDENTITY;
 

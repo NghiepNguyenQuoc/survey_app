@@ -139,8 +139,8 @@ public class UserInfoDialog extends Dialog implements View.OnClickListener {
                             mFullNameTextView.getText().toString(),
                             mNumberIdTextView.getText().toString(),
                             mPhoneNumberTextView.getText().toString(),
-                            mEmailTextView.getText().toString(),
-                            mAddressTextView.getText().toString());
+                            mAddressTextView.getText().toString(),
+                            mEmailTextView.getText().toString());
 
                     UserInfoDialog.this.dismiss();
 
@@ -167,10 +167,11 @@ public class UserInfoDialog extends Dialog implements View.OnClickListener {
             return false;
         }
 
-        if (TextUtils.isEmpty(mEmailTextView.getText().toString())) {
+        String email = mEmailTextView.getText().toString();
+        if (TextUtils.isEmpty(email) || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             String message_error = mContext.getString(R.string.message_email_empty);
-            mAddressTextView.requestFocus();
-            mAddressTextView.setError(message_error);
+            mEmailTextView.requestFocus();
+            mEmailTextView.setError(message_error);
             return false;
         }
         return true;

@@ -41,8 +41,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/prompt_full_name"
-                    android:text="nnnn qqqq nnnn"
                     android:inputType="textPersonName"
+                    android:text="N"
                     android:maxLines="1"
                     android:singleLine="true" />
 
@@ -57,9 +57,11 @@
                     android:id="@+id/dialog_user_info_number_id_edittext"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:digits="+0123456789"
                     android:hint="@string/prompt_number_id"
-                    android:text="111122223333"
+                    android:inputType="phone"
                     android:maxLines="1"
+                    android:text="1234567890"
                     android:singleLine="true" />
 
             </android.support.design.widget.TextInputLayout>
@@ -73,9 +75,11 @@
                     android:id="@+id/dialog_user_info_phone_number_edittext"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:digits="+0123456789"
                     android:hint="@string/prompt_phone_number"
+                    android:inputType="phone"
+                    android:text="09840000000"
                     android:maxLines="1"
-                    android:text="0989098098"
                     android:singleLine="true" />
 
             </android.support.design.widget.TextInputLayout>
@@ -91,8 +95,8 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/prompt_address"
                     android:maxLines="1"
-                    android:text="TpHCM"
-                    android:singleLine="true" />
+                    android:singleLine="true"
+                    android:text="TpHCM" />
 
             </android.support.design.widget.TextInputLayout>
 
@@ -106,8 +110,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/prompt_email"
-                    android:text="abc@gmail.com"
+                    android:inputType="textEmailAddress"
                     android:maxLines="1"
+                    android:text="test@gmail.com"
                     android:singleLine="true" />
 
             </android.support.design.widget.TextInputLayout>

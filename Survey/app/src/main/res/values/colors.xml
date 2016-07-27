@@ -42,7 +42,7 @@
     <color name="cl_float_transparent">#66000000</color>
     <color name="cl_vehicle_transparent">#AAF5F5F7</color>
     <color name="cl_location">#F8F8FA</color>
-    <color name="red">#FFC93437</color>
+    <color name="red">#FF0000</color>
     <color name="blue">#FF375BF1</color>
     <color name="yellow">#FFF7D23E</color>
     <color name="green">#FF34A350</color>

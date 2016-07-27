@@ -1,6 +1,7 @@
 package com.nghiepnguyen.survey.networking;
 
 import android.content.Context;
+import android.os.Build;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -46,6 +47,9 @@ public class SurveyApiClient {
             urlConnection.setRequestMethod("GET");
             urlConnection.setRequestProperty("Accept-Charset", charset);
             urlConnection.setDoOutput(true);
+            if (Build.VERSION.SDK != null && Build.VERSION.SDK_INT > 13) {
+                urlConnection.setRequestProperty("Connection", "close");
+            }
             //urlConnection.setReadTimeout(10 * 1000);
 
 
@@ -82,6 +86,9 @@ public class SurveyApiClient {
             urlConnection.setDoOutput(true);
             urlConnection.setRequestProperty("Accept-Charset", charset);
             urlConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=" + charset);
+            if (Build.VERSION.SDK != null && Build.VERSION.SDK_INT > 13) {
+                urlConnection.setRequestProperty("Connection", "close");
+            }
 
             // put data to server
             DataOutputStream wr = new DataOutputStream(urlConnection.getOutputStream());
