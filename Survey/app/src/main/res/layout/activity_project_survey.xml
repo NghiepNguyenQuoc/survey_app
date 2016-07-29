@@ -30,13 +30,13 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/cl_white">
+        android:background="@color/cl_white"
+        android:padding="@dimen/padding_dialog_medium_1">
 
         <TextView
             android:id="@+id/activity_project_survey_question_content_textview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="@dimen/padding_dialog_medium_1"
             android:text="Tên câu hỏi"
             android:textColor="@color/cl_black"
             android:textSize="@dimen/text_size_headline" />

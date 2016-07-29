@@ -282,6 +282,7 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
                 " AND " + KEY_QUESTIONNAIRE_ID + " != 4324" +
                 " AND " + KEY_QUESTIONNAIRE_ID + " != 4357" +
                 " AND " + KEY_QUESTIONNAIRE_ID + " != 4325" +
+                " AND " + KEY_QUESTIONNAIRE_ID + " != 4335" +
                 " GROUP BY " + KEY_QUESTIONNAIRE_ID +
                 " ORDER BY " + KEY_IDENTITY;
 

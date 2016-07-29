@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.text.TextUtilsCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.AppCompatEditText;
@@ -52,6 +53,8 @@ import com.nghiepnguyen.survey.model.sqlite.QuestionaireSQLiteHelper;
 import com.nghiepnguyen.survey.model.sqlite.RouteSQLiteHelper;
 import com.nghiepnguyen.survey.storage.UserInfoManager;
 import com.nghiepnguyen.survey.utils.Constant;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -584,23 +587,58 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 });
                 checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                     @Override
-                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    public void onCheckedChanged(CompoundButton compoundView, boolean isChecked) {
+                        int maxvalue = 0;
+                        int uncheckValue = 0;
                         for (QuestionnaireModel item : questionnaireList) {
                             // set allow input
-                            /*AppCompatEditText editText;
-                            if (buttonView.getId() == item.getID() && buttonView.isChecked() && item.getAllowInputText() == 1) {
-                                editText = (AppCompatEditText) findViewById(buttonView.getId() * 10);
-                                assert editText != null;
-                                editText.setVisibility(View.VISIBLE);
-                                editText.requestFocus();
-                            } else if (buttonView.getId() == item.getID() && !buttonView.isChecked() && item.getAllowInputText() == 1) {
-                                editText = (AppCompatEditText) findViewById(buttonView.getId() * 10);
-                                assert editText != null;
-                                editText.setVisibility(View.GONE);
-                            }*/
+                            TextView textview = (TextView) findViewById(item.getID() * 10);
+                            assert textview != null;
+                            if (!TextUtils.isEmpty(textview.getText().toString())) {
+                                if (Integer.valueOf(textview.getText().toString()) > maxvalue)
+                                    maxvalue = Integer.valueOf(textview.getText().toString());
+
+                                if (!compoundView.isChecked()) {
+                                    if (compoundView.getId() == item.getID())
+                                        uncheckValue = Integer.valueOf(textview.getText().toString());
+                                }
+                            }
+                        }
+
+                        for (QuestionnaireModel item : questionnaireList) {
+                            // set allow input
+                            TextView textview = (TextView) findViewById(item.getID() * 10);
+                            assert textview != null;
+                            if (compoundView.isChecked()) {
+                                if (compoundView.getId() == item.getID()) {
+                                    textview.setText(String.valueOf(maxvalue + 1));
+                                    break;
+                                }
+                            } else if (compoundView.getId() == item.getID() && !compoundView.isChecked()) {
+                                textview.setText("");
+                            } else if (!compoundView.isChecked()) {
+                                int value = 0;
+                                if (!TextUtils.isEmpty(textview.getText().toString()))
+                                    value = Integer.valueOf(textview.getText().toString());
+                                if (uncheckValue < value)
+                                    textview.setText(value > 1 ? String.valueOf(value - 1) : "");
+                            }
                         }
                     }
                 });
+            } else if (item.getType() == 3) {
+                // create radio button
+                AppCompatEditText editText = new AppCompatEditText(this);
+                editText.setId(item.getID());
+                editText.setTextSize(getResources().getDimension(R.dimen.text_size_caption));
+                editText.setPadding(Constant.dpToPx(10, this), Constant.dpToPx(10, this), Constant.dpToPx(10, this), Constant.dpToPx(10, this));
+
+                // create radio button
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
+                    editText.setBackground(ContextCompat.getDrawable(this, R.drawable.radio_group_divider));
+
+                // add it to radio group
+                linearLayout1.addView(editText, params);
             }
         }
 
