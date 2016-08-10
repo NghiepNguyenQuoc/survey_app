@@ -709,7 +709,18 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                         }
                         selectedOptions.add(new SelectedOption(answerModels));
                         break;
-
+                    } else if (questionModel.getType() == 6) {
+                        CheckBox checkBox = (CheckBox) mOptionLinearLayout.findViewById(item.getID());
+                        item.setIsSelected(checkBox.isChecked() ? 1 : 0);
+                        if (checkBox.isChecked()) {
+                            TextView textView = (TextView) mOptionLinearLayout.findViewById(item.getID() * 10);
+                            selectedOptions.add(new SelectedOption(item.getValue(), "", textView.getText().toString(), 0));
+                        }
+                    } else if (questionModel.getType() == 3) {
+                        // create radio button
+                        item.setIsSelected(1);
+                        AppCompatEditText editText = (AppCompatEditText) mOptionLinearLayout.findViewById(item.getID());
+                        selectedOptions.add(new SelectedOption(item.getValue(), "", editText.getText().toString(), 0));
                     }
                 }
 
@@ -775,8 +786,12 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                     switch (questionModel.getType()) {
                         case 0:
                         case 1:
+                        case 2:
+                        case 3:
                         case 5:
+                        case 6:
                         case 9:
+                        case 10:
                             pathList.add(questionModel.getID());
                             getNextQuestion();
                             break;
@@ -796,6 +811,13 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             case 7:
                 for (QuestionnaireModel item : questionnaireList) {
                     if (item.getIsSelected() == 1)
+                        return true;
+                }
+                break;
+            case 3:
+                for (QuestionnaireModel item : questionnaireList) {
+                    AppCompatEditText editText = (AppCompatEditText) mOptionLinearLayout.findViewById(item.getID());
+                    if (!TextUtils.isEmpty(editText.getText().toString()))
                         return true;
                 }
                 break;
@@ -869,7 +891,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     }
 
     private boolean checkMaxMaxResponse(int typeQuesion, int maxAnswer, List<QuestionnaireModel> questionnaireList) {
-        if ((!(typeQuesion == 6 || typeQuesion == 1)) || maxAnswer == 0)
+        if ((!(typeQuesion == 6 || typeQuesion == 1)) || maxAnswer == 0 || maxAnswer == 3)
             return true;
 
         int count = 0;

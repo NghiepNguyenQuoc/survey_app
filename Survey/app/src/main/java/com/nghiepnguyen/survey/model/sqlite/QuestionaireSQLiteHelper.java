@@ -277,22 +277,14 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
         String query = "SELECT " + KEY_QUESTIONNAIRE_ID +
                 " FROM " + TABLE_QUESTIONNAIRE +
                 " WHERE " + KEY_PROJECT_ID + " = " + projectId +
-                " AND " + KEY_QUESTIONNAIRE_ID + " != 4322" +
-                " AND " + KEY_QUESTIONNAIRE_ID + " != 4323" +
-                " AND " + KEY_QUESTIONNAIRE_ID + " != 4324" +
-                " AND " + KEY_QUESTIONNAIRE_ID + " != 4357" +
-                " AND " + KEY_QUESTIONNAIRE_ID + " != 4325" +
-                " AND " + KEY_QUESTIONNAIRE_ID + " != 4335" +
                 " GROUP BY " + KEY_QUESTIONNAIRE_ID +
                 " ORDER BY " + KEY_IDENTITY;
 
-        /*" AND " + KEY_QUESTIONNAIRE_ID + " != 4159" +
-                " AND " + KEY_QUESTIONNAIRE_ID + " != 4160" +
-                " AND " + KEY_QUESTIONNAIRE_ID + " != 4161" +
-                " AND " + KEY_QUESTIONNAIRE_ID + " != 4162" +
-                " AND " + KEY_QUESTIONNAIRE_ID + " != 4163" +
-                " AND " + KEY_QUESTIONNAIRE_ID + " != 4164" +
-                " AND " + KEY_QUESTIONNAIRE_ID + " != 4165" +*/
+        /*" AND " + KEY_QUESTIONNAIRE_ID + " != 4322" +
+                " AND " + KEY_QUESTIONNAIRE_ID + " != 4323" +
+                " AND " + KEY_QUESTIONNAIRE_ID + " != 4324" +
+                " AND " + KEY_QUESTIONNAIRE_ID + " != 4357" +
+                " AND " + KEY_QUESTIONNAIRE_ID + " != 4325" +*/
 
         // 2. get reference to writable DB
         SQLiteDatabase db = this.getWritableDatabase();

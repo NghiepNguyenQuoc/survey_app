@@ -1,11 +1,6 @@
 package com.nghiepnguyen.survey.networking;
 
-import android.content.Context;
 import android.os.Build;
-
-import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.loopj.android.http.RequestParams;
-import com.nghiepnguyen.survey.utils.Urls;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -25,16 +20,6 @@ import java.util.HashMap;
 public class SurveyApiClient {
     private static String TAG = "SurveyApiClient";
     private static String charset = "UTF-8";  // Or in Java 7 and later, use the constant: java.nio.charset.StandardCharsets.UTF_8.name()
-
-    private static String getAbsoluteUrl(String relativeUrl) {
-        // With dev build (local host), we can change the local host in login dialog
-        /*if (MainApplication.getInstance().getApplicationContext().getString(R.string.developer_app_name).equals("Deliveree Dev") && !TextUtils.isEmpty(Constant.LOCAL_HOST_CUSTOM)) {
-            return "http://" + Constant.LOCAL_HOST_CUSTOM + "/api/v2/" + relativeUrl;
-        } else {
-            return Urls.BASE_URL + relativeUrl;
-        }*/
-        return Urls.BASE_URL + relativeUrl;
-    }
 
     public static void get(String urlString, HashMap<String, String> params) {
         try {

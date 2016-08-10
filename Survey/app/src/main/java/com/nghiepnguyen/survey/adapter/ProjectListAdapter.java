@@ -30,6 +30,7 @@ import com.nghiepnguyen.survey.model.sqlite.AnswerSQLiteHelper;
 import com.nghiepnguyen.survey.model.sqlite.QuestionaireSQLiteHelper;
 import com.nghiepnguyen.survey.model.sqlite.RouteSQLiteHelper;
 import com.nghiepnguyen.survey.networking.SurveyApiWrapper;
+import com.nghiepnguyen.survey.storage.UserInfoManager;
 import com.nghiepnguyen.survey.utils.Utils;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -38,21 +39,24 @@ import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by nghiep on 11/22/15.
  */
 public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.ProjectViewHolder> {
     private static final String TAG = "ProjectListAdapter";
+    private static RecyclerViewClickListener itemListener;
+    final Handler handler = new Handler();
     public ImageLoader imageLoader;
     DisplayImageOptions options;
+    int numberOfUpload = 0;
+    Runnable runable;
     private Context mContext;
-
     private List<ProjectModel> projectList;
     private QuestionaireSQLiteHelper questionaireSQLiteHelper;
     private RouteSQLiteHelper routeSQLiteHelper;
     private AnswerSQLiteHelper answerSQLiteHelper;
-    private static RecyclerViewClickListener itemListener;
 
     public ProjectListAdapter(Context mContext, List<ProjectModel> projectList, RecyclerViewClickListener itemListener) {
         this.mContext = mContext;
@@ -85,7 +89,15 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
 
         holder.tvProjectName.setText(project.getName());
         holder.tvProjectDescription.setText(Html.fromHtml(project.getDescription()));
-        holder.tvNumberResult.setText("Số lần khảo sát: " + answerSQLiteHelper.countAnswerModelByProjectId(project.getID()));
+
+
+        Map<String, Integer> strings = UserInfoManager.getUploadTimesOfProject(mContext);
+        int totalUpload = 0;
+        if (strings.size() > 0 && strings.containsKey(String.valueOf(project.getID())))
+            totalUpload = strings.get(String.valueOf(project.getID()));
+        String uploadAndTotal = "Số lần khảo sát: ".concat(String.valueOf(answerSQLiteHelper.countAnswerModelByProjectId(project.getID()))) +
+                " / Số lần upload thành công: ".concat(String.valueOf(totalUpload));
+        holder.tvNumberResult.setText(uploadAndTotal);
         String urlImage = "http://6sao.vn" + project.getImage1();
 
         display(holder.ivProjectImage, urlImage);
@@ -141,36 +153,6 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
         return projectList;
     }
 
-    public static class ProjectViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        public CardView cardView;
-        public TextView tvProjectName;
-        public TextView tvProjectDescription;
-        public TextView tvNumberResult;
-        public ImageView ivProjectImage;
-        public ImageView ivMenuPopup;
-        public ProgressBar pbLoading;
-
-        public ProjectViewHolder(View itemView) {
-            super(itemView);
-
-            cardView = (CardView) itemView.findViewById(R.id.card_view);
-            tvProjectName = (TextView) itemView.findViewById(R.id.tv_project_name);
-            tvProjectDescription = (TextView) itemView.findViewById(R.id.tv_project_description);
-            tvNumberResult = (TextView) itemView.findViewById(R.id.tv_number_result);
-            ivProjectImage = (ImageView) itemView.findViewById(R.id.iv_project_image);
-            ivMenuPopup = (ImageView) itemView.findViewById(R.id.iv_menu_popup);
-            pbLoading = (ProgressBar) itemView.findViewById(R.id.pb_loading);
-            itemView.setOnClickListener(this);
-
-        }
-
-        @Override
-        public void onClick(View view) {
-            itemListener.recyclerViewListClicked(view, this.getAdapterPosition());
-
-        }
-    }
-
     public void display(ImageView img, String url) {
         imageLoader.displayImage(url, img, options, new ImageLoadingListener() {
             @Override
@@ -189,10 +171,6 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
             public void onLoadingCancelled(String imageUri, View view) {
             }
         });
-    }
-
-    public interface RecyclerViewClickListener {
-        void recyclerViewListClicked(View v, int position);
     }
 
     private void updateProjectData(final ProjectModel project, final View loadingView, final CardView itemView) {
@@ -294,19 +272,29 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
         });
     }
 
-    int numberOfUpload = 0;
-    final Handler handler = new Handler();
-    Runnable runable;
     private void uploadProjectData(final Context mContext, final View view, final int projectId) {
         final SaveAnswerModel saveAnswerModel = answerSQLiteHelper.getSaveAnswerModelByProjectId(projectId);
         if (saveAnswerModel == null) {
             ((Activity) mContext).runOnUiThread(new Runnable() {
                 public void run() {
+                    // show the number uploaded successfully
                     Toast.makeText(mContext, String.format(mContext.getString(R.string.message_upload_compeleted), numberOfUpload), Toast.LENGTH_LONG).show();
+
+                    // save data to cache
+                    Map<String, Integer> strings = UserInfoManager.getUploadTimesOfProject(mContext);
+
+                    if (strings.size() == 0 || strings.containsKey(String.valueOf(projectId)))
+                        strings.put(String.valueOf(projectId), numberOfUpload);
+                    else {
+                        strings.put(String.valueOf(projectId), strings.get(projectId) + numberOfUpload);
+                    }
+                    UserInfoManager.saveUploadTimesOfProject(mContext, strings);
+
+                    //update view
                     view.setVisibility(View.GONE);
                     notifyDataSetChanged();
-                    if(runable !=null)
-                            handler.removeCallbacks(runable);
+                    if (runable != null)
+                        handler.removeCallbacks(runable);
                 }
             });
         } else {
@@ -334,6 +322,40 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
 
                 }
             });
+        }
+    }
+
+    public interface RecyclerViewClickListener {
+        void recyclerViewListClicked(View v, int position);
+    }
+
+    public static class ProjectViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+        public CardView cardView;
+        public TextView tvProjectName;
+        public TextView tvProjectDescription;
+        public TextView tvNumberResult;
+        public ImageView ivProjectImage;
+        public ImageView ivMenuPopup;
+        public ProgressBar pbLoading;
+
+        public ProjectViewHolder(View itemView) {
+            super(itemView);
+
+            cardView = (CardView) itemView.findViewById(R.id.card_view);
+            tvProjectName = (TextView) itemView.findViewById(R.id.tv_project_name);
+            tvProjectDescription = (TextView) itemView.findViewById(R.id.tv_project_description);
+            tvNumberResult = (TextView) itemView.findViewById(R.id.tv_number_result);
+            ivProjectImage = (ImageView) itemView.findViewById(R.id.iv_project_image);
+            ivMenuPopup = (ImageView) itemView.findViewById(R.id.iv_menu_popup);
+            pbLoading = (ProgressBar) itemView.findViewById(R.id.pb_loading);
+            itemView.setOnClickListener(this);
+
+        }
+
+        @Override
+        public void onClick(View view) {
+            itemListener.recyclerViewListClicked(view, this.getAdapterPosition());
+
         }
     }
 }
