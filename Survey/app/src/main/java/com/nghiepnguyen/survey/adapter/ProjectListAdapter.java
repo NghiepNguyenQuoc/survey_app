@@ -119,6 +119,7 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
                             return true;
                         } else if (i == R.id.menu_popup_upload) {
                             holder.pbLoading.setVisibility(View.VISIBLE);
+                            numberOfUpload = 0;
                             uploadProjectData(mContext, holder.pbLoading, project.getID());
 
                             //do something
@@ -280,21 +281,24 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
                     // show the number uploaded successfully
                     Toast.makeText(mContext, String.format(mContext.getString(R.string.message_upload_compeleted), numberOfUpload), Toast.LENGTH_LONG).show();
 
-                    // save data to cache
-                    Map<String, Integer> strings = UserInfoManager.getUploadTimesOfProject(mContext);
+                    if (numberOfUpload > 0) {
+                        // save data to cache
+                        Map<String, Integer> strings = UserInfoManager.getUploadTimesOfProject(mContext);
 
-                    if (strings.size() == 0 || strings.containsKey(String.valueOf(projectId)))
-                        strings.put(String.valueOf(projectId), numberOfUpload);
-                    else {
-                        strings.put(String.valueOf(projectId), strings.get(projectId) + numberOfUpload);
+                        if (strings.size() == 0 || !strings.containsKey(String.valueOf(projectId)))
+                            strings.put(String.valueOf(projectId), numberOfUpload);
+                        else {
+                            strings.put(String.valueOf(projectId), strings.get(String.valueOf(projectId)) + numberOfUpload);
+                        }
+                        UserInfoManager.saveUploadTimesOfProject(mContext, strings);
                     }
-                    UserInfoManager.saveUploadTimesOfProject(mContext, strings);
 
                     //update view
                     view.setVisibility(View.GONE);
                     notifyDataSetChanged();
                     if (runable != null)
                         handler.removeCallbacks(runable);
+
                 }
             });
         } else {
@@ -304,8 +308,8 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
                     runable = new Runnable() {
                         public void run() {
                             answerSQLiteHelper.deleteAnswer(saveAnswerModel.getIdentity());
-                            uploadProjectData(mContext, view, projectId);
                             numberOfUpload++;
+                            uploadProjectData(mContext, view, projectId);
                         }
                     };
                     handler.postDelayed(runable, 1000);
