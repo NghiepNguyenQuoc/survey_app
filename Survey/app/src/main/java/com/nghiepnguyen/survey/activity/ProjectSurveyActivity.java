@@ -233,9 +233,15 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
                     // options information
                     // get depend list option
-                    findQuestionnaireModelsByDependentID(questionnaireModels.get(0).getQuestionnaireID(),
-                            questionnaireModels.get(0).getDependentID(), questionnaireModels.get(0).getDependentID(),
-                            answerModels, questionModel, questionnaireModelList);
+                    if (questionnaireModels.get(0).getDependentType() == 0) {
+                        findQuestionnaireModelsByDependentID(questionnaireModels.get(0).getQuestionnaireID(),
+                                questionnaireModels.get(0).getDependentID(), questionnaireModels.get(0).getDependentID(),
+                                answerModels, questionModel, questionnaireModelList);
+                    } else {
+                        findQuestionnaireModelsByDependentIDAndExclusion(questionnaireModels.get(0).getQuestionnaireID(),
+                                questionnaireModels.get(0).getDependentID(), questionnaireModels.get(0).getDependentID(),
+                                answerModels, questionModel, questionnaireModelList);
+                    }
 
                 } else {// get new questionnaireModelList
                     for (int i = 0; i < questionnaireModels.size(); i++) {
@@ -297,11 +303,54 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             findQuestionnaireModelsByDependentID(rootQuestionnaireID, rootDependentID, questionnaireModels.get(0).getDependentID(), answerModels, questionModel, questionnaireModelList);
         }
 
-
         for (int i = 0; i < questionnaireModels.size(); i++) {
             AnswerModel answerModel = getAnswerByQuestionaireId(answerModels, rootDependentID);// get answer from dependent question
+            assert answerModel != null;
             for (SelectedOption selectedOption : answerModel.getSelectedOptions()) {// duyet qua tac ca cac dap an da chon
                 if (selectedOption.getValue() == questionnaireModels.get(i).getValue()) {
+                    questionnaireModels.get(i).setQuestionnaireID(rootQuestionnaireID);
+                    questionnaireModels.get(i).setType(questionModel.getType());
+                    questionnaireModels.get(i).setIsSelected(0);
+                    questionnaireModelList.add(questionnaireModels.get(i));
+                }
+            }
+        }
+    }
+
+    /*
+    * get dependent questionaire
+    * */
+    private void findQuestionnaireModelsByDependentIDAndExclusion(int rootQuestionnaireID, int rootDependentID, int dependentID,
+                                                                  List<AnswerModel> answerModels, QuestionModel questionModel,
+                                                                  List<QuestionnaireModel> questionnaireModelList) {
+
+        // get all questionaire of root question
+        List<QuestionnaireModel> questionnaireModels = questionaireSQLiteHelper.getListQuestionnaireByQuestionId(dependentID);
+        if (questionnaireModels.get(0).getDependentID() != 0) {
+            findQuestionnaireModelsByDependentIDAndExclusion(rootQuestionnaireID, rootDependentID, questionnaireModels.get(0).getDependentID(), answerModels, questionModel, questionnaireModelList);
+        }
+
+        if (questionnaireModelList.size() == 0) {
+            //List<Integer> arr1 = new ArrayList<>();
+            Integer[] arr1 = new Integer[questionnaireModels.size()];
+            for (int i = 0; i < questionnaireModels.size(); i++) {
+                arr1[i] = (questionnaireModels.get(i).getValue());
+            }
+
+            AnswerModel answerModel = getAnswerByQuestionaireId(answerModels, rootDependentID);// get answer from dependent question
+            assert answerModel != null;
+            //Integer[] arr2 = new Integer[answerModel.getSelectedOptions().size()];
+            List<Integer> arr2 = new ArrayList<>();
+            for (int j = 0; j < answerModel.getSelectedOptions().size(); j++) {
+                arr2.add(answerModel.getSelectedOptions().get(j).getValue());
+            }
+
+            Set<Integer> set = new HashSet<>();
+            Collections.addAll(set, arr1);
+            set.retainAll(arr2);
+
+            for (int i = 0; i < questionnaireModels.size(); i++) {
+                if (!set.contains(questionnaireModels.get(i).getValue())) {
                     questionnaireModels.get(i).setQuestionnaireID(rootQuestionnaireID);
                     questionnaireModels.get(i).setType(questionModel.getType());
                     questionnaireModels.get(i).setIsSelected(0);
@@ -314,6 +363,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     private void generateTitleQuestion(String oldTitle, List<AnswerModel> answerModels, List<Integer> questionnaireIds, int preQuestionId, String questionCode, TextView textView) {
         if (oldTitle.contains("[LIKED]")) {
             AnswerModel answerModel = getAnswerByQuestionaireId(answerModels, questionnaireIds.get(preQuestionId));// get answer from dependent question
+            assert answerModel != null;
             for (SelectedOption selectedOption : answerModel.getSelectedOptions()) {// duyet qua tac ca cac dap an da chon
                 if (selectedOption.getAllowInputText() == 1)
                     oldTitle = oldTitle.replace("[LIKED]", selectedOption.getText());
@@ -336,6 +386,8 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         linearLayout1.setLayoutParams(params);
 
+        if (questionnaireList.get(0).getDisplayRandomResponse() == 1)
+            Collections.shuffle(questionnaireList);
         for (QuestionnaireModel item : questionnaireList) {
 
             /*
@@ -521,7 +573,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                         for (int j = 0; j < childQuestionnaireModels.size() + 1; j++) {
                             TextView textView = new TextView(this);
                             textView.setLayoutParams(layoutParams);
-                            textView.setBackgroundColor(getResources().getColor(R.color.cl_default_trans));
+                            textView.setBackgroundColor(ContextCompat.getColor(this, R.color.cl_default_trans));
                             textView.setTextSize(getResources().getDimension(R.dimen.text_size_small));
                             if (j != 0) {
                                 textView.setText(childQuestionnaireModels.get(j - 1).getQuestionText());
@@ -536,14 +588,14 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                             if (j == 0) {
                                 TextView textView = new TextView(this);
                                 textView.setTextSize(getResources().getDimension(R.dimen.text_size_small));
-                                textView.setText(" " + questionnaireList.get(i - 1).getDescription());
+                                textView.setText(" ".concat(questionnaireList.get(i - 1).getDescription()));
                                 textView.setLayoutParams(layoutParams);
                                 radioGroup.addView(textView);
                             } else {
                                 AppCompatRadioButton radioButton = new AppCompatRadioButton(this);
                                 radioButton.setId(childQuestionnaireModels.get(j - 1).getQuestionnaireID() * 100 + questionnaireList.get(i - 1).getValue());
                                 radioButton.setLayoutParams(layoutParams);
-                                radioButton.setBackgroundColor(getResources().getColor(R.color.cl_bg_upcoming));
+                                radioButton.setBackgroundColor(ContextCompat.getColor(this, R.color.cl_bg_upcoming));
                                 radioGroup.addView(radioButton);
                             }
                         }
@@ -891,7 +943,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     }
 
     private boolean checkMaxMaxResponse(int typeQuesion, int maxAnswer, List<QuestionnaireModel> questionnaireList) {
-        if ((!(typeQuesion == 6 || typeQuesion == 1)) || maxAnswer == 0 || maxAnswer == 3)
+        if ((!(typeQuesion == 6 || typeQuesion == 1)) || maxAnswer == 0)
             return true;
 
         int count = 0;
@@ -1006,7 +1058,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             for (int i = 0; i < routeModels.size(); i++)
                 arrResultLogic.add(false);
 
-            if (routeModels != null && routeModels.size() > 0) {// check stop logic
+            if (routeModels.size() > 0) {// check stop logic
 
                 // 1.check question logic
                 for (int i = 0; i < routeModels.size(); i++) {// duyet qua tat ca cac route

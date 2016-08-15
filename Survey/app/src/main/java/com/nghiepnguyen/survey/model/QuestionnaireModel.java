@@ -7,6 +7,17 @@ import android.os.Parcelable;
  * Created by 08670_000 on 21/03/2016.
  */
 public class QuestionnaireModel implements Parcelable {
+    public static final Creator<QuestionnaireModel> CREATOR = new Creator<QuestionnaireModel>() {
+        @Override
+        public QuestionnaireModel createFromParcel(Parcel in) {
+            return new QuestionnaireModel(in);
+        }
+
+        @Override
+        public QuestionnaireModel[] newArray(int size) {
+            return new QuestionnaireModel[size];
+        }
+    };
     private int ID;
     private int ProjectID;
     private int QuestionnaireID;
@@ -19,13 +30,14 @@ public class QuestionnaireModel implements Parcelable {
     private int IsSelected;
     private int MaxResponseCount;
     private int Exclusion;
+    private int DependentType;
+    private int DisplayRandomResponse;
     private String Code;
     private String QuestionText;
     private String Caption;
     private String Description;
     private String ZOrderOption;
     private String otherOption;
-
 
     public QuestionnaireModel(Parcel in) {
         ID = in.readInt();
@@ -40,6 +52,8 @@ public class QuestionnaireModel implements Parcelable {
         IsSelected = in.readInt();
         MaxResponseCount = in.readInt();
         Exclusion = in.readInt();
+        DependentType = in.readInt();
+        DisplayRandomResponse = in.readInt();
         Code = in.readString();
         QuestionText = in.readString();
         Caption = in.readString();
@@ -62,6 +76,8 @@ public class QuestionnaireModel implements Parcelable {
         dest.writeInt(IsSelected);
         dest.writeInt(MaxResponseCount);
         dest.writeInt(Exclusion);
+        dest.writeInt(DependentType);
+        dest.writeInt(DisplayRandomResponse);
         dest.writeString(Code);
         dest.writeString(QuestionText);
         dest.writeString(Caption);
@@ -74,18 +90,6 @@ public class QuestionnaireModel implements Parcelable {
     public int describeContents() {
         return 0;
     }
-
-    public static final Creator<QuestionnaireModel> CREATOR = new Creator<QuestionnaireModel>() {
-        @Override
-        public QuestionnaireModel createFromParcel(Parcel in) {
-            return new QuestionnaireModel(in);
-        }
-
-        @Override
-        public QuestionnaireModel[] newArray(int size) {
-            return new QuestionnaireModel[size];
-        }
-    };
 
     public int getID() {
         return ID;
@@ -189,6 +193,22 @@ public class QuestionnaireModel implements Parcelable {
 
     public void setCode(String code) {
         Code = code;
+    }
+
+    public int getDependentType() {
+        return DependentType;
+    }
+
+    public void setDependentType(int dependentType) {
+        DependentType = dependentType;
+    }
+
+    public int getDisplayRandomResponse() {
+        return DisplayRandomResponse;
+    }
+
+    public void setDisplayRandomResponse(int displayRandomResponse) {
+        DisplayRandomResponse = displayRandomResponse;
     }
 
     public String getQuestionText() {

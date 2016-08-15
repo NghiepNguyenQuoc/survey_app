@@ -34,6 +34,8 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
     private static final String KEY_IS_SELECTED = "isSelected";
     private static final String KEY_MAXRESPONSECOUNT = "MaxResponseCount";
     private static final String KEY_EXCLUSION = "exclusion";
+    private static final String KEY_DEPENDENT_TYPE = "DependentType";
+    private static final String KEY_DISPLAY_RANDOM_RESPONSE = "DisplayRandomResponse";
     private static final String KEY_CODE = "Code";
     private static final String KEY_QUESTIONTEXT = "QuestionText";
     private static final String KEY_CAPTION = "Caption";
@@ -58,6 +60,8 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
             KEY_IS_SELECTED + " INTEGER, " +
             KEY_MAXRESPONSECOUNT + " INTEGER, " +
             KEY_EXCLUSION + " INTEGER, " +
+            KEY_DEPENDENT_TYPE + " INTEGER, " +
+            KEY_DISPLAY_RANDOM_RESPONSE + " INTEGER, " +
             KEY_CODE + " TEXT, " +
             KEY_QUESTIONTEXT + " TEXT, " +
             KEY_CAPTION + " TEXT, " +
@@ -94,6 +98,8 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
         values.put(KEY_IS_SELECTED, questionnaireModel.getIsSelected());
         values.put(KEY_MAXRESPONSECOUNT, questionnaireModel.getMaxResponseCount());
         values.put(KEY_EXCLUSION, questionnaireModel.getExclusion());
+        values.put(KEY_DEPENDENT_TYPE, questionnaireModel.getDependentType());
+        values.put(KEY_DISPLAY_RANDOM_RESPONSE, questionnaireModel.getDisplayRandomResponse());
         values.put(KEY_CODE, questionnaireModel.getCode());
         values.put(KEY_QUESTIONTEXT, questionnaireModel.getQuestionText());
         values.put(KEY_CAPTION, questionnaireModel.getCaption());
@@ -158,12 +164,14 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
                 questionnaireModel.setIsSelected(Integer.parseInt(cursor.getString(10)));
                 questionnaireModel.setMaxResponseCount(Integer.parseInt(cursor.getString(11)));
                 questionnaireModel.setExclusion(Integer.parseInt(cursor.getString(12)));
-                questionnaireModel.setCode(cursor.getString(13));
-                questionnaireModel.setQuestionText(cursor.getString(14));
-                questionnaireModel.setCaption(cursor.getString(15));
-                questionnaireModel.setDescription(cursor.getString(16));
-                questionnaireModel.setZOrderOption(cursor.getString(17));
-                questionnaireModel.setOtherOption(cursor.getString(18));
+                questionnaireModel.setDependentType(Integer.parseInt(cursor.getString(13)));
+                questionnaireModel.setDisplayRandomResponse(Integer.parseInt(cursor.getString(14)));
+                questionnaireModel.setCode(cursor.getString(15));
+                questionnaireModel.setQuestionText(cursor.getString(16));
+                questionnaireModel.setCaption(cursor.getString(17));
+                questionnaireModel.setDescription(cursor.getString(18));
+                questionnaireModel.setZOrderOption(cursor.getString(19));
+                questionnaireModel.setOtherOption(cursor.getString(20));
 
                 // Add questionnaireModel to questionnaireModel
                 questionnaireModels.add(questionnaireModel);
@@ -204,12 +212,14 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
                 questionnaireModel.setIsSelected(Integer.parseInt(cursor.getString(10)));
                 questionnaireModel.setMaxResponseCount(Integer.parseInt(cursor.getString(11)));
                 questionnaireModel.setExclusion(Integer.parseInt(cursor.getString(12)));
-                questionnaireModel.setCode(cursor.getString(13));
-                questionnaireModel.setQuestionText(cursor.getString(14));
-                questionnaireModel.setCaption(cursor.getString(15));
-                questionnaireModel.setDescription(cursor.getString(16));
-                questionnaireModel.setZOrderOption(cursor.getString(17));
-                questionnaireModel.setOtherOption(cursor.getString(18));
+                questionnaireModel.setDependentType(Integer.parseInt(cursor.getString(13)));
+                questionnaireModel.setDisplayRandomResponse(Integer.parseInt(cursor.getString(14)));
+                questionnaireModel.setCode(cursor.getString(15));
+                questionnaireModel.setQuestionText(cursor.getString(16));
+                questionnaireModel.setCaption(cursor.getString(17));
+                questionnaireModel.setDescription(cursor.getString(18));
+                questionnaireModel.setZOrderOption(cursor.getString(19));
+                questionnaireModel.setOtherOption(cursor.getString(20));
 
                 // Add questionnaireModel to questionnaireModel
                 questionnaireModels.add(questionnaireModel);
@@ -250,12 +260,14 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
                 questionnaireModel.setIsSelected(Integer.parseInt(cursor.getString(10)));
                 questionnaireModel.setMaxResponseCount(Integer.parseInt(cursor.getString(11)));
                 questionnaireModel.setExclusion(Integer.parseInt(cursor.getString(12)));
-                questionnaireModel.setCode(cursor.getString(13));
-                questionnaireModel.setQuestionText(cursor.getString(14));
-                questionnaireModel.setCaption(cursor.getString(15));
-                questionnaireModel.setDescription(cursor.getString(16));
-                questionnaireModel.setZOrderOption(cursor.getString(17));
-                questionnaireModel.setOtherOption(cursor.getString(18));
+                questionnaireModel.setDependentType(Integer.parseInt(cursor.getString(13)));
+                questionnaireModel.setDisplayRandomResponse(Integer.parseInt(cursor.getString(14)));
+                questionnaireModel.setCode(cursor.getString(15));
+                questionnaireModel.setQuestionText(cursor.getString(16));
+                questionnaireModel.setCaption(cursor.getString(17));
+                questionnaireModel.setDescription(cursor.getString(18));
+                questionnaireModel.setZOrderOption(cursor.getString(19));
+                questionnaireModel.setOtherOption(cursor.getString(20));
 
                 // Add questionnaireModel to questionnaireModel
                 questionnaireModels.add(questionnaireModel);
@@ -325,6 +337,8 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
         values.put(KEY_IS_SELECTED, questionnaireModel.getIsSelected());
         values.put(KEY_MAXRESPONSECOUNT, questionnaireModel.getMaxResponseCount());
         values.put(KEY_EXCLUSION, questionnaireModel.getExclusion());
+        values.put(KEY_DEPENDENT_TYPE, questionnaireModel.getDependentType());
+        values.put(KEY_DISPLAY_RANDOM_RESPONSE, questionnaireModel.getDisplayRandomResponse());
         values.put(KEY_CODE, questionnaireModel.getCode());
         values.put(KEY_QUESTIONTEXT, questionnaireModel.getQuestionText());
         values.put(KEY_CAPTION, questionnaireModel.getCaption());
