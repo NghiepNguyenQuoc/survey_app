@@ -53,6 +53,7 @@ import com.nghiepnguyen.survey.model.sqlite.QuestionaireSQLiteHelper;
 import com.nghiepnguyen.survey.model.sqlite.RouteSQLiteHelper;
 import com.nghiepnguyen.survey.storage.UserInfoManager;
 import com.nghiepnguyen.survey.utils.Constant;
+import com.nghiepnguyen.survey.utils.Utils;
 
 import org.w3c.dom.Text;
 
@@ -213,6 +214,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             if (questionnaireModelList == null)
                 questionnaireModelList = new ArrayList<>();
             questionnaireModelList.clear();
+
+            // hide keyboard
+            Utils.hideSoftKeyBoard(this);
 
             // get all option and question
             List<QuestionnaireModel> questionnaireModels = questionaireSQLiteHelper.getListQuestionnaireByQuestionId(questionnaireIds.get(currentIndexQuestionID));
@@ -956,7 +960,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
     private boolean checkStopLogic(List<AnswerModel> answerModels, List<QuestionnaireModel> questionnaireList) {
         List<RouteModel> routeModels = routeSQLiteHelper.getRoutesByQuestionaireId(questionnaireList.get(0).getQuestionnaireID());
-        if (routeModels != null && routeModels.size() > 0) {// check stop logic
+
+        // Do not need to check logic when current questionare doesn't have any route
+        if (routeModels.size() > 0) {// check stop logic
             for (int i = 0; i < routeModels.size(); i++) {// duyet qua tat ca cac route
                 if (routeModels.get(i).getNextQuestionnaireID() < 0) {// Dieu kien dung
                     if (routeModels.get(i).getMethod() == 0) {// OR
@@ -1062,9 +1068,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
                 // 1.check question logic
                 for (int i = 0; i < routeModels.size(); i++) {// duyet qua tat ca cac route
-                    if (routeModels.get(i).getMethod() == 0) {// OR
-                        AnswerModel answerModel = getAnswerByQuestionaireId(answerModels, routeModels.get(i).getQuestionnaireID_Check_Option());
-                        if (answerModel != null) {
+                    AnswerModel answerModel = getAnswerByQuestionaireId(answerModels, routeModels.get(i).getQuestionnaireID_Check_Option());
+                    if (answerModel != null) {
+                        if (routeModels.get(i).getMethod() == 0) {// OR
                             String[] arrResponseValue = routeModels.get(i).getResponseValue().trim().split(",");
                             Integer[] arrTest = new Integer[arrResponseValue.length];
                             for (int k = 0; k < arrResponseValue.length; k++)
@@ -1080,10 +1086,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                             set.retainAll(setAnswer);
                             if (set.size() > 0)
                                 arrResultLogic.set(i, true);
-                        }
-                    } else if (routeModels.get(i).getMethod() == 2) {// OR NOT
-                        AnswerModel answerModel = getAnswerByQuestionaireId(answerModels, routeModels.get(i).getQuestionnaireID_Check_Option());
-                        if (answerModel != null) {
+                        } else if (routeModels.get(i).getMethod() == 2) {// OR NOT
                             List<Integer> setAnswer = new ArrayList<>();
                             for (SelectedOption selectedOption : answerModel.getSelectedOptions()) {
                                 setAnswer.add(selectedOption.getValue());
@@ -1102,10 +1105,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                                 return false;
                             else
                                 arrResultLogic.set(i, true);
-                        }
-                    } else if (routeModels.get(i).getMethod() == 1) {// AND
-                        AnswerModel answerModel = getAnswerByQuestionaireId(answerModels, routeModels.get(i).getQuestionnaireID_Check_Option());
-                        if (answerModel != null) {
+                        } else if (routeModels.get(i).getMethod() == 1) {// AND
                             List<Integer> setAnswer = new ArrayList<>();
                             for (SelectedOption selectedOption : answerModel.getSelectedOptions()) {
                                 setAnswer.add(selectedOption.getValue());
@@ -1122,10 +1122,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                             setAnswer.retainAll(setResponseValueInteger);
                             if (setAnswer.containsAll(setResponseValueInteger))
                                 arrResultLogic.set(i, true);
-                        }
-                    } else if (routeModels.get(i).getMethod() == 3) {// AND NOT
-                        AnswerModel answerModel = getAnswerByQuestionaireId(answerModels, routeModels.get(i).getQuestionnaireID_Check_Option());
-                        if (answerModel != null) {
+                        } else if (routeModels.get(i).getMethod() == 3) {// AND NOT
                             List<Integer> setAnswer = new ArrayList<>();
                             for (SelectedOption selectedOption : answerModel.getSelectedOptions()) {
                                 setAnswer.add(selectedOption.getValue());
@@ -1145,7 +1142,8 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                             else
                                 arrResultLogic.set(i, true);
                         }
-                    }
+                    } else
+                        arrResultLogic.set(i, true);
                 }
                 if (arrResultLogic.size() == routeModels.size()) {
                     if (arrResultLogic.indexOf(false) == -1)

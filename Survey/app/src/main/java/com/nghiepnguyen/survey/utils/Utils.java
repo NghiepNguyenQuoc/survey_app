@@ -1,8 +1,10 @@
 package com.nghiepnguyen.survey.utils;
 
+import android.app.Activity;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
 /**
@@ -42,5 +44,11 @@ public class Utils {
             }
         }
         return false;
+    }
+    public static void hideSoftKeyBoard(Activity activity) {
+        if(activity != null && !activity.isFinishing() && activity.getCurrentFocus()!=null) {
+            InputMethodManager inputMethodManager = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+            inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
+        }
     }
 }
