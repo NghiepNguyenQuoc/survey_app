@@ -6,13 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-import com.nghiepnguyen.survey.model.AnswerModel;
-import com.nghiepnguyen.survey.model.RouteModel;
 import com.nghiepnguyen.survey.model.SaveAnswerModel;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Created by nghiep on 4/9/16.
@@ -31,6 +25,10 @@ public class AnswerSQLiteHelper extends MySQLiteHelper {
     private static final String KEY_EMAIL = "Email";
     private static final String KEY_PROJECT_ID = "ProjectID";
     private static final String KEY_IS_COMPELETED = "IsCompeleted";
+    private static final String KEY_GEO_LATITUDE = "GeoLatitude";
+    private static final String KEY_GEO_LONGITUDE = "GeoLongitude";
+    private static final String KEY_GEO_ADDRESS = "GeoAddress";
+    private static final String KEY_GEO_TIME = "GeoTime";
     private static final String KEY_DATA = "Data";
 
     // TABLE_QUESTIONNAIRE table create statement
@@ -43,6 +41,10 @@ public class AnswerSQLiteHelper extends MySQLiteHelper {
             KEY_EMAIL + " STRING, " +
             KEY_PROJECT_ID + " INTEGER, " +
             KEY_IS_COMPELETED + " INTEGER, " +
+            KEY_GEO_LATITUDE + " REAL, " +
+            KEY_GEO_LONGITUDE + " REAL, " +
+            KEY_GEO_ADDRESS + " STRING, " +
+            KEY_GEO_TIME + " STRING, " +
             KEY_DATA + " STRING)";
 
     public AnswerSQLiteHelper(Context context) {
@@ -69,6 +71,10 @@ public class AnswerSQLiteHelper extends MySQLiteHelper {
         values.put(KEY_EMAIL, saveAnswerModel.getEmail());
         values.put(KEY_PROJECT_ID, saveAnswerModel.getProjectID());
         values.put(KEY_IS_COMPELETED, saveAnswerModel.getIsCompeleted());
+        values.put(KEY_GEO_LATITUDE, saveAnswerModel.getGeoLatitude());
+        values.put(KEY_GEO_LONGITUDE, saveAnswerModel.getGeoLongitude());
+        values.put(KEY_GEO_ADDRESS, saveAnswerModel.getGeoAddress());
+        values.put(KEY_GEO_TIME, saveAnswerModel.getGeoTime());
         values.put(KEY_DATA, saveAnswerModel.getData());
 
         // 3. insert
@@ -104,7 +110,11 @@ public class AnswerSQLiteHelper extends MySQLiteHelper {
             saveAnswerModel.setEmail(cursor.getString(5));
             saveAnswerModel.setProjectID(Integer.parseInt(cursor.getString(6)));
             saveAnswerModel.setIsCompeleted(Integer.parseInt(cursor.getString(7)));
-            saveAnswerModel.setData(cursor.getString(8));
+            saveAnswerModel.setGeoLatitude(Double.parseDouble(cursor.getString(8)));
+            saveAnswerModel.setGeoLongitude(Double.parseDouble(cursor.getString(9)));
+            saveAnswerModel.setGeoAddress(cursor.getString(10));
+            saveAnswerModel.setGeoTime(cursor.getString(11));
+            saveAnswerModel.setData(cursor.getString(12));
         }
 
         // return saveAnswerModels

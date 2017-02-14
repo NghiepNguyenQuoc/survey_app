@@ -6,13 +6,13 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcel;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.text.TextUtilsCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.AppCompatEditText;
@@ -38,9 +38,17 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.nghiepnguyen.survey.Interface.ICallBack;
 import com.nghiepnguyen.survey.R;
 import com.nghiepnguyen.survey.UserInfoDialog;
 import com.nghiepnguyen.survey.model.AnswerModel;
+import com.nghiepnguyen.survey.model.CommonErrorModel;
+import com.nghiepnguyen.survey.model.GoogleAPI.GeoLocation;
 import com.nghiepnguyen.survey.model.MemberModel;
 import com.nghiepnguyen.survey.model.ProjectModel;
 import com.nghiepnguyen.survey.model.QuestionModel;
@@ -51,11 +59,11 @@ import com.nghiepnguyen.survey.model.SelectedOption;
 import com.nghiepnguyen.survey.model.sqlite.AnswerSQLiteHelper;
 import com.nghiepnguyen.survey.model.sqlite.QuestionaireSQLiteHelper;
 import com.nghiepnguyen.survey.model.sqlite.RouteSQLiteHelper;
+import com.nghiepnguyen.survey.networking.GoogleApiWrapper;
 import com.nghiepnguyen.survey.storage.UserInfoManager;
 import com.nghiepnguyen.survey.utils.Constant;
+import com.nghiepnguyen.survey.utils.TimestampUtils;
 import com.nghiepnguyen.survey.utils.Utils;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -79,7 +87,7 @@ import java.util.Set;
  * -9 Matrix MA
  * - 10 Matrix Column
  */
-public class ProjectSurveyActivity extends BaseActivity implements View.OnClickListener, LocationListener {
+public class ProjectSurveyActivity extends BaseActivity implements View.OnClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
     private static String TAG = "ProjectSurveyActivity";
 
     private ProgressBar mProgressBar;
@@ -111,9 +119,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     // flag for network status
     private boolean isNetworkEnabled = false;
 
-    private Location location;
-    private double latitude = 0; // latitude
-    private double longitude = 0; // longitude
+    private GoogleApiClient mGoogleApiClient;
+    private LocationRequest mLocationRequest;
+    private Location mLastUpdatedLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -138,12 +146,13 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     @Override
     protected void onStart() {
         super.onStart();
+        setupLocationClient();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        location = getLocation();
+        getLocation();
     }
 
     @Override
@@ -1216,12 +1225,18 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
         Log.e("RESULT", resultData);
 
-        saveAnswerModel.setIsCompeleted(isCompeleted ? 1 : 0);
-        saveAnswerModel.setProjectID(projectModel.getID());
-        saveAnswerModel.setData(resultData);
-        answerSQLiteHelper.addAnswer(saveAnswerModel);
+        if (isGPSEnabled && mLastUpdatedLocation != null) {
+            getCurrentLocation(isCompeleted, resultData);
+        } else {
+            saveAnswerModel.setIsCompeleted(isCompeleted ? 1 : 0);
+            saveAnswerModel.setProjectID(projectModel.getID());
+            saveAnswerModel.setData(resultData);
+            answerSQLiteHelper.addAnswer(saveAnswerModel);
+            showAlertFinishSurvey(isCompeleted);
+        }
+    }
 
-
+    private void showAlertFinishSurvey(boolean isCompeleted) {
         // show alert
         AlertDialog.Builder customBuilder = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
         customBuilder.setCancelable(false);
@@ -1242,8 +1257,42 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         customBuilder.show();
     }
 
+    private void getCurrentLocation(final boolean isCompeleted, final String resultData) {
+        mProgressBar.setVisibility(View.VISIBLE);
+        GoogleApiWrapper.getGeocodeAddressTextSearch(this, mLastUpdatedLocation.getLatitude() + "," + mLastUpdatedLocation.getLongitude(), new ICallBack() {
+            @Override
+            public void onSuccess(Object data) {
+                if (data instanceof List) {
+                    List<GeoLocation> geoLocationList = (List<GeoLocation>) data;
+                    if (geoLocationList.size() > 0) {
+                        saveAnswerModel.setGeoLatitude(mLastUpdatedLocation.getLatitude());
+                        saveAnswerModel.setGeoLongitude(mLastUpdatedLocation.getLongitude());
+                        saveAnswerModel.setGeoAddress(geoLocationList.get(0).getFullText());
+                        saveAnswerModel.setGeoTime(TimestampUtils.getDate(Constant.FORMAT_24_HOURS_DAY, System.currentTimeMillis() / 1000L, ProjectSurveyActivity.this));
+                        saveAnswerModel.setIsCompeleted(isCompeleted ? 1 : 0);
+                        saveAnswerModel.setProjectID(projectModel.getID());
+                        saveAnswerModel.setData(resultData);
+                        answerSQLiteHelper.addAnswer(saveAnswerModel);
+                        showAlertFinishSurvey(isCompeleted);
+                    }
+                }
+                mProgressBar.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onFailure(CommonErrorModel error) {
+                mProgressBar.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onCompleted() {
+
+            }
+        });
+    }
+
     // Get location
-    public Location getLocation() {
+    public void getLocation() {
         try {
             locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
@@ -1279,7 +1328,8 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                     gpsAlertDialog.setNegativeButton(getString(R.string.button_cancel), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            ProjectSurveyActivity.this.finish();
+                            //ProjectSurveyActivity.this.finish();
+                            isGPSEnabled = false;
                         }
                     });
                     gpsAlertDialog.show();
@@ -1290,59 +1340,60 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 }
             } else {
                 if (isNetworkEnabled) {
-
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
                             ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                             ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                        return null;
-                    }
-                    locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, Constant.MIN_TIME_BW_UPDATES, Constant.MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-                    Log.d(TAG, "Network");
-                    if (locationManager != null) {
-                        location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                        if (location != null) {
-                            latitude = location.getLatitude();
-                            longitude = location.getLongitude();
-                        }
                     }
                 }
-                if (isGPSEnabled && location == null) {
-                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, Constant.MIN_TIME_BW_UPDATES, Constant.MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-                    Log.d(TAG, "GPS Enabled");
-                    if (locationManager != null) {
-                        location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                        if (location != null) {
-                            latitude = location.getLatitude();
-                            longitude = location.getLongitude();
-                        }
-                    }
-                }
-
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return location;
+    }
+
+    // We need to setup location client to update current location
+    private void setupLocationClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+
+        mGoogleApiClient.connect();
+
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(1000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        if (mGoogleApiClient.isConnected()) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        } else {
+            Log.d(TAG, "mGoogleApiClient.isConnected() = false");
+
+        }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        int a = i;
+        int b = a + 3;
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        String str = connectionResult.getErrorMessage();
+        Log.d(TAG, "mGoogleApiClient.isConnected() = false");
     }
 
     @Override
     public void onLocationChanged(Location location) {
-
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-
+        if (location == null) {
+            return;
+        }
+        mLastUpdatedLocation = location;
     }
 }

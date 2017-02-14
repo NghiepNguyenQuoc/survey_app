@@ -1,7 +1,5 @@
 package com.nghiepnguyen.survey.model;
 
-import java.util.Map;
-
 /**
  * Created by nghiep on 5/3/16.
  */
@@ -14,6 +12,10 @@ public class SaveAnswerModel {
     private String Email;
     private int ProjectID;
     private int IsCompeleted;
+    private double GeoLatitude;
+    private double GeoLongitude;
+    private String GeoAddress;
+    private String GeoTime;
     private String Data;
 
     public SaveAnswerModel() {
@@ -38,6 +40,10 @@ public class SaveAnswerModel {
                 ", Email='" + Email + '\'' +
                 ", ProjectID=" + ProjectID +
                 ", IsCompeleted=" + IsCompeleted +
+                ", GeoLatitude=" + GeoLatitude +
+                ", GeoLongitude=" + GeoLongitude +
+                ", GeoAddress='" + GeoAddress + '\'' +
+                ", GeoTime='" + GeoTime + '\'' +
                 ", Data='" + Data + '\'' +
                 '}';
     }
@@ -112,5 +118,37 @@ public class SaveAnswerModel {
 
     public void setData(String data) {
         Data = data;
+    }
+
+    public double getGeoLatitude() {
+        return GeoLatitude;
+    }
+
+    public void setGeoLatitude(double geoLatitude) {
+        GeoLatitude = geoLatitude;
+    }
+
+    public double getGeoLongitude() {
+        return GeoLongitude;
+    }
+
+    public void setGeoLongitude(double geoLongitude) {
+        GeoLongitude = geoLongitude;
+    }
+
+    public String getGeoAddress() {
+        return GeoAddress;
+    }
+
+    public void setGeoAddress(String geoAddress) {
+        GeoAddress = geoAddress;
+    }
+
+    public String getGeoTime() {
+        return GeoTime;
+    }
+
+    public void setGeoTime(String geoTime) {
+        GeoTime = geoTime;
     }
 }

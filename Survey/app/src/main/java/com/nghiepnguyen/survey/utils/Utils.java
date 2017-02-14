@@ -19,7 +19,6 @@ public class Utils {
         Toast.makeText(context, message, Toast.LENGTH_LONG).show();
     }
 
-
     // Have internet
     public static boolean isNetworkAvailable(Context context) {
         //*
@@ -45,8 +44,9 @@ public class Utils {
         }
         return false;
     }
+
     public static void hideSoftKeyBoard(Activity activity) {
-        if(activity != null && !activity.isFinishing() && activity.getCurrentFocus()!=null) {
+        if (activity != null && !activity.isFinishing() && activity.getCurrentFocus() != null) {
             InputMethodManager inputMethodManager = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
             inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
         }

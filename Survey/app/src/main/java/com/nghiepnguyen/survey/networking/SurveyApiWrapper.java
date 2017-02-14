@@ -7,7 +7,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.nghiepnguyen.survey.Interface.ICallBack;
 import com.nghiepnguyen.survey.R;
-import com.nghiepnguyen.survey.model.AppMessageModel;
 import com.nghiepnguyen.survey.model.CommonErrorModel;
 import com.nghiepnguyen.survey.model.CompletedProject;
 import com.nghiepnguyen.survey.model.ProjectModel;
@@ -249,9 +248,12 @@ public class SurveyApiWrapper {
         para.put("Email", saveAnswerModel.getEmail());
         para.put("ProjectID", saveAnswerModel.getProjectID());
         para.put("IsCompeleted", saveAnswerModel.getIsCompeleted());
+        para.put("GPSLatitude", saveAnswerModel.getGeoLatitude());
+        para.put("GPSLongitude", saveAnswerModel.getGeoLongitude());
+        para.put("GeoAddress", saveAnswerModel.getGeoAddress());
+        para.put("GeoTime", saveAnswerModel.getGeoTime());
         para.put("Action", "INSERT");
         para.put("Data", saveAnswerModel.getData());
-
         client.post(Endpoint.SAVE_RESULT_SURVEY, para, new StringHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Map<String, List<String>> headers, String content) {
