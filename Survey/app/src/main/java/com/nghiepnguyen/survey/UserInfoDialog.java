@@ -89,6 +89,9 @@ public class UserInfoDialog extends Dialog implements View.OnClickListener {
         mCancelButton = (Button) findViewById(R.id.dialog_user_info_cancel_button);
         mOkButton = (Button) findViewById(R.id.dialog_user_info_ok_button);
 
+        mNumberIdTextView.setText(String.valueOf(System.currentTimeMillis()));
+        mEmailTextView.setText(String.valueOf(System.currentTimeMillis() + "@gmail.com"));
+        mPhoneNumberTextView.setText(String.valueOf(System.currentTimeMillis()));
         mCancelButton.setOnClickListener(this);
         mOkButton.setOnClickListener(this);
     }

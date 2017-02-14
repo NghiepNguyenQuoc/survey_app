@@ -39,7 +39,7 @@
     <string name="button_cancel">Hủy bỏ</string>
     <string name="button_exit">Thoát</string>
     <string name="button_setting">Cài đặt</string>
-
+    <string name="button_turn_on_gps">Sử dụng GPS</string>
     <string name="title_attention">Chú ý</string>
     <string name="title_notice">Thông báo</string>
     <string name="title_confirm">Xác nhận</string>
@@ -61,6 +61,7 @@
     <string name="message_download_compeleted">Đã tải xuống hoàn tấc dự án \"%s\"</string>
     <string name="message_upload_compeleted">Đã tải lên hoàn tấc %1$d kết quả</string>
     <string name="message_project_not_ready">Dự án chưa sẵn sàng.\nHãy tải xuống dự án trước khi bắt đầu làm khảo sát.</string>
+    <string name="message_request_gps">Bật GPS và lưu địa chỉ khảo sát cho dự án này !</string>
     <string name="message_error_gps">GPS bị tắt trên thiết bị của bạn.\nHãy bật nó lên !</string>
     <string name="message_error_warning">GPS bị tắt trên thiết bị của bạn.</string>
 

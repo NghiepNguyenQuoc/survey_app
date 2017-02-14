@@ -35,7 +35,7 @@ public class Constant {
     public static final String SHARED_PREFERENCE_CURRENT_MEMBER = "SHARED_PREFERENCE_CURRENT_MEMBER";
     public static final String SHARED_PREFERENCE_NUMBER_UPLOAD_SUCCESSFULLY = "SHARED_PREFERENCE_NUMBER_UPLOAD_SUCCESSFULLY";
 
-    public static final String FORMAT_24_HOURS_DAY = "EEE, HH:mm:ss MMM dd, yyyy";
+    public static final String FORMAT_24_HOURS_DAY = "yyyy-MM-dd HH:mm:ss.SSS";
 
     // Convert dp to px
     public static int dpToPx(int dp, Context context) {

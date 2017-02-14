@@ -117,7 +117,6 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     // flag for GPS status
     private boolean isGPSEnabled = false;
     // flag for network status
-    private boolean isNetworkEnabled = false;
 
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
@@ -152,7 +151,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     @Override
     protected void onResume() {
         super.onResume();
-        getLocation();
+        requestGPS();
     }
 
     @Override
@@ -1268,7 +1267,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                         saveAnswerModel.setGeoLatitude(mLastUpdatedLocation.getLatitude());
                         saveAnswerModel.setGeoLongitude(mLastUpdatedLocation.getLongitude());
                         saveAnswerModel.setGeoAddress(geoLocationList.get(0).getFullText());
-                        saveAnswerModel.setGeoTime(TimestampUtils.getDate(Constant.FORMAT_24_HOURS_DAY, System.currentTimeMillis() / 1000L, ProjectSurveyActivity.this));
+                        saveAnswerModel.setGeoTime(TimestampUtils.getDate(Constant.FORMAT_24_HOURS_DAY, System.currentTimeMillis(), ProjectSurveyActivity.this));
                         saveAnswerModel.setIsCompeleted(isCompeleted ? 1 : 0);
                         saveAnswerModel.setProjectID(projectModel.getID());
                         saveAnswerModel.setData(resultData);
@@ -1291,20 +1290,34 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         });
     }
 
+    private void requestGPS() {
+        AlertDialog.Builder requireGpsAlertDialog = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
+        requireGpsAlertDialog.setCancelable(false);
+        requireGpsAlertDialog.setTitle(getString(R.string.title_confirm));
+        requireGpsAlertDialog.setMessage(getString(R.string.message_error_gps));
+        requireGpsAlertDialog.setPositiveButton(getString(R.string.button_turn_on_gps), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                isGPSEnabled = true;
+                getLocation();
+            }
+        });
+        requireGpsAlertDialog.setNegativeButton(getString(R.string.button_cancel), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                isGPSEnabled = false;
+            }
+        });
+        requireGpsAlertDialog.show();
+    }
+
     // Get location
     public void getLocation() {
         try {
             locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
             // getting GPS status
-            isGPSEnabled = locationManager
-                    .isProviderEnabled(LocationManager.GPS_PROVIDER);
-
-            // getting network status
-            isNetworkEnabled = locationManager
-                    .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-
-            if (!isGPSEnabled && !isNetworkEnabled) {
+            if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 AlertDialog.Builder gpsAlertDialog = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
                 gpsAlertDialog.setCancelable(false);
                 gpsAlertDialog.setTitle(getString(R.string.title_notice));
@@ -1337,13 +1350,6 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                     gpsAlertDialog.setMessage(getString(R.string.message_error_warning));
                     gpsAlertDialog.setPositiveButton(getString(R.string.button_ok), null);
                     gpsAlertDialog.show();
-                }
-            } else {
-                if (isNetworkEnabled) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                            ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                            ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    }
                 }
             }
 

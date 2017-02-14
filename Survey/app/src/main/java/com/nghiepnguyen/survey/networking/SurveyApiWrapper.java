@@ -1,6 +1,7 @@
 package com.nghiepnguyen.survey.networking;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -250,8 +251,8 @@ public class SurveyApiWrapper {
         para.put("IsCompeleted", saveAnswerModel.getIsCompeleted());
         para.put("GPSLatitude", saveAnswerModel.getGeoLatitude());
         para.put("GPSLongitude", saveAnswerModel.getGeoLongitude());
-        para.put("GeoAddress", saveAnswerModel.getGeoAddress());
-        para.put("GeoTime", saveAnswerModel.getGeoTime());
+        para.put("GPSAddress", !TextUtils.isEmpty(saveAnswerModel.getGeoAddress()) ? saveAnswerModel.getGeoAddress() : "");
+        para.put("GPSTime", !TextUtils.isEmpty(saveAnswerModel.getGeoTime()) ? saveAnswerModel.getGeoTime() : "");
         para.put("Action", "INSERT");
         para.put("Data", saveAnswerModel.getData());
         client.post(Endpoint.SAVE_RESULT_SURVEY, para, new StringHttpResponseHandler() {
