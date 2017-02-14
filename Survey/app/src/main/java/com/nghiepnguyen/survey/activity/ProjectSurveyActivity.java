@@ -43,12 +43,9 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.nghiepnguyen.survey.Interface.ICallBack;
 import com.nghiepnguyen.survey.R;
 import com.nghiepnguyen.survey.UserInfoDialog;
 import com.nghiepnguyen.survey.model.AnswerModel;
-import com.nghiepnguyen.survey.model.CommonErrorModel;
-import com.nghiepnguyen.survey.model.GoogleAPI.GeoLocation;
 import com.nghiepnguyen.survey.model.MemberModel;
 import com.nghiepnguyen.survey.model.ProjectModel;
 import com.nghiepnguyen.survey.model.QuestionModel;
@@ -59,7 +56,6 @@ import com.nghiepnguyen.survey.model.SelectedOption;
 import com.nghiepnguyen.survey.model.sqlite.AnswerSQLiteHelper;
 import com.nghiepnguyen.survey.model.sqlite.QuestionaireSQLiteHelper;
 import com.nghiepnguyen.survey.model.sqlite.RouteSQLiteHelper;
-import com.nghiepnguyen.survey.networking.GoogleApiWrapper;
 import com.nghiepnguyen.survey.storage.UserInfoManager;
 import com.nghiepnguyen.survey.utils.Constant;
 import com.nghiepnguyen.survey.utils.TimestampUtils;
@@ -1224,15 +1220,18 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
         Log.e("RESULT", resultData);
 
+
+        saveAnswerModel.setIsCompeleted(isCompeleted ? 1 : 0);
+        saveAnswerModel.setProjectID(projectModel.getID());
+        saveAnswerModel.setData(resultData);
         if (isGPSEnabled && mLastUpdatedLocation != null) {
-            getCurrentLocation(isCompeleted, resultData);
-        } else {
-            saveAnswerModel.setIsCompeleted(isCompeleted ? 1 : 0);
-            saveAnswerModel.setProjectID(projectModel.getID());
-            saveAnswerModel.setData(resultData);
-            answerSQLiteHelper.addAnswer(saveAnswerModel);
-            showAlertFinishSurvey(isCompeleted);
+            saveAnswerModel.setGeoLatitude(mLastUpdatedLocation.getLatitude());
+            saveAnswerModel.setGeoLongitude(mLastUpdatedLocation.getLongitude());
+            saveAnswerModel.setGeoTime(TimestampUtils.getDate(Constant.FORMAT_24_HOURS_DAY, System.currentTimeMillis(), ProjectSurveyActivity.this));
         }
+
+        answerSQLiteHelper.addAnswer(saveAnswerModel);
+        showAlertFinishSurvey(isCompeleted);
     }
 
     private void showAlertFinishSurvey(boolean isCompeleted) {
@@ -1254,40 +1253,6 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             customBuilder.setMessage(getString(R.string.txt_not_suitable_option));
         }
         customBuilder.show();
-    }
-
-    private void getCurrentLocation(final boolean isCompeleted, final String resultData) {
-        mProgressBar.setVisibility(View.VISIBLE);
-        GoogleApiWrapper.getGeocodeAddressTextSearch(this, mLastUpdatedLocation.getLatitude() + "," + mLastUpdatedLocation.getLongitude(), new ICallBack() {
-            @Override
-            public void onSuccess(Object data) {
-                if (data instanceof List) {
-                    List<GeoLocation> geoLocationList = (List<GeoLocation>) data;
-                    if (geoLocationList.size() > 0) {
-                        saveAnswerModel.setGeoLatitude(mLastUpdatedLocation.getLatitude());
-                        saveAnswerModel.setGeoLongitude(mLastUpdatedLocation.getLongitude());
-                        saveAnswerModel.setGeoAddress(geoLocationList.get(0).getFullText());
-                        saveAnswerModel.setGeoTime(TimestampUtils.getDate(Constant.FORMAT_24_HOURS_DAY, System.currentTimeMillis(), ProjectSurveyActivity.this));
-                        saveAnswerModel.setIsCompeleted(isCompeleted ? 1 : 0);
-                        saveAnswerModel.setProjectID(projectModel.getID());
-                        saveAnswerModel.setData(resultData);
-                        answerSQLiteHelper.addAnswer(saveAnswerModel);
-                        showAlertFinishSurvey(isCompeleted);
-                    }
-                }
-                mProgressBar.setVisibility(View.GONE);
-            }
-
-            @Override
-            public void onFailure(CommonErrorModel error) {
-                mProgressBar.setVisibility(View.GONE);
-            }
-
-            @Override
-            public void onCompleted() {
-
-            }
-        });
     }
 
     private void requestGPS() {

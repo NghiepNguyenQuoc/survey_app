@@ -22,6 +22,7 @@ import android.widget.Toast;
 import com.nghiepnguyen.survey.Interface.ICallBack;
 import com.nghiepnguyen.survey.R;
 import com.nghiepnguyen.survey.model.CommonErrorModel;
+import com.nghiepnguyen.survey.model.GoogleAPI.GeoLocation;
 import com.nghiepnguyen.survey.model.ProjectModel;
 import com.nghiepnguyen.survey.model.QuestionnaireModel;
 import com.nghiepnguyen.survey.model.RouteModel;
@@ -29,6 +30,7 @@ import com.nghiepnguyen.survey.model.SaveAnswerModel;
 import com.nghiepnguyen.survey.model.sqlite.AnswerSQLiteHelper;
 import com.nghiepnguyen.survey.model.sqlite.QuestionaireSQLiteHelper;
 import com.nghiepnguyen.survey.model.sqlite.RouteSQLiteHelper;
+import com.nghiepnguyen.survey.networking.GoogleApiWrapper;
 import com.nghiepnguyen.survey.networking.SurveyApiWrapper;
 import com.nghiepnguyen.survey.storage.UserInfoManager;
 import com.nghiepnguyen.survey.utils.Utils;
@@ -302,31 +304,61 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
                 }
             });
         } else {
-            SurveyApiWrapper.saveResultSurvey(mContext, saveAnswerModel, new ICallBack() {
-                @Override
-                public void onSuccess(Object data) {
-                    runable = new Runnable() {
-                        public void run() {
-                            answerSQLiteHelper.deleteAnswer(saveAnswerModel.getIdentity());
-                            numberOfUpload++;
-                            uploadProjectData(mContext, view, projectId);
+            if (saveAnswerModel.getGeoLatitude() != 0 && saveAnswerModel.getGeoLongitude() != 0) {
+                GoogleApiWrapper.getGeocodeAddressTextSearch(mContext, saveAnswerModel.getGeoLatitude() + "," + saveAnswerModel.getGeoLongitude(), new ICallBack() {
+                    @Override
+                    public void onSuccess(Object data) {
+                        if (data instanceof List) {
+                            List<GeoLocation> geoLocationList = (List<GeoLocation>) data;
+                            if (geoLocationList.size() > 0) {
+                                saveAnswerModel.setGeoAddress(geoLocationList.get(0).getFullText());
+                                callApiToUpload(saveAnswerModel, view, projectId);
+                            } else {
+                                callApiToUpload(saveAnswerModel, view, projectId);
+                            }
                         }
-                    };
-                    handler.postDelayed(runable, 1000);
-                }
+                    }
 
-                @Override
-                public void onFailure(CommonErrorModel error) {
-                    error.getError();
-                    Utils.showToastLong(mContext, mContext.getString(R.string.lost_internet_connection_message));
-                }
+                    @Override
+                    public void onFailure(CommonErrorModel error) {
+                    }
 
-                @Override
-                public void onCompleted() {
+                    @Override
+                    public void onCompleted() {
+                    }
+                });
+            } else {
+                callApiToUpload(saveAnswerModel, view, projectId);
+            }
 
-                }
-            });
         }
+    }
+
+    private void callApiToUpload(final SaveAnswerModel saveAnswerModel, final View view, final int projectId) {
+        SurveyApiWrapper.saveResultSurvey(mContext, saveAnswerModel, new ICallBack() {
+            @Override
+            public void onSuccess(Object data) {
+                runable = new Runnable() {
+                    public void run() {
+                        answerSQLiteHelper.deleteAnswer(saveAnswerModel.getIdentity());
+                        numberOfUpload++;
+                        uploadProjectData(mContext, view, projectId);
+                    }
+                };
+                handler.postDelayed(runable, 1000);
+            }
+
+            @Override
+            public void onFailure(CommonErrorModel error) {
+                error.getError();
+                Utils.showToastLong(mContext, mContext.getString(R.string.lost_internet_connection_message));
+            }
+
+            @Override
+            public void onCompleted() {
+
+            }
+        });
     }
 
     public interface RecyclerViewClickListener {
