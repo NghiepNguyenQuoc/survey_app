@@ -85,6 +85,7 @@ import java.util.Set;
  */
 public class ProjectSurveyActivity extends BaseActivity implements View.OnClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
     private static String TAG = "ProjectSurveyActivity";
+    private final static int REQUEST_CODE_LOCATION_SETTING = 100;
 
     private ProgressBar mProgressBar;
     private TextView mQuestionContentTextView;
@@ -147,7 +148,6 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     @Override
     protected void onResume() {
         super.onResume();
-        requestGPS();
     }
 
     @Override
@@ -224,6 +224,25 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
             // get all option and question
             List<QuestionnaireModel> questionnaireModels = questionaireSQLiteHelper.getListQuestionnaireByQuestionId(questionnaireIds.get(currentIndexQuestionID));
+            if (questionnaireModels.get(0).getFlagGPS() == 1) {
+                AlertDialog.Builder requireGpsAlertDialog = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
+                requireGpsAlertDialog.setCancelable(false);
+                requireGpsAlertDialog.setTitle(getString(R.string.title_notice));
+                requireGpsAlertDialog.setMessage(getString(R.string.message_request_gps));
+                requireGpsAlertDialog.setPositiveButton(getString(R.string.button_checking), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        getLocation();
+                    }
+                });
+                requireGpsAlertDialog.setNegativeButton(getString(R.string.button_exit), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+                });
+                requireGpsAlertDialog.show();
+            }
             if (questionnaireModels.get(0).getParentID() == 0) {
                 if (questionnaireModels.get(0).getDependentID() != 0) {
                     // cap nhau tieu de cau khoi khi co ki tu [LIKED]
@@ -1255,27 +1274,6 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         customBuilder.show();
     }
 
-    private void requestGPS() {
-        AlertDialog.Builder requireGpsAlertDialog = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
-        requireGpsAlertDialog.setCancelable(false);
-        requireGpsAlertDialog.setTitle(getString(R.string.title_confirm));
-        requireGpsAlertDialog.setMessage(getString(R.string.message_error_gps));
-        requireGpsAlertDialog.setPositiveButton(getString(R.string.button_turn_on_gps), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                isGPSEnabled = true;
-                getLocation();
-            }
-        });
-        requireGpsAlertDialog.setNegativeButton(getString(R.string.button_cancel), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                isGPSEnabled = false;
-            }
-        });
-        requireGpsAlertDialog.show();
-    }
-
     // Get location
     public void getLocation() {
         try {
@@ -1300,14 +1298,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
                             Intent callGPSSettingIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                            startActivityForResult(callGPSSettingIntent, PackageManager.GET_META_DATA);
-                        }
-                    });
-                    gpsAlertDialog.setNegativeButton(getString(R.string.button_cancel), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            //ProjectSurveyActivity.this.finish();
-                            isGPSEnabled = false;
+                            startActivityForResult(callGPSSettingIntent, REQUEST_CODE_LOCATION_SETTING);
                         }
                     });
                     gpsAlertDialog.show();
@@ -1316,10 +1307,20 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                     gpsAlertDialog.setPositiveButton(getString(R.string.button_ok), null);
                     gpsAlertDialog.show();
                 }
+            } else {
+                isGPSEnabled = true;
             }
 
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_LOCATION_SETTING) {
+            getNextQuestion();
         }
     }
 

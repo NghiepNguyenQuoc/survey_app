@@ -36,6 +36,7 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
     private static final String KEY_EXCLUSION = "exclusion";
     private static final String KEY_DEPENDENT_TYPE = "DependentType";
     private static final String KEY_DISPLAY_RANDOM_RESPONSE = "DisplayRandomResponse";
+    private static final String KEY_FLAG_GPS = "flagGPS";
     private static final String KEY_CODE = "Code";
     private static final String KEY_QUESTIONTEXT = "QuestionText";
     private static final String KEY_CAPTION = "Caption";
@@ -62,6 +63,7 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
             KEY_EXCLUSION + " INTEGER, " +
             KEY_DEPENDENT_TYPE + " INTEGER, " +
             KEY_DISPLAY_RANDOM_RESPONSE + " INTEGER, " +
+            KEY_FLAG_GPS + " INTEGER, " +
             KEY_CODE + " TEXT, " +
             KEY_QUESTIONTEXT + " TEXT, " +
             KEY_CAPTION + " TEXT, " +
@@ -100,6 +102,7 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
         values.put(KEY_EXCLUSION, questionnaireModel.getExclusion());
         values.put(KEY_DEPENDENT_TYPE, questionnaireModel.getDependentType());
         values.put(KEY_DISPLAY_RANDOM_RESPONSE, questionnaireModel.getDisplayRandomResponse());
+        values.put(KEY_FLAG_GPS, questionnaireModel.getFlagGPS());
         values.put(KEY_CODE, questionnaireModel.getCode());
         values.put(KEY_QUESTIONTEXT, questionnaireModel.getQuestionText());
         values.put(KEY_CAPTION, questionnaireModel.getCaption());
@@ -166,12 +169,13 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
                 questionnaireModel.setExclusion(Integer.parseInt(cursor.getString(12)));
                 questionnaireModel.setDependentType(Integer.parseInt(cursor.getString(13)));
                 questionnaireModel.setDisplayRandomResponse(Integer.parseInt(cursor.getString(14)));
-                questionnaireModel.setCode(cursor.getString(15));
-                questionnaireModel.setQuestionText(cursor.getString(16));
-                questionnaireModel.setCaption(cursor.getString(17));
-                questionnaireModel.setDescription(cursor.getString(18));
-                questionnaireModel.setZOrderOption(cursor.getString(19));
-                questionnaireModel.setOtherOption(cursor.getString(20));
+                questionnaireModel.setFlagGPS(Integer.parseInt(cursor.getString(15)));
+                questionnaireModel.setCode(cursor.getString(16));
+                questionnaireModel.setQuestionText(cursor.getString(17));
+                questionnaireModel.setCaption(cursor.getString(18));
+                questionnaireModel.setDescription(cursor.getString(19));
+                questionnaireModel.setZOrderOption(cursor.getString(20));
+                questionnaireModel.setOtherOption(cursor.getString(21));
 
                 // Add questionnaireModel to questionnaireModel
                 questionnaireModels.add(questionnaireModel);
@@ -214,12 +218,13 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
                 questionnaireModel.setExclusion(Integer.parseInt(cursor.getString(12)));
                 questionnaireModel.setDependentType(Integer.parseInt(cursor.getString(13)));
                 questionnaireModel.setDisplayRandomResponse(Integer.parseInt(cursor.getString(14)));
-                questionnaireModel.setCode(cursor.getString(15));
-                questionnaireModel.setQuestionText(cursor.getString(16));
-                questionnaireModel.setCaption(cursor.getString(17));
-                questionnaireModel.setDescription(cursor.getString(18));
-                questionnaireModel.setZOrderOption(cursor.getString(19));
-                questionnaireModel.setOtherOption(cursor.getString(20));
+                questionnaireModel.setFlagGPS(Integer.parseInt(cursor.getString(15)));
+                questionnaireModel.setCode(cursor.getString(16));
+                questionnaireModel.setQuestionText(cursor.getString(17));
+                questionnaireModel.setCaption(cursor.getString(18));
+                questionnaireModel.setDescription(cursor.getString(19));
+                questionnaireModel.setZOrderOption(cursor.getString(20));
+                questionnaireModel.setOtherOption(cursor.getString(21));
 
                 // Add questionnaireModel to questionnaireModel
                 questionnaireModels.add(questionnaireModel);
@@ -262,12 +267,13 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
                 questionnaireModel.setExclusion(Integer.parseInt(cursor.getString(12)));
                 questionnaireModel.setDependentType(Integer.parseInt(cursor.getString(13)));
                 questionnaireModel.setDisplayRandomResponse(Integer.parseInt(cursor.getString(14)));
-                questionnaireModel.setCode(cursor.getString(15));
-                questionnaireModel.setQuestionText(cursor.getString(16));
-                questionnaireModel.setCaption(cursor.getString(17));
-                questionnaireModel.setDescription(cursor.getString(18));
-                questionnaireModel.setZOrderOption(cursor.getString(19));
-                questionnaireModel.setOtherOption(cursor.getString(20));
+                questionnaireModel.setFlagGPS(Integer.parseInt(cursor.getString(15)));
+                questionnaireModel.setCode(cursor.getString(16));
+                questionnaireModel.setQuestionText(cursor.getString(17));
+                questionnaireModel.setCaption(cursor.getString(18));
+                questionnaireModel.setDescription(cursor.getString(19));
+                questionnaireModel.setZOrderOption(cursor.getString(20));
+                questionnaireModel.setOtherOption(cursor.getString(21));
 
                 // Add questionnaireModel to questionnaireModel
                 questionnaireModels.add(questionnaireModel);
@@ -339,6 +345,7 @@ public class QuestionaireSQLiteHelper extends MySQLiteHelper {
         values.put(KEY_EXCLUSION, questionnaireModel.getExclusion());
         values.put(KEY_DEPENDENT_TYPE, questionnaireModel.getDependentType());
         values.put(KEY_DISPLAY_RANDOM_RESPONSE, questionnaireModel.getDisplayRandomResponse());
+        values.put(KEY_FLAG_GPS, questionnaireModel.getFlagGPS());
         values.put(KEY_CODE, questionnaireModel.getCode());
         values.put(KEY_QUESTIONTEXT, questionnaireModel.getQuestionText());
         values.put(KEY_CAPTION, questionnaireModel.getCaption());

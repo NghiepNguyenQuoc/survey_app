@@ -32,6 +32,7 @@ public class QuestionnaireModel implements Parcelable {
     private int Exclusion;
     private int DependentType;
     private int DisplayRandomResponse;
+    private int flagGPS;
     private String Code;
     private String QuestionText;
     private String Caption;
@@ -54,6 +55,7 @@ public class QuestionnaireModel implements Parcelable {
         Exclusion = in.readInt();
         DependentType = in.readInt();
         DisplayRandomResponse = in.readInt();
+        flagGPS = in.readInt();
         Code = in.readString();
         QuestionText = in.readString();
         Caption = in.readString();
@@ -78,6 +80,7 @@ public class QuestionnaireModel implements Parcelable {
         dest.writeInt(Exclusion);
         dest.writeInt(DependentType);
         dest.writeInt(DisplayRandomResponse);
+        dest.writeInt(flagGPS);
         dest.writeString(Code);
         dest.writeString(QuestionText);
         dest.writeString(Caption);
@@ -209,6 +212,14 @@ public class QuestionnaireModel implements Parcelable {
 
     public void setDisplayRandomResponse(int displayRandomResponse) {
         DisplayRandomResponse = displayRandomResponse;
+    }
+
+    public int getFlagGPS() {
+        return flagGPS;
+    }
+
+    public void setFlagGPS(int flagGPS) {
+        this.flagGPS = flagGPS;
     }
 
     public String getQuestionText() {
