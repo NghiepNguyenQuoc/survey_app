@@ -133,7 +133,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             @Override
             public void onSaveUserInfo(SaveAnswerModel saveAnswerModel) {
                 ProjectSurveyActivity.this.saveAnswerModel = saveAnswerModel;
-                getNextQuestion();
+                checkGPS();
             }
         });
         userInfoDialog.show();
@@ -210,6 +210,31 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         answerSQLiteHelper = new AnswerSQLiteHelper(this);
     }
 
+    private void checkGPS() {
+        List<QuestionnaireModel> questionnaireModels = questionaireSQLiteHelper.getListQuestionnaireByQuestionId(questionnaireIds.get(currentIndexQuestionID));
+        if (questionnaireModels.get(0).getFlagGPS() == 1) {
+            AlertDialog.Builder requireGpsAlertDialog = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
+            requireGpsAlertDialog.setCancelable(false);
+            requireGpsAlertDialog.setTitle(getString(R.string.title_notice));
+            requireGpsAlertDialog.setMessage(getString(R.string.message_request_gps));
+            requireGpsAlertDialog.setPositiveButton(getString(R.string.button_checking), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    getLocation();
+                }
+            });
+            requireGpsAlertDialog.setNegativeButton(getString(R.string.button_exit), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    finish();
+                }
+            });
+            requireGpsAlertDialog.show();
+        } else {
+            getNextQuestion();
+        }
+    }
+
     private void getNextQuestion() {
         mProgressBar.setVisibility(View.VISIBLE);
 
@@ -224,25 +249,6 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
             // get all option and question
             List<QuestionnaireModel> questionnaireModels = questionaireSQLiteHelper.getListQuestionnaireByQuestionId(questionnaireIds.get(currentIndexQuestionID));
-            if (questionnaireModels.get(0).getFlagGPS() == 1) {
-                AlertDialog.Builder requireGpsAlertDialog = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
-                requireGpsAlertDialog.setCancelable(false);
-                requireGpsAlertDialog.setTitle(getString(R.string.title_notice));
-                requireGpsAlertDialog.setMessage(getString(R.string.message_request_gps));
-                requireGpsAlertDialog.setPositiveButton(getString(R.string.button_checking), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        getLocation();
-                    }
-                });
-                requireGpsAlertDialog.setNegativeButton(getString(R.string.button_exit), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        finish();
-                    }
-                });
-                requireGpsAlertDialog.show();
-            }
             if (questionnaireModels.get(0).getParentID() == 0) {
                 if (questionnaireModels.get(0).getDependentID() != 0) {
                     // cap nhau tieu de cau khoi khi co ki tu [LIKED]
@@ -1280,7 +1286,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
             // getting GPS status
-            if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || !locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
                 AlertDialog.Builder gpsAlertDialog = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
                 gpsAlertDialog.setCancelable(false);
                 gpsAlertDialog.setTitle(getString(R.string.title_notice));
@@ -1292,8 +1298,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 PackageManager packageManager = getPackageManager();
                 ResolveInfo resolveInfo = packageManager.resolveActivity(callGPSSettingIntent, PackageManager.GET_META_DATA);
                 if (resolveInfo != null) {
-
-                    gpsAlertDialog.setMessage(getString(R.string.message_error_gps));
+                    gpsAlertDialog.setMessage(getString(R.string.message_open_location_setting));
                     gpsAlertDialog.setPositiveButton(getString(R.string.button_setting), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
@@ -1309,6 +1314,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 }
             } else {
                 isGPSEnabled = true;
+                getNextQuestion();
             }
 
         } catch (Exception e) {
@@ -1320,7 +1326,12 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE_LOCATION_SETTING) {
-            getNextQuestion();
+            if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || !locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                getLocation();
+            } else {
+                isGPSEnabled = true;
+                getNextQuestion();
+            }
         }
     }
 

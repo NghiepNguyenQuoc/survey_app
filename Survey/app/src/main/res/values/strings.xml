@@ -62,6 +62,7 @@
     <string name="message_upload_compeleted">Đã tải lên hoàn tấc %1$d kết quả</string>
     <string name="message_project_not_ready">Dự án chưa sẵn sàng.\nHãy tải xuống dự án trước khi bắt đầu làm khảo sát.</string>
     <string name="message_request_gps">Dự án này yêu cầu bật GPS và lưu địa chỉ khảo sát!\n Hãy kiểm tra thiết bị của bạn đã bật GPS chưa bằng cách nhấn vào nút Kiếm tra.</string>
+    <string name="message_open_location_setting">Thiết bị chưa bật GPS!\n Hãy nhấn vào cài đặt để bật GPS.</string>
     <string name="message_error_warning">GPS bị tắt trên thiết bị của bạn.</string>
 
     <string name="message_fullname_empty">Họ và tên không hợp lệ</string>
