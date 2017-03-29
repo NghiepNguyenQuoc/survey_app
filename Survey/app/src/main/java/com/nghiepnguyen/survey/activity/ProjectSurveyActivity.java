@@ -119,6 +119,8 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     private LocationRequest mLocationRequest;
     private Location mLastUpdatedLocation;
 
+    AlertDialog gpsAlert;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -1220,7 +1222,7 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         return null;
     }
 
-    private void finishSurvey(boolean isCompeleted) {
+    private void finishSurvey(final boolean isCompeleted) {
         /////////////////////////////////////////////////////////////////
         // collect data to send to server
         String patternString = "<R QID=\'%s\' V=\'%s\' T=\'%s\'/>";
@@ -1245,14 +1247,33 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
         Log.e("RESULT", resultData);
 
-
         saveAnswerModel.setIsCompeleted(isCompeleted ? 1 : 0);
         saveAnswerModel.setProjectID(projectModel.getID());
         saveAnswerModel.setData(resultData);
         if (isGPSEnabled && mLastUpdatedLocation != null) {
-            saveAnswerModel.setGeoLatitude(mLastUpdatedLocation.getLatitude());
-            saveAnswerModel.setGeoLongitude(mLastUpdatedLocation.getLongitude());
-            saveAnswerModel.setGeoTime(TimestampUtils.getDate(Constant.FORMAT_24_HOURS_DAY, System.currentTimeMillis(), ProjectSurveyActivity.this));
+            if ((mLastUpdatedLocation.getLatitude() == 0 || mLastUpdatedLocation.getLongitude() == 0)) {
+                AlertDialog.Builder gpsAlertBuilder = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
+                gpsAlertBuilder.setTitle(getString(R.string.title_attention));
+                gpsAlertBuilder.setMessage(getString(R.string.message_not_detected_gps_error_warning));
+                gpsAlertBuilder.setPositiveButton(getString(R.string.title_confirm), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        finishSurvey(isCompeleted);
+                    }
+                });
+                gpsAlertBuilder.setCancelable(false);
+                gpsAlert = gpsAlertBuilder.create();
+
+                if (!gpsAlert.isShowing()) {
+                    //if its visibility is not showing then show here
+                    gpsAlert.show();
+                }
+                return;
+            } else {
+                saveAnswerModel.setGeoLatitude(mLastUpdatedLocation.getLatitude());
+                saveAnswerModel.setGeoLongitude(mLastUpdatedLocation.getLongitude());
+                saveAnswerModel.setGeoTime(TimestampUtils.getDate(Constant.FORMAT_24_HOURS_DAY, System.currentTimeMillis(), ProjectSurveyActivity.this));
+            }
         }
 
         answerSQLiteHelper.addAnswer(saveAnswerModel);
@@ -1362,13 +1383,10 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
 
     @Override
     public void onConnectionSuspended(int i) {
-        int a = i;
-        int b = a + 3;
     }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        String str = connectionResult.getErrorMessage();
         Log.d(TAG, "mGoogleApiClient.isConnected() = false");
     }
 
@@ -1377,6 +1395,26 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         if (location == null) {
             return;
         }
-        mLastUpdatedLocation = location;
+
+        if ((location.getLatitude() == 0 || location.getLongitude() == 0)) {
+            AlertDialog.Builder gpsAlertBuilder = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
+            gpsAlertBuilder.setTitle(getString(R.string.title_attention));
+            gpsAlertBuilder.setMessage(getString(R.string.message_not_detected_gps_error_warning));
+            gpsAlertBuilder.setPositiveButton(getString(R.string.title_confirm), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+
+                }
+            });
+            gpsAlertBuilder.setCancelable(false);
+            gpsAlert = gpsAlertBuilder.create();
+
+            if (!gpsAlert.isShowing()) {
+                //if its visibility is not showing then show here
+                gpsAlert.show();
+            }
+        } else {
+            mLastUpdatedLocation = location;
+        }
     }
 }
