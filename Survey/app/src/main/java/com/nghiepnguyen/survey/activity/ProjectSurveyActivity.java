@@ -172,7 +172,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         customBuilder.show();
     }
 
-
+    /**
+     * init vivew
+     */
     private void initView() {
         Toolbar mToolbar = (Toolbar) findViewById(R.id.activity_project_survey_toolbar);
         mQuestionContentTextView = (TextView) findViewById(R.id.activity_project_survey_question_content_textview);
@@ -194,7 +196,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         pathList = new ArrayList<>();
     }
 
-    // get data from Intent or Storage
+    /**
+     * get data from Intent or Storage
+     */
     private void initDataToComponets() {
         projectModel = getIntent().getParcelableExtra(Constant.BUNDLE_QUESTION);
         assert getSupportActionBar() != null;
@@ -212,6 +216,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         answerSQLiteHelper = new AnswerSQLiteHelper(this);
     }
 
+    /**
+     * check GPS
+     */
     private void checkGPS() {
         List<QuestionnaireModel> questionnaireModels = questionaireSQLiteHelper.getListQuestionnaireByQuestionId(questionnaireIds.get(currentIndexQuestionID));
         if (questionnaireModels.get(0).getFlagGPS() == 1) {
@@ -326,9 +333,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         mProgressBar.setVisibility(View.GONE);
     }
 
-    /*
-    * get dependent questionaire
-    * */
+    /**
+     * get dependent questionaire
+     */
     private void findQuestionnaireModelsByDependentID(int rootQuestionnaireID, int rootDependentID, int dependentID,
                                                       List<AnswerModel> answerModels, QuestionModel questionModel,
                                                       List<QuestionnaireModel> questionnaireModelList) {
@@ -352,9 +359,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         }
     }
 
-    /*
-    * get dependent questionaire
-    * */
+    /**
+     * get dependent questionaire
+     */
     private void findQuestionnaireModelsByDependentIDAndExclusion(int rootQuestionnaireID, int rootDependentID, int dependentID,
                                                                   List<AnswerModel> answerModels, QuestionModel questionModel,
                                                                   List<QuestionnaireModel> questionnaireModelList) {
@@ -395,6 +402,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         }
     }
 
+    /**
+     * generate title question
+     */
     private void generateTitleQuestion(String oldTitle, List<AnswerModel> answerModels, List<Integer> questionnaireIds, int preQuestionId, String questionCode, TextView textView) {
         if (oldTitle.contains("[LIKED]")) {
             AnswerModel answerModel = getAnswerByQuestionaireId(answerModels, questionnaireIds.get(preQuestionId));// get answer from dependent question
@@ -413,6 +423,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         textView.setText(wordtoSpan);
     }
 
+    /**
+     * generate options
+     */
     private void generateOption(LinearLayout mainView, final List<QuestionnaireModel> questionnaireList) {
         LinearLayout linearLayout1 = new LinearLayout(ProjectSurveyActivity.this);
         linearLayout1.setOrientation(LinearLayout.VERTICAL);
@@ -989,6 +1002,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         return count <= maxAnswer;
     }
 
+    /**
+     * check stop logic
+     */
     private boolean checkStopLogic(List<AnswerModel> answerModels, List<QuestionnaireModel> questionnaireList) {
         List<RouteModel> routeModels = routeSQLiteHelper.getRoutesByQuestionaireId(questionnaireList.get(0).getQuestionnaireID());
 
@@ -1084,6 +1100,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         return checkNextLogic();
     }
 
+    /**
+     * check next logic
+     */
     private boolean checkNextLogic() {
         // check next logic
         List<Boolean> arrResultLogic = new ArrayList<>();
@@ -1213,7 +1232,6 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         return checkNextLogic();
     }
 
-
     private AnswerModel getAnswerByQuestionaireId(List<AnswerModel> answerModels, int questionaireId) {
         for (AnswerModel answerModel : answerModels) {
             if (answerModel.getQuestionaireID() == questionaireId)
@@ -1301,7 +1319,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         customBuilder.show();
     }
 
-    // Get location
+    /**
+     * Get location
+     */
     public void getLocation() {
         try {
             locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
