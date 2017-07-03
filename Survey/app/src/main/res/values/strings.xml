@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">Survey</string>
     <string name="action_settings">Settings</string>
     <string name="app_version">Version %1$s</string>
@@ -65,6 +65,8 @@
     <string name="message_open_location_setting">Thiết bị chưa bật GPS!\n Hãy nhấn vào cài đặt để bật GPS.</string>
     <string name="message_error_warning">GPS bị tắt trên thiết bị của bạn.</string>
     <string name="message_not_detected_gps_error_warning">Vị trí hiện tại của bạn không lấy được tọa độ GPS.\nHãy di chuyển đến một nơi khác</string>
+    <string name="message_no_permissions">The recorder requires `RECORD_AUDIO` and `WRITE_EXTERNAL_STORAGE` permissions.</string>
+    <string name="message_error_audio_recorder">Audio recorder error: %1$s</string>
 
     <string name="message_fullname_empty">Họ và tên không hợp lệ</string>
     <string name="message_address_empty">Địa chỉ không hợp lệ</string>
@@ -73,4 +75,8 @@
     <string name="menu_item_download">Tải xuống dự án</string>
     <string name="menu_item_update">Cập nhật dữ liệu</string>
     <string name="menu_item_upload">Upload dữ liệu</string>
+
+    <string name="audio_db_title_format"><xliff:g id="format">yyyy-MM-dd HH:mm:ss</xliff:g></string>
+    <string name="audio_db_artist_name">Your recordings</string>
+    <string name="audio_db_album_name">Audio recordings</string>
 </resources>
