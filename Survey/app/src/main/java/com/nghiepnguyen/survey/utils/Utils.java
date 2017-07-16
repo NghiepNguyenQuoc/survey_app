@@ -7,6 +7,10 @@ import android.net.NetworkInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
+import org.apache.commons.net.ftp.FTPClient;
+
+import java.io.IOException;
+
 /**
  * Created by nghiep on 10/29/15.
  */
@@ -50,5 +54,25 @@ public class Utils {
             InputMethodManager inputMethodManager = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
             inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
         }
+    }
+
+    public static boolean makeDirectories(FTPClient ftpClient, String dirPath) throws IOException {
+        String[] pathElements = dirPath.split("/");
+        if (pathElements != null && pathElements.length > 0) {
+            for (String singleDir : pathElements) {
+                boolean existed = ftpClient.changeWorkingDirectory(singleDir);
+                if (!existed) {
+                    boolean created = ftpClient.makeDirectory(singleDir);
+                    if (created) {
+                        System.out.println("CREATED directory: " + singleDir);
+                        ftpClient.changeWorkingDirectory(singleDir);
+                    } else {
+                        System.out.println("COULD NOT create directory: " + singleDir);
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 }

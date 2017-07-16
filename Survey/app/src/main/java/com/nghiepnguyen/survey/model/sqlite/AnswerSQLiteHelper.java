@@ -30,6 +30,8 @@ public class AnswerSQLiteHelper extends MySQLiteHelper {
     private static final String KEY_GEO_ADDRESS = "GeoAddress";
     private static final String KEY_GEO_TIME = "GeoTime";
     private static final String KEY_DATA = "Data";
+    private static final String KEY_START_RECORDING_TIME = "StartRecordingTime";
+    private static final String KEY_END_RECORDING_TIME = "EndRecordingTime";
 
     // TABLE_QUESTIONNAIRE table create statement
     public static final String CREATE_ANSWER_TABLE = "CREATE TABLE " + TABLE_ANSWER + " ( " +
@@ -45,7 +47,9 @@ public class AnswerSQLiteHelper extends MySQLiteHelper {
             KEY_GEO_LONGITUDE + " REAL, " +
             KEY_GEO_ADDRESS + " STRING, " +
             KEY_GEO_TIME + " STRING, " +
-            KEY_DATA + " STRING)";
+            KEY_DATA + " STRING, " +
+            KEY_START_RECORDING_TIME+ " STRING, " +
+            KEY_END_RECORDING_TIME+ " STRING)";
 
     public AnswerSQLiteHelper(Context context) {
         super(context);
@@ -76,6 +80,8 @@ public class AnswerSQLiteHelper extends MySQLiteHelper {
         values.put(KEY_GEO_ADDRESS, saveAnswerModel.getGeoAddress());
         values.put(KEY_GEO_TIME, saveAnswerModel.getGeoTime());
         values.put(KEY_DATA, saveAnswerModel.getData());
+        values.put(KEY_START_RECORDING_TIME, saveAnswerModel.getStartRecordingTime());
+        values.put(KEY_END_RECORDING_TIME, saveAnswerModel.getEndRecordingTime());
 
         // 3. insert
         db.insert(TABLE_ANSWER, // table
@@ -115,6 +121,8 @@ public class AnswerSQLiteHelper extends MySQLiteHelper {
             saveAnswerModel.setGeoAddress(cursor.getString(10));
             saveAnswerModel.setGeoTime(cursor.getString(11));
             saveAnswerModel.setData(cursor.getString(12));
+            saveAnswerModel.setStartRecordingTime(cursor.getString(13));
+            saveAnswerModel.setEndRecordingTime(cursor.getString(14));
         }
 
         // return saveAnswerModels

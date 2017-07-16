@@ -1,6 +1,7 @@
 package com.nghiepnguyen.survey.networking;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -21,6 +22,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -166,7 +169,12 @@ public class SurveyApiWrapper {
             @Override
             public void onSuccess(int statusCode, Map<String, List<String>> headers, String content) {
                 try {
-                    JSONArray jsonArray = new JSONArray(content);
+                    Resources res = context.getResources();
+                    InputStream in_s = res.openRawResource(R.raw.data);
+
+                    byte[] b = new byte[in_s.available()];
+                    in_s.read(b);
+                    JSONArray jsonArray = new JSONArray(new String(b));
                     if (jsonArray.length() > 0) {
 
                         Type listType = new TypeToken<List<QuestionnaireModel>>() {
@@ -179,6 +187,8 @@ public class SurveyApiWrapper {
                 } catch (JSONException e) {
                     e.printStackTrace();
                     checkUnauthorizedAndHandleError(context, statusCode, content, callBack);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
 

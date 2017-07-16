@@ -2,7 +2,10 @@ package com.nghiepnguyen.survey.adapter;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
@@ -10,6 +13,7 @@ import android.support.v7.widget.CardView;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,6 +25,7 @@ import android.widget.Toast;
 
 import com.nghiepnguyen.survey.Interface.ICallBack;
 import com.nghiepnguyen.survey.R;
+import com.nghiepnguyen.survey.activity.ProjectSurveyActivity;
 import com.nghiepnguyen.survey.model.CommonErrorModel;
 import com.nghiepnguyen.survey.model.GoogleAPI.GeoLocation;
 import com.nghiepnguyen.survey.model.ProjectModel;
@@ -33,6 +38,7 @@ import com.nghiepnguyen.survey.model.sqlite.RouteSQLiteHelper;
 import com.nghiepnguyen.survey.networking.GoogleApiWrapper;
 import com.nghiepnguyen.survey.networking.SurveyApiWrapper;
 import com.nghiepnguyen.survey.storage.UserInfoManager;
+import com.nghiepnguyen.survey.utils.Constant;
 import com.nghiepnguyen.survey.utils.Utils;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -40,6 +46,14 @@ import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
+import org.apache.commons.net.ftp.FTP;
+import org.apache.commons.net.ftp.FTPClient;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -47,8 +61,15 @@ import java.util.Map;
  * Created by nghiep on 11/22/15.
  */
 public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.ProjectViewHolder> {
+    public final static int REQUEST_CODE = 1001;
     private static final String TAG = "ProjectListAdapter";
-    private static RecyclerViewClickListener itemListener;
+    private static final String FILE_NAME = "recording.ax";
+    private static final String UPLOAD_PATH = "/Audio_Record_Storage";
+    private static final String HOST_IP = "112.213.89.21";
+    private static final String USER_NAME = "6saovn";
+    private static final String PASSWORD = "NKVF2764etxq";
+    private static final int PORT = 21;
+
     final Handler handler = new Handler();
     public ImageLoader imageLoader;
     DisplayImageOptions options;
@@ -60,10 +81,9 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
     private RouteSQLiteHelper routeSQLiteHelper;
     private AnswerSQLiteHelper answerSQLiteHelper;
 
-    public ProjectListAdapter(Context mContext, List<ProjectModel> projectList, RecyclerViewClickListener itemListener) {
+    public ProjectListAdapter(Context mContext, List<ProjectModel> projectList) {
         this.mContext = mContext;
         this.projectList = projectList;
-        this.itemListener = itemListener;
 
         imageLoader = ImageLoader.getInstance();
         ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(mContext).build();
@@ -140,6 +160,21 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
             holder.cardView.setCardBackgroundColor(ContextCompat.getColor(mContext, R.color.cl_default_trans));
         else
             holder.cardView.setCardBackgroundColor(ContextCompat.getColor(mContext, R.color.cl_white));
+
+        holder.cardView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (questionaireSQLiteHelper.getAllQuestionIDByProjectId(project.getID()).size() > 0) {
+                    Intent intent = new Intent(mContext, ProjectSurveyActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putParcelable(Constant.BUNDLE_QUESTION, project);
+                    intent.putExtras(bundle);
+                    ((Activity) mContext).startActivityForResult(intent, REQUEST_CODE);
+                } else {
+                    Utils.showToastLong(mContext, mContext.getString(R.string.message_project_not_ready));
+                }
+            }
+        });
     }
 
     @Override
@@ -152,11 +187,7 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
         return projectList.size();
     }
 
-    public List<ProjectModel> getProjectList() {
-        return projectList;
-    }
-
-    public void display(ImageView img, String url) {
+    private void display(ImageView img, String url) {
         imageLoader.displayImage(url, img, options, new ImageLoadingListener() {
             @Override
             public void onLoadingStarted(String imageUri, View view) {
@@ -338,13 +369,34 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
         SurveyApiWrapper.saveResultSurvey(mContext, saveAnswerModel, new ICallBack() {
             @Override
             public void onSuccess(Object data) {
-                runable = new Runnable() {
+                uploadAudio(saveAnswerModel, new ICallBack() {
+                    @Override
+                    public void onSuccess(Object data) {
+                        answerSQLiteHelper.deleteAnswer(saveAnswerModel.getIdentity());
+                        numberOfUpload++;
+                        uploadProjectData(mContext, view, projectId);
+                    }
+
+                    @Override
+                    public void onFailure(CommonErrorModel error) {
+                        answerSQLiteHelper.deleteAnswer(saveAnswerModel.getIdentity());
+                        numberOfUpload++;
+                        uploadProjectData(mContext, view, projectId);
+                    }
+
+                    @Override
+                    public void onCompleted() {
+
+                    }
+                });
+
+                /*runable = new Runnable() {
                     public void run() {
                         answerSQLiteHelper.deleteAnswer(saveAnswerModel.getIdentity());
                         numberOfUpload++;
                         uploadProjectData(mContext, view, projectId);
                     }
-                };
+                };*/
                 handler.postDelayed(runable, 1000);
             }
 
@@ -361,20 +413,70 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
         });
     }
 
-    public interface RecyclerViewClickListener {
-        void recyclerViewListClicked(View v, int position);
+
+    private void uploadAudio(SaveAnswerModel saveAnswerModel, final ICallBack iCallBack) {
+        String srcFileName = saveAnswerModel.getProjectID() + "_" + saveAnswerModel.getStartRecordingTime() + "_" + saveAnswerModel.getFullName() + ".ax";
+        String desFileName = saveAnswerModel.getProjectID() + "_" + saveAnswerModel.getEndRecordingTime() + "_" + saveAnswerModel.getFullName() + ".ax";
+        String outputFile = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + srcFileName;
+        FTPClient ftpClient = new FTPClient();
+        try {
+            ftpClient.connect(HOST_IP, PORT);
+            ftpClient.login(USER_NAME, PASSWORD);
+            ftpClient.enterLocalPassiveMode();
+            ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+            if (Utils.makeDirectories(ftpClient, UPLOAD_PATH)) {
+                File localFile = new File(outputFile);
+                InputStream inputStream = new FileInputStream(localFile);
+
+                System.out.println("Start uploading second file");
+                OutputStream outputStream = ftpClient.storeFileStream(desFileName);
+                byte[] bytesIn = new byte[4096];
+                int read;
+
+                while ((read = inputStream.read(bytesIn)) != -1) {
+                    outputStream.write(bytesIn, 0, read);
+                }
+                inputStream.close();
+                outputStream.close();
+
+                boolean completed = ftpClient.completePendingCommand();
+                if (completed) {
+                    Log.d(TAG, "Upload success");
+                    iCallBack.onSuccess(null);
+                    boolean abc = localFile.delete();
+                    Log.d(TAG, abc + "");
+                } else {
+                    Log.d(TAG, "Upload failed");
+                    iCallBack.onFailure(null);
+                }
+            }
+        } catch (IOException ex) {
+            System.out.println("Error: " + ex.getMessage());
+            ex.printStackTrace();
+            iCallBack.onFailure(null);
+        } finally {
+            try {
+                if (ftpClient.isConnected()) {
+                    ftpClient.logout();
+                    ftpClient.disconnect();
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+            iCallBack.onFailure(null);
+        }
     }
 
-    public static class ProjectViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        public CardView cardView;
-        public TextView tvProjectName;
-        public TextView tvProjectDescription;
-        public TextView tvNumberResult;
-        public ImageView ivProjectImage;
-        public ImageView ivMenuPopup;
-        public ProgressBar pbLoading;
+    static class ProjectViewHolder extends RecyclerView.ViewHolder {
+        CardView cardView;
+        TextView tvProjectName;
+        TextView tvProjectDescription;
+        TextView tvNumberResult;
+        ImageView ivProjectImage;
+        ImageView ivMenuPopup;
+        ProgressBar pbLoading;
 
-        public ProjectViewHolder(View itemView) {
+        ProjectViewHolder(View itemView) {
             super(itemView);
 
             cardView = (CardView) itemView.findViewById(R.id.card_view);
@@ -384,14 +486,6 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
             ivProjectImage = (ImageView) itemView.findViewById(R.id.iv_project_image);
             ivMenuPopup = (ImageView) itemView.findViewById(R.id.iv_menu_popup);
             pbLoading = (ProgressBar) itemView.findViewById(R.id.pb_loading);
-            itemView.setOnClickListener(this);
-
-        }
-
-        @Override
-        public void onClick(View view) {
-            itemListener.recyclerViewListClicked(view, this.getAdapterPosition());
-
         }
     }
 }

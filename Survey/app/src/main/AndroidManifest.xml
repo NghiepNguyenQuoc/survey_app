@@ -55,6 +55,11 @@
         <activity
             android:name=".activity.RecordingActivity"
             android:theme="@style/AppTheme.NoActionBar">
+            <!--<intent-filter>
+               <action android:name="android.intent.action.MAIN" />
+
+               <category android:name="android.intent.category.LAUNCHER" />
+           </intent-filter>-->
         </activity>
         <activity
             android:name=".activity.MainActivity"
@@ -64,13 +69,7 @@
             android:name=".activity.ProjectSurveyActivity"
             android:screenOrientation="landscape"
             android:theme="@style/MyMaterialTheme"
-            android:windowSoftInputMode="adjustResize">
-            <!--<intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>-->
-        </activity>
+            android:windowSoftInputMode="adjustResize" />
 
         <meta-data
             android:name="io.fabric.ApiKey"

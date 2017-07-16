@@ -17,6 +17,8 @@ public class SaveAnswerModel {
     private String GeoAddress;
     private String GeoTime;
     private String Data;
+    private String StartRecordingTime;
+    private String EndRecordingTime;
 
     public SaveAnswerModel() {
     }
@@ -150,5 +152,21 @@ public class SaveAnswerModel {
 
     public void setGeoTime(String geoTime) {
         GeoTime = geoTime;
+    }
+
+    public String getStartRecordingTime() {
+        return StartRecordingTime;
+    }
+
+    public void setStartRecordingTime(String startRecordingTime) {
+        StartRecordingTime = startRecordingTime;
+    }
+
+    public String getEndRecordingTime() {
+        return EndRecordingTime;
+    }
+
+    public void setEndRecordingTime(String endRecordingTime) {
+        EndRecordingTime = endRecordingTime;
     }
 }

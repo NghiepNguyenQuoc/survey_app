@@ -3,7 +3,6 @@ package com.nghiepnguyen.survey.fragment;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
@@ -16,28 +15,23 @@ import android.widget.ProgressBar;
 
 import com.nghiepnguyen.survey.Interface.ICallBack;
 import com.nghiepnguyen.survey.R;
-import com.nghiepnguyen.survey.activity.ProjectSurveyActivity;
 import com.nghiepnguyen.survey.adapter.ProjectListAdapter;
 import com.nghiepnguyen.survey.model.CommonErrorModel;
 import com.nghiepnguyen.survey.model.MemberModel;
 import com.nghiepnguyen.survey.model.ProjectModel;
-import com.nghiepnguyen.survey.model.sqlite.AnswerSQLiteHelper;
 import com.nghiepnguyen.survey.model.sqlite.ProjectSQLiteHelper;
 import com.nghiepnguyen.survey.model.sqlite.QuestionaireSQLiteHelper;
 import com.nghiepnguyen.survey.networking.SurveyApiWrapper;
 import com.nghiepnguyen.survey.storage.UserInfoManager;
-import com.nghiepnguyen.survey.utils.Constant;
-import com.nghiepnguyen.survey.utils.Utils;
 
 import java.util.List;
 
 /**
  * Created by nghiep on 10/29/15.
  */
-public class ProjectListFragment extends Fragment implements ProjectListAdapter.RecyclerViewClickListener {
+public class ProjectListFragment extends Fragment {
 
     private final static String TAG = "ProjectListFragment";
-    private final static int REQUEST_CODE = 1001;
     private ProgressBar loadingProgressBar;
     private Activity mActivity;
     //UserInfoModel userInfo;
@@ -97,22 +91,6 @@ public class ProjectListFragment extends Fragment implements ProjectListAdapter.
 
     }
 
-    @Override
-    public void recyclerViewListClicked(View v, int position) {
-        if (isAdded()) {
-            List<ProjectModel> projectList = ((ProjectListAdapter) mProjectListListView.getAdapter()).getProjectList();
-            if (questionaireSQLiteHelper.getAllQuestionIDByProjectId(projectList.get(position).getID()).size() > 0) {
-                Intent intent = new Intent(mActivity, ProjectSurveyActivity.class);
-                Bundle bundle = new Bundle();
-                bundle.putParcelable(Constant.BUNDLE_QUESTION, projectList.get(position));
-                intent.putExtras(bundle);
-                startActivityForResult(intent, REQUEST_CODE);
-            } else {
-                Utils.showToastLong(mActivity, getString(R.string.message_project_not_ready));
-            }
-        }
-    }
-
     private void callApiGetProjectList() {
         SurveyApiWrapper.getProjectList(mActivity, memberInfo.getID(), memberInfo.getSecrectToken(), new ICallBack() {
             @SuppressWarnings("unchecked")
@@ -126,7 +104,7 @@ public class ProjectListFragment extends Fragment implements ProjectListAdapter.
                             for (ProjectModel item : projectList)
                                 projectSQLiteHelper.addProject(item);
 
-                            ProjectListAdapter adapter = new ProjectListAdapter(mActivity, projectList, ProjectListFragment.this);
+                            ProjectListAdapter adapter = new ProjectListAdapter(mActivity, projectList);
                             mProjectListListView.setAdapter(adapter);
                             loadingProgressBar.setVisibility(View.GONE);
                         }
@@ -142,7 +120,7 @@ public class ProjectListFragment extends Fragment implements ProjectListAdapter.
                     public void run() {
                         List<ProjectModel> projectList = projectSQLiteHelper.getAllProject();
                         if (projectList.size() > 0) {
-                            ProjectListAdapter adapter = new ProjectListAdapter(mActivity, projectList, ProjectListFragment.this);
+                            ProjectListAdapter adapter = new ProjectListAdapter(mActivity, projectList);
                             mProjectListListView.setAdapter(adapter);
                         } else {
                             AlertDialog.Builder dialog = new AlertDialog.Builder(mActivity, R.style.AppCompatAlertDialogStyle);
@@ -172,7 +150,7 @@ public class ProjectListFragment extends Fragment implements ProjectListAdapter.
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == Activity.RESULT_OK && requestCode == REQUEST_CODE) {
+        if (resultCode == Activity.RESULT_OK && requestCode == ProjectListAdapter.REQUEST_CODE) {
             mProjectListListView.getAdapter().notifyDataSetChanged();
         }
     }

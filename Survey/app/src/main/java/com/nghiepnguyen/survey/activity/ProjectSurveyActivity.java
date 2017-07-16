@@ -1,17 +1,28 @@
 package com.nghiepnguyen.survey.activity;
 
+import android.Manifest;
+import android.annotation.TargetApi;
+import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.res.Resources;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Parcel;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.AppCompatCheckBox;
@@ -38,6 +49,8 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import com.github.lassana.recorder.AudioRecorder;
+import com.github.lassana.recorder.AudioRecorderBuilder;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -45,6 +58,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.nghiepnguyen.survey.R;
 import com.nghiepnguyen.survey.UserInfoDialog;
+import com.nghiepnguyen.survey.application.MainApplication;
 import com.nghiepnguyen.survey.model.AnswerModel;
 import com.nghiepnguyen.survey.model.MemberModel;
 import com.nghiepnguyen.survey.model.ProjectModel;
@@ -61,11 +75,17 @@ import com.nghiepnguyen.survey.utils.Constant;
 import com.nghiepnguyen.survey.utils.TimestampUtils;
 import com.nghiepnguyen.survey.utils.Utils;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
+
+import static com.github.lassana.recorder.AudioRecorder.Status.STATUS_RECORDING;
 
 /**
  * Created by Nghiep Nguyen on 20/02/2016.
@@ -85,6 +105,7 @@ import java.util.Set;
  */
 public class ProjectSurveyActivity extends BaseActivity implements View.OnClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
     private static String TAG = "ProjectSurveyActivity";
+    private static final int REQUEST_CODE_PERMISSIONS = 0x1;
     private final static int REQUEST_CODE_LOCATION_SETTING = 100;
 
     private ProgressBar mProgressBar;
@@ -110,10 +131,13 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     private RouteSQLiteHelper routeSQLiteHelper;
     private AnswerSQLiteHelper answerSQLiteHelper;
     private LocationManager locationManager;
+    private AudioRecorder mAudioRecorder;
 
     // flag for GPS status
     private boolean isGPSEnabled = false;
-    // flag for network status
+    private String outputFile = null;
+    private Uri mAudioRecordUri;
+    private String mActiveRecordFileName;
 
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
@@ -158,6 +182,15 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     }
 
     @Override
+    protected void onDestroy() {
+        if (mAudioRecorder != null) {
+            pauseRecordAudio(true);
+            setResult(Activity.RESULT_CANCELED);
+        }
+        super.onDestroy();
+    }
+
+    @Override
     public void onBackPressed() {
         //super.onBackPressed();
         AlertDialog.Builder customBuilder = new AlertDialog.Builder(ProjectSurveyActivity.this, R.style.AppCompatAlertDialogStyle);
@@ -170,6 +203,50 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             }
         });
         customBuilder.show();
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    private void tryStart() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            final int checkAudio = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
+            final int checkStorage = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            if (checkAudio != PackageManager.PERMISSION_GRANTED || checkStorage != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.RECORD_AUDIO)) {
+                    showMessage(getString(R.string.message_no_permissions));
+                } else if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                    showMessage(getString(R.string.message_no_permissions));
+                } else {
+                    requestPermissions(new String[]{
+                                    Manifest.permission.RECORD_AUDIO,
+                                    Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                            REQUEST_CODE_PERMISSIONS);
+                }
+            } else {
+                startRecordAudio();
+            }
+        } else {
+            startRecordAudio();
+        }
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(final int requestCode, @NonNull final String[] permissions, @NonNull final int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_CODE_PERMISSIONS:
+                boolean userAllowed = true;
+                for (final int result : grantResults) {
+                    userAllowed &= result == PackageManager.PERMISSION_GRANTED;
+                }
+                if (userAllowed) {
+                    startRecordAudio();
+                } else {
+                    showMessage(getString(R.string.message_no_permissions));
+                }
+                break;
+            default:
+                break;
+        }
     }
 
     /**
@@ -256,8 +333,36 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             // hide keyboard
             Utils.hideSoftKeyBoard(this);
 
+
             // get all option and question
             List<QuestionnaireModel> questionnaireModels = questionaireSQLiteHelper.getListQuestionnaireByQuestionId(questionnaireIds.get(currentIndexQuestionID));
+
+            if (questionnaireModels.get(0).getFlagQueRecord() == 1) {
+                // save start recording time
+                String startRecordingTime = TimestampUtils.getDate(Constant.FORMAT_24_HOURS_DAY_SHORT, System.currentTimeMillis(), ProjectSurveyActivity.this);
+                saveAnswerModel.setStartRecordingTime(startRecordingTime);
+
+                String fileName = projectModel.getID() + "_" + startRecordingTime + "_" + saveAnswerModel.getFullName() + ".ax";
+                outputFile = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + fileName;
+                final MainApplication application = MainApplication.getInstance();
+                mAudioRecorder = application.getRecorder();
+                if (mAudioRecorder == null || mAudioRecorder.getStatus() == AudioRecorder.Status.STATUS_UNKNOWN) {
+                    mAudioRecorder = AudioRecorderBuilder.with(application)
+                            .fileName(outputFile)
+                            .config(AudioRecorder.MediaRecorderConfig.DEFAULT)
+                            .loggable()
+                            .build();
+                    application.setRecorder(mAudioRecorder);
+                    tryStart();
+                } else if (mAudioRecorder != null && mAudioRecorder.getStatus() == AudioRecorder.Status.STATUS_RECORD_PAUSED) {
+                    tryStart();
+                }
+            } else {
+                if (mAudioRecorder.getStatus() == STATUS_RECORDING) {
+                    pauseRecordAudio(false);
+                }
+            }
+
             if (questionnaireModels.get(0).getParentID() == 0) {
                 if (questionnaireModels.get(0).getDependentID() != 0) {
                     // cap nhau tieu de cau khoi khi co ki tu [LIKED]
@@ -1436,5 +1541,99 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         } else {
             mLastUpdatedLocation = location;
         }
+    }
+
+    private void startRecordAudio() {
+        mAudioRecorder.start(new AudioRecorder.OnStartListener() {
+            @Override
+            public void onStarted() {
+                //invalidateViews();
+            }
+
+            @Override
+            public void onException(Exception e) {
+                setResult(Activity.RESULT_CANCELED);
+                //invalidateViews();
+                showMessage(getString(R.string.message_error_audio_recorder, e));
+            }
+        });
+    }
+
+    private void pauseRecordAudio(final boolean isCancel) {
+        mAudioRecorder.pause(new AudioRecorder.OnPauseListener() {
+            @Override
+            public void onPaused(String activeRecordFileName) {
+                mActiveRecordFileName = activeRecordFileName;
+                setResult(Activity.RESULT_OK,
+                        new Intent().setData(saveCurrentRecordToMediaDB(mActiveRecordFileName)));
+                // save start recording time
+                saveAnswerModel.setEndRecordingTime(TimestampUtils.getDate(Constant.FORMAT_24_HOURS_DAY_SHORT, System.currentTimeMillis(), ProjectSurveyActivity.this));
+                if (isCancel)
+                    mAudioRecorder.cancel();
+                //invalidateViews();
+            }
+
+            @Override
+            public void onException(Exception e) {
+                setResult(Activity.RESULT_CANCELED);
+                //invalidateViews();
+                showMessage(getString(R.string.message_error_audio_recorder, e));
+            }
+        });
+    }
+
+    private void showMessage(String message) {
+        final View root = findViewById(R.id.activity_project_main_view);
+        if (root != null) {
+            final Snackbar snackbar = Snackbar.make(root, message, Snackbar.LENGTH_INDEFINITE);
+            snackbar.setAction(android.R.string.ok, new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    snackbar.dismiss();
+                }
+            });
+            snackbar.show();
+        }
+    }
+
+    public Uri saveCurrentRecordToMediaDB(final String fileName) {
+        if (mAudioRecordUri != null) return mAudioRecordUri;
+
+        final Activity activity = this;
+        final Resources res = activity.getResources();
+        final ContentValues cv = new ContentValues();
+        final File file = new File(fileName);
+        final long current = System.currentTimeMillis();
+        final long modDate = file.lastModified();
+        final Date date = new Date(current);
+        final String dateTemplate = res.getString(R.string.audio_db_title_format);
+        final SimpleDateFormat formatter = new SimpleDateFormat(dateTemplate, Locale.getDefault());
+        final String title = formatter.format(date);
+        final long sampleLengthMillis = 1;
+        // Lets label the recorded audio file as NON-MUSIC so that the file
+        // won't be displayed automatically, except for in the playlist.
+        cv.put(MediaStore.Audio.Media.IS_MUSIC, "0");
+
+        cv.put(MediaStore.Audio.Media.TITLE, title);
+        cv.put(MediaStore.Audio.Media.DATA, file.getAbsolutePath());
+        cv.put(MediaStore.Audio.Media.DATE_ADDED, (int) (current / 1000));
+        cv.put(MediaStore.Audio.Media.DATE_MODIFIED, (int) (modDate / 1000));
+        cv.put(MediaStore.Audio.Media.DURATION, sampleLengthMillis);
+        cv.put(MediaStore.Audio.Media.MIME_TYPE, "audio/*");
+        cv.put(MediaStore.Audio.Media.ARTIST, res.getString(R.string.audio_db_artist_name));
+        cv.put(MediaStore.Audio.Media.ALBUM, res.getString(R.string.audio_db_album_name));
+
+        Log.d(TAG, "Inserting audio record: " + cv.toString());
+
+        final ContentResolver resolver = activity.getContentResolver();
+        final Uri base = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        Log.d(TAG, "ContentURI: " + base);
+
+        mAudioRecordUri = resolver.insert(base, cv);
+        if (mAudioRecordUri == null) {
+            return null;
+        }
+        activity.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, mAudioRecordUri));
+        return mAudioRecordUri;
     }
 }
