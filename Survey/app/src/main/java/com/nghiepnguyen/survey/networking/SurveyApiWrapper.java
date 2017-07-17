@@ -169,12 +169,12 @@ public class SurveyApiWrapper {
             @Override
             public void onSuccess(int statusCode, Map<String, List<String>> headers, String content) {
                 try {
-                    Resources res = context.getResources();
+                    /*Resources res = context.getResources();
                     InputStream in_s = res.openRawResource(R.raw.data);
 
                     byte[] b = new byte[in_s.available()];
-                    in_s.read(b);
-                    JSONArray jsonArray = new JSONArray(new String(b));
+                    in_s.read(b);*/
+                    JSONArray jsonArray = new JSONArray(content);
                     if (jsonArray.length() > 0) {
 
                         Type listType = new TypeToken<List<QuestionnaireModel>>() {
@@ -187,8 +187,6 @@ public class SurveyApiWrapper {
                 } catch (JSONException e) {
                     e.printStackTrace();
                     checkUnauthorizedAndHandleError(context, statusCode, content, callBack);
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
             }
 
