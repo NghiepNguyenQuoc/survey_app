@@ -463,7 +463,6 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
-            iCallBack.onFailure(null);
         }
     }
 
