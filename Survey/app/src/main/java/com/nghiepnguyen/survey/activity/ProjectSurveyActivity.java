@@ -44,11 +44,17 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import com.coremedia.iso.boxes.Container;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.googlecode.mp4parser.authoring.Movie;
+import com.googlecode.mp4parser.authoring.Track;
+import com.googlecode.mp4parser.authoring.builder.DefaultMp4Builder;
+import com.googlecode.mp4parser.authoring.container.mp4.MovieCreator;
+import com.googlecode.mp4parser.authoring.tracks.AppendTrack;
 import com.nghiepnguyen.survey.R;
 import com.nghiepnguyen.survey.UserInfoDialog;
 import com.nghiepnguyen.survey.model.AnswerModel;
@@ -68,9 +74,12 @@ import com.nghiepnguyen.survey.utils.TimestampUtils;
 import com.nghiepnguyen.survey.utils.Utils;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -307,6 +316,8 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             List<QuestionnaireModel> questionnaireModels = questionaireSQLiteHelper.getListQuestionnaireByQuestionId(questionnaireIds.get(currentIndexQuestionID));
 
             if (questionnaireModels.get(0).getFlagQueRecord() == 1) {
+                String arr[]={Environment.getExternalStorageDirectory().getAbsolutePath() + "/123.ax",Environment.getExternalStorageDirectory().getAbsolutePath() + "/456.ax"};
+
                 // save start recording time
                 String startRecordingTime = TimestampUtils.getDate(Constant.FORMAT_24_HOURS_DAY_SHORT, System.currentTimeMillis(), ProjectSurveyActivity.this);
                 saveAnswerModel.setStartRecordingTime(startRecordingTime);
@@ -316,7 +327,8 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 if (!isRecording)
                     startRecordAudio(true);
             } else {
-                startRecordAudio(false);
+                if (isRecording)
+                    startRecordAudio(false);
             }
 
             if (questionnaireModels.get(0).getParentID() == 0) {
@@ -1543,5 +1555,35 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         mRecorder.stop();
         mRecorder.release();
         mRecorder = null;
+    }
+
+    public static boolean mergeMediaFiles(boolean isAudio, String sourceFiles[], String targetFile) {
+        try {
+            String mediaKey = isAudio ? "soun" : "vide";
+            List<Movie> listMovies = new ArrayList<>();
+            for (String filename : sourceFiles) {
+                listMovies.add(MovieCreator.build(filename));
+            }
+            List<Track> listTracks = new LinkedList<>();
+            for (Movie movie : listMovies) {
+                for (Track track : movie.getTracks()) {
+                    if (track.getHandler().equals(mediaKey)) {
+                        listTracks.add(track);
+                    }
+                }
+            }
+            Movie outputMovie = new Movie();
+            if (!listTracks.isEmpty()) {
+                outputMovie.addTrack(new AppendTrack(listTracks.toArray(new Track[listTracks.size()])));
+            }
+            Container container = new DefaultMp4Builder().build(outputMovie);
+            FileChannel fileChannel = new RandomAccessFile(String.format(targetFile), "rw").getChannel();
+            container.writeContainer(fileChannel);
+            fileChannel.close();
+            return true;
+        } catch (IOException e) {
+            Log.e(TAG, "Error merging media files. exception: " + e.getMessage());
+            return false;
+        }
     }
 }
