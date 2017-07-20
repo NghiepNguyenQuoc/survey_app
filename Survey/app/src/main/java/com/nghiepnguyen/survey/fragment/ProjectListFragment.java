@@ -104,7 +104,7 @@ public class ProjectListFragment extends Fragment {
                             for (ProjectModel item : projectList)
                                 projectSQLiteHelper.addProject(item);
 
-                            ProjectListAdapter adapter = new ProjectListAdapter(mActivity, projectList);
+                            ProjectListAdapter adapter = new ProjectListAdapter(mActivity, ProjectListFragment.this, projectList);
                             mProjectListListView.setAdapter(adapter);
                             loadingProgressBar.setVisibility(View.GONE);
                         }
@@ -120,7 +120,7 @@ public class ProjectListFragment extends Fragment {
                     public void run() {
                         List<ProjectModel> projectList = projectSQLiteHelper.getAllProject();
                         if (projectList.size() > 0) {
-                            ProjectListAdapter adapter = new ProjectListAdapter(mActivity, projectList);
+                            ProjectListAdapter adapter = new ProjectListAdapter(mActivity, ProjectListFragment.this, projectList);
                             mProjectListListView.setAdapter(adapter);
                         } else {
                             AlertDialog.Builder dialog = new AlertDialog.Builder(mActivity, R.style.AppCompatAlertDialogStyle);

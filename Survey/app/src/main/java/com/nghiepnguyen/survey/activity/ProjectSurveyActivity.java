@@ -1,6 +1,7 @@
 package com.nghiepnguyen.survey.activity;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -8,8 +9,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.location.Location;
 import android.location.LocationManager;
-import android.media.MediaPlayer;
-import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -44,17 +43,12 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
-import com.coremedia.iso.boxes.Container;
+import com.github.republicofgavin.pauseresumeaudiorecorder.PauseResumeAudioRecorder;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.googlecode.mp4parser.authoring.Movie;
-import com.googlecode.mp4parser.authoring.Track;
-import com.googlecode.mp4parser.authoring.builder.DefaultMp4Builder;
-import com.googlecode.mp4parser.authoring.container.mp4.MovieCreator;
-import com.googlecode.mp4parser.authoring.tracks.AppendTrack;
 import com.nghiepnguyen.survey.R;
 import com.nghiepnguyen.survey.UserInfoDialog;
 import com.nghiepnguyen.survey.model.AnswerModel;
@@ -73,13 +67,9 @@ import com.nghiepnguyen.survey.utils.Constant;
 import com.nghiepnguyen.survey.utils.TimestampUtils;
 import com.nghiepnguyen.survey.utils.Utils;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -138,10 +128,8 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     private AlertDialog gpsAlert;
 
     // Record Audio
-    private boolean isRecording = false;
-    private String mOutputFileName = null;
-    private MediaRecorder mRecorder = null;
-    private MediaPlayer mPlayer = null;
+    private int isRecording = 0;
+    private PauseResumeAudioRecorder mediaRecorder;
 
     // Requesting permission to RECORD_AUDIO
     private boolean permissionToRecordAccepted = false;
@@ -188,14 +176,9 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     @Override
     protected void onStop() {
         super.onStop();
-        if (mRecorder != null) {
-            mRecorder.release();
-            mRecorder = null;
-        }
-
-        if (mPlayer != null) {
-            mPlayer.release();
-            mPlayer = null;
+        if (mediaRecorder != null && (mediaRecorder.getCurrentState() == PauseResumeAudioRecorder.RECORDING_STATE ||
+                mediaRecorder.getCurrentState() == PauseResumeAudioRecorder.PAUSED_STATE)) {
+            mediaRecorder.stopRecording();
         }
     }
 
@@ -218,12 +201,20 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
-            case REQUEST_RECORD_AUDIO_PERMISSION:
-                permissionToRecordAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+            case REQUEST_CODE_PERMISSIONS:
+                boolean userAllowed = true;
+                for (final int result : grantResults) {
+                    userAllowed &= result == PackageManager.PERMISSION_GRANTED;
+                }
+                if (userAllowed) {
+                    startRecordAudio();
+                } else {
+                    showMessage(getString(R.string.message_no_permissions));
+                }
+                break;
+            default:
                 break;
         }
-        if (!permissionToRecordAccepted) finish();
-
     }
 
 
@@ -316,19 +307,11 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
             List<QuestionnaireModel> questionnaireModels = questionaireSQLiteHelper.getListQuestionnaireByQuestionId(questionnaireIds.get(currentIndexQuestionID));
 
             if (questionnaireModels.get(0).getFlagQueRecord() == 1) {
-                String arr[]={Environment.getExternalStorageDirectory().getAbsolutePath() + "/123.ax",Environment.getExternalStorageDirectory().getAbsolutePath() + "/456.ax"};
-
-                // save start recording time
-                String startRecordingTime = TimestampUtils.getDate(Constant.FORMAT_24_HOURS_DAY_SHORT, System.currentTimeMillis(), ProjectSurveyActivity.this);
-                saveAnswerModel.setStartRecordingTime(startRecordingTime);
-
-                String fileName = projectModel.getID() + "_" + startRecordingTime + "_" + saveAnswerModel.getFullName() + ".ax";
-                mOutputFileName = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + fileName;
-                if (!isRecording)
-                    startRecordAudio(true);
+                tryStartRecordAudio();
             } else {
-                if (isRecording)
-                    startRecordAudio(false);
+                isRecording = -1;
+                mediaRecorder.pauseRecording();
+                saveAnswerModel.setEndRecordingTime(TimestampUtils.getDate(Constant.FORMAT_24_HOURS_DAY_SHORT, System.currentTimeMillis(), ProjectSurveyActivity.this));
             }
 
             if (questionnaireModels.get(0).getParentID() == 0) {
@@ -1525,65 +1508,49 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
         }
     }
 
-    private void startRecordAudio(boolean start) {
-        if (start) {
-            startRecording();
-            isRecording = true;
-        } else {
-            stopRecording();
-            isRecording = false;
-        }
-    }
-
-    private void startRecording() {
-        mRecorder = new MediaRecorder();
-        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        mRecorder.setOutputFile(mOutputFileName);
-        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-
-        try {
-            mRecorder.prepare();
-        } catch (IOException e) {
-            Log.e(TAG, "prepare() failed");
-        }
-
-        mRecorder.start();
-    }
-
-    private void stopRecording() {
-        mRecorder.stop();
-        mRecorder.release();
-        mRecorder = null;
-    }
-
-    public static boolean mergeMediaFiles(boolean isAudio, String sourceFiles[], String targetFile) {
-        try {
-            String mediaKey = isAudio ? "soun" : "vide";
-            List<Movie> listMovies = new ArrayList<>();
-            for (String filename : sourceFiles) {
-                listMovies.add(MovieCreator.build(filename));
-            }
-            List<Track> listTracks = new LinkedList<>();
-            for (Movie movie : listMovies) {
-                for (Track track : movie.getTracks()) {
-                    if (track.getHandler().equals(mediaKey)) {
-                        listTracks.add(track);
-                    }
+    @TargetApi(Build.VERSION_CODES.M)
+    private void tryStartRecordAudio() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            final int checkAudio = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
+            final int checkStorage = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            if (checkAudio != PackageManager.PERMISSION_GRANTED || checkStorage != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.RECORD_AUDIO)) {
+                    showMessage(getString(R.string.message_no_permissions));
+                } else if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                    showMessage(getString(R.string.message_no_permissions));
+                } else {
+                    requestPermissions(new String[]{
+                                    Manifest.permission.RECORD_AUDIO,
+                                    Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                            REQUEST_CODE_PERMISSIONS);
                 }
+            } else {
+                startRecordAudio();
             }
-            Movie outputMovie = new Movie();
-            if (!listTracks.isEmpty()) {
-                outputMovie.addTrack(new AppendTrack(listTracks.toArray(new Track[listTracks.size()])));
-            }
-            Container container = new DefaultMp4Builder().build(outputMovie);
-            FileChannel fileChannel = new RandomAccessFile(String.format(targetFile), "rw").getChannel();
-            container.writeContainer(fileChannel);
-            fileChannel.close();
-            return true;
-        } catch (IOException e) {
-            Log.e(TAG, "Error merging media files. exception: " + e.getMessage());
-            return false;
+        } else {
+            startRecordAudio();
+        }
+    }
+
+    private void startRecordAudio() {
+        if (isRecording == 0) {
+            // save start recording time
+            String startRecordingTime = TimestampUtils.getDate(Constant.FORMAT_24_HOURS_DAY_SHORT, System.currentTimeMillis(), ProjectSurveyActivity.this);
+            saveAnswerModel.setStartRecordingTime(startRecordingTime);
+
+            String fileName = projectModel.getID() + "_" + startRecordingTime + "_" + saveAnswerModel.getFullName();
+            String mOutputFileName = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + fileName;
+                    /*
+                    isRecording=0: start recording
+                    isRecording=1: recording
+                    isRecording=-1: pause
+                    */
+            mediaRecorder = new PauseResumeAudioRecorder();
+            mediaRecorder.setAudioFile(mOutputFileName);
+            mediaRecorder.startRecording();
+            isRecording = 1;
+        } else if (isRecording == -1) {
+            mediaRecorder.resumeRecording();
         }
     }
 }

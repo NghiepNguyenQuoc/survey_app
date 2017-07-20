@@ -23,7 +23,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 21
         versionCode 1
-        versionName "1.22"
+        versionName "1.23"
     }
     buildTypes {
         release {
@@ -55,5 +55,5 @@ dependencies {
     compile('com.crashlytics.sdk.android:crashlytics:2.5.5@aar') {
         transitive = true;
     }
-    compile "com.googlecode.mp4parser:isoparser:1.0.2"
+    compile 'com.github.republicofgavin:pauseresumeaudiorecorder:1.0'
 }

@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.CardView;
@@ -63,7 +64,6 @@ import java.util.Map;
 public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.ProjectViewHolder> {
     public final static int REQUEST_CODE = 1001;
     private static final String TAG = "ProjectListAdapter";
-    private static final String FILE_NAME = "recording.ax";
     private static final String UPLOAD_PATH = "/Audio_Record_Storage";
     private static final String HOST_IP = "112.213.89.21";
     private static final String USER_NAME = "6saovn";
@@ -76,13 +76,15 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
     int numberOfUpload = 0;
     Runnable runable;
     private Context mContext;
+    private Fragment mainFragment;
     private List<ProjectModel> projectList;
     private QuestionaireSQLiteHelper questionaireSQLiteHelper;
     private RouteSQLiteHelper routeSQLiteHelper;
     private AnswerSQLiteHelper answerSQLiteHelper;
 
-    public ProjectListAdapter(Context mContext, List<ProjectModel> projectList) {
+    public ProjectListAdapter( Context mContext,Fragment fragment, List<ProjectModel> projectList) {
         this.mContext = mContext;
+        this.mainFragment = fragment;
         this.projectList = projectList;
 
         imageLoader = ImageLoader.getInstance();
@@ -169,7 +171,7 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
                     Bundle bundle = new Bundle();
                     bundle.putParcelable(Constant.BUNDLE_QUESTION, project);
                     intent.putExtras(bundle);
-                    ((Activity) mContext).startActivityForResult(intent, REQUEST_CODE);
+                    mainFragment.startActivityForResult(intent, REQUEST_CODE);
                 } else {
                     Utils.showToastLong(mContext, mContext.getString(R.string.message_project_not_ready));
                 }
@@ -415,7 +417,7 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
 
 
     private void uploadAudio(SaveAnswerModel saveAnswerModel, final ICallBack iCallBack) {
-        String srcFileName = saveAnswerModel.getProjectID() + "_" + saveAnswerModel.getStartRecordingTime() + "_" + saveAnswerModel.getFullName() + ".ax";
+        String srcFileName = saveAnswerModel.getProjectID() + "_" + saveAnswerModel.getStartRecordingTime() + "_" + saveAnswerModel.getFullName() + ".wav";
         String desFileName = saveAnswerModel.getProjectID() + "_" + saveAnswerModel.getEndRecordingTime() + "_" + saveAnswerModel.getFullName() + ".ax";
         String outputFile = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + srcFileName;
         FTPClient ftpClient = new FTPClient();
