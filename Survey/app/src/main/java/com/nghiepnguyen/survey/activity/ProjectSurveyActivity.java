@@ -1297,6 +1297,13 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
     }
 
     private void finishSurvey(final boolean isCompeleted) {
+        // stop recording when finish
+        if (isRecording == 1) {
+            isRecording = -1;
+            mediaRecorder.pauseRecording();
+            saveAnswerModel.setEndRecordingTime(TimestampUtils.getDate(Constant.FORMAT_24_HOURS_DAY_SHORT, System.currentTimeMillis(), ProjectSurveyActivity.this));
+        }
+
         /////////////////////////////////////////////////////////////////
         // collect data to send to server
         String patternString = "<R QID=\'%s\' V=\'%s\' T=\'%s\'/>";
