@@ -34,6 +34,7 @@ public class QuestionnaireModel implements Parcelable {
     private int DisplayRandomResponse;
     private int FlagGPS;
     private int FlagQueRecord;
+    private int MaxTime;
     private String Code;
     private String QuestionText;
     private String Caption;
@@ -58,6 +59,7 @@ public class QuestionnaireModel implements Parcelable {
         DisplayRandomResponse = in.readInt();
         FlagGPS = in.readInt();
         FlagQueRecord = in.readInt();
+        MaxTime = in.readInt();
         Code = in.readString();
         QuestionText = in.readString();
         Caption = in.readString();
@@ -84,6 +86,7 @@ public class QuestionnaireModel implements Parcelable {
         dest.writeInt(DisplayRandomResponse);
         dest.writeInt(FlagGPS);
         dest.writeInt(FlagQueRecord);
+        dest.writeInt(MaxTime);
         dest.writeString(Code);
         dest.writeString(QuestionText);
         dest.writeString(Caption);
@@ -231,6 +234,14 @@ public class QuestionnaireModel implements Parcelable {
 
     public void setFlagQueRecord(int flagQueRecord) {
         FlagQueRecord = flagQueRecord;
+    }
+
+    public int getMaxTime() {
+        return MaxTime;
+    }
+
+    public void setMaxTime(int maxTime) {
+        MaxTime = maxTime;
     }
 
     public String getQuestionText() {
