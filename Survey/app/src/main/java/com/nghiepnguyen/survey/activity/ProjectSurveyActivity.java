@@ -310,7 +310,8 @@ public class ProjectSurveyActivity extends BaseActivity implements View.OnClickL
                 tryStartRecordAudio();
             } else {
                 isRecording = -1;
-                mediaRecorder.pauseRecording();
+                if(mediaRecorder != null)
+                    mediaRecorder.pauseRecording();
                 saveAnswerModel.setEndRecordingTime(TimestampUtils.getDate(Constant.FORMAT_24_HOURS_DAY_SHORT, System.currentTimeMillis(), ProjectSurveyActivity.this));
             }
 
