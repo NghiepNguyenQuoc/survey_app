@@ -1,4 +1,4 @@
-package com.nghiepnguyen.survey;
+package com.nghiepnguyen.survey.dialog;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -17,6 +17,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import com.nghiepnguyen.survey.R;
 import com.nghiepnguyen.survey.model.SaveAnswerModel;
 
 /**

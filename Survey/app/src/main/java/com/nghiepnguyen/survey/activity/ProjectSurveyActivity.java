@@ -50,7 +50,7 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.nghiepnguyen.survey.R;
-import com.nghiepnguyen.survey.UserInfoDialog;
+import com.nghiepnguyen.survey.dialog.UserInfoDialog;
 import com.nghiepnguyen.survey.model.AnswerModel;
 import com.nghiepnguyen.survey.model.MemberModel;
 import com.nghiepnguyen.survey.model.ProjectModel;

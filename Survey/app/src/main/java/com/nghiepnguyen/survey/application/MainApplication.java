@@ -3,12 +3,15 @@ package com.nghiepnguyen.survey.application;
 import android.app.Application;
 import android.content.Context;
 
+import com.nghiepnguyen.survey.Interface.NetComponent;
+import com.nghiepnguyen.survey.networking2.NetModule;
+
 /**
- * Created by nghiep on 10/29/15.
+ * Created by Nghiep Nguyen on 10/29/15.
  */
 public class MainApplication extends Application {
     private static MainApplication instance;
-    //private AudioRecorder mAudioRecorder;
+    private NetComponent mNetComponent;
 
     public MainApplication() {
         super();
@@ -23,18 +26,20 @@ public class MainApplication extends Application {
     public void onCreate() {
         super.onCreate();
         Foreground.init(this);
-    }
+        mNetComponent = DaggerNetComponent.builder()
+                // list of modules that are part of this component need to be created here too
+                .netModule(new NetModule())
+                .build();
 
-    /*public void setRecorder(@NonNull AudioRecorder recorder) {
-        mAudioRecorder = recorder;
     }
-
-    public AudioRecorder getRecorder() {
-        return mAudioRecorder;
-    }*/
 
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
     }
+
+    public NetComponent getNetComponent() {
+        return mNetComponent;
+    }
+
 }
