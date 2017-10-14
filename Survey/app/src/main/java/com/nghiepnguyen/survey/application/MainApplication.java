@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 
 import com.nghiepnguyen.survey.Interface.NetComponent;
+import com.nghiepnguyen.survey.networking2.AppModule;
 import com.nghiepnguyen.survey.networking2.NetModule;
 
 /**
@@ -11,7 +12,7 @@ import com.nghiepnguyen.survey.networking2.NetModule;
  */
 public class MainApplication extends Application {
     private static MainApplication instance;
-    private NetComponent mNetComponent;
+    NetComponent mNetComponent;
 
     public MainApplication() {
         super();
@@ -26,11 +27,11 @@ public class MainApplication extends Application {
     public void onCreate() {
         super.onCreate();
         Foreground.init(this);
-        mNetComponent = DaggerNetComponent.builder()
-                // list of modules that are part of this component need to be created here too
-                .netModule(new NetModule())
-                .build();
 
+        mNetComponent = DaggerNetComponent.builder()
+                .appModule(new AppModule(this))
+                .netModule(new NetModule("http://www.6sao.vn/api/admin/"))
+                .build();
     }
 
     @Override
@@ -41,5 +42,4 @@ public class MainApplication extends Application {
     public NetComponent getNetComponent() {
         return mNetComponent;
     }
-
 }

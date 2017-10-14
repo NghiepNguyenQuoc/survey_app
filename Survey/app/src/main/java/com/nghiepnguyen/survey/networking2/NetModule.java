@@ -5,8 +5,6 @@ package com.nghiepnguyen.survey.networking2;
  */
 
 import android.app.Application;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -23,19 +21,18 @@ import retrofit.Retrofit;
 
 @Module
 public class NetModule {
-    private static final String BASE_ENPOINT = "http://www.6sao.vn/api";
 
-    // Dagger will only look for methods annotated with @Provides
-    @Provides
-    @Singleton
-    SharedPreferences providesSharedPreferences(Application application) {
-        return PreferenceManager.getDefaultSharedPreferences(application);
+    String mBaseUrl;
+
+    public NetModule(String mBaseUrl) {
+        this.mBaseUrl = mBaseUrl;
     }
 
+
     @Provides
     @Singleton
-    Cache provideOkHttpCache(Application application) {
-        int cacheSize = 10 * 1024 * 1024; // 10 MiB
+    Cache provideHttpCache(Application application) {
+        int cacheSize = 10 * 1024 * 1024;
         Cache cache = new Cache(application.getCacheDir(), cacheSize);
         return cache;
     }
@@ -59,11 +56,10 @@ public class NetModule {
     @Provides
     @Singleton
     Retrofit provideRetrofit(Gson gson, OkHttpClient okHttpClient) {
-        Retrofit retrofit = new Retrofit.Builder()
+        return new Retrofit.Builder()
                 .addConverterFactory(GsonConverterFactory.create(gson))
-                .baseUrl(BASE_ENPOINT)
+                .baseUrl(mBaseUrl)
                 .client(okHttpClient)
                 .build();
-        return retrofit;
     }
 }
