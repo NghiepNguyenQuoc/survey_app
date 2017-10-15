@@ -3,6 +3,7 @@ package com.nghiepnguyen.survey.application;
 import android.app.Application;
 import android.content.Context;
 
+import com.nghiepnguyen.survey.Interface.DaggerNetComponent;
 import com.nghiepnguyen.survey.Interface.NetComponent;
 import com.nghiepnguyen.survey.networking2.AppModule;
 import com.nghiepnguyen.survey.networking2.NetModule;
@@ -12,7 +13,7 @@ import com.nghiepnguyen.survey.networking2.NetModule;
  */
 public class MainApplication extends Application {
     private static MainApplication instance;
-    NetComponent mNetComponent;
+    private NetComponent mNetComponent;
 
     public MainApplication() {
         super();
@@ -30,7 +31,7 @@ public class MainApplication extends Application {
 
         mNetComponent = DaggerNetComponent.builder()
                 .appModule(new AppModule(this))
-                .netModule(new NetModule("http://www.6sao.vn/api/admin/"))
+                .netModule(new NetModule("http://www.6sao.vn/"))
                 .build();
     }
 
