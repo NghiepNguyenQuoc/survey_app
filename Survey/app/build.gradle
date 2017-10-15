@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'com.neenbedankt.android-apt'
 
 repositories {
     maven { url 'https://maven.fabric.io/public' }
@@ -57,12 +58,18 @@ dependencies {
     }
     compile 'com.github.republicofgavin:pauseresumeaudiorecorder:1.0'
 
-    compile 'com.google.dagger:dagger:2.11'
-    annotationProcessor 'com.google.dagger:dagger-compiler:2.11'
-    annotationProcessor "com.google.dagger:dagger-android-processor:2.11"
-    compile "com.google.dagger:dagger-android-support:2.11"
+    //Dagger
+    apt 'com.google.dagger:dagger-compiler:2.2'
+    compile 'com.google.dagger:dagger:2.2'
     provided 'javax.annotation:jsr250-api:1.0'
-    compile 'com.squareup.okhttp:okhttp:2.4.0'
-    compile 'com.squareup.retrofit2:retrofit:2.1.0'
-    compile 'com.squareup.retrofit:converter-gson:2.0.0-beta2'
+
+    //Retrofit
+    compile 'com.squareup.retrofit2:retrofit:2.0.2'
+
+    //OkHttp
+    compile 'com.squareup.okhttp3:okhttp:3.2.0'
+    compile 'com.squareup.okio:okio:1.7.0'
+
+    //Gson
+    compile 'com.squareup.retrofit2:converter-gson:2.0.1'
 }
