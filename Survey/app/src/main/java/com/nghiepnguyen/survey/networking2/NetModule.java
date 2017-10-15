@@ -9,19 +9,15 @@ import android.app.Application;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.squareup.okhttp.Cache;
-import com.squareup.okhttp.OkHttpClient;
 
 import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
-import retrofit.GsonConverterFactory;
-import retrofit.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 @Module
 public class NetModule {
-
     String mBaseUrl;
 
     public NetModule(String mBaseUrl) {
@@ -31,9 +27,9 @@ public class NetModule {
 
     @Provides
     @Singleton
-    Cache provideHttpCache(Application application) {
+    okhttp3.Cache provideHttpCache(Application application) {
         int cacheSize = 10 * 1024 * 1024;
-        Cache cache = new Cache(application.getCacheDir(), cacheSize);
+        okhttp3.Cache cache = new okhttp3.Cache(application.getCacheDir(), cacheSize);
         return cache;
     }
 
@@ -47,16 +43,16 @@ public class NetModule {
 
     @Provides
     @Singleton
-    OkHttpClient provideOkHttpClient(Cache cache) {
-        OkHttpClient okHttpClient = new OkHttpClient();
-        okHttpClient.setCache(cache);
-        return okHttpClient;
+    okhttp3.OkHttpClient provideOkhttpClient(okhttp3.Cache cache) {
+        okhttp3.OkHttpClient.Builder client = new okhttp3.OkHttpClient.Builder();
+        client.cache(cache);
+        return client.build();
     }
 
     @Provides
     @Singleton
-    Retrofit provideRetrofit(Gson gson, OkHttpClient okHttpClient) {
-        return new Retrofit.Builder()
+    retrofit2.Retrofit provideRetrofit(Gson gson, okhttp3.OkHttpClient okHttpClient) {
+        return new retrofit2.Retrofit.Builder()
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .baseUrl(mBaseUrl)
                 .client(okHttpClient)
