@@ -14,15 +14,10 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.nghiepnguyen.survey.R;
-import com.nghiepnguyen.survey.application.MainApplication;
 import com.nghiepnguyen.survey.fragment.ProjectListFragment;
 import com.nghiepnguyen.survey.model.MemberModel;
 import com.nghiepnguyen.survey.storage.UserInfoManager;
 import com.nghiepnguyen.survey.utils.Constant;
-
-import javax.inject.Inject;
-
-import retrofit2.Retrofit;
 
 public class MainActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -35,14 +30,10 @@ public class MainActivity extends BaseActivity
     //UserInfoModel currentUser;
     MemberModel memberInfo;
 
-    @Inject
-    Retrofit retrofit;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ((MainApplication) getApplication()).getNetComponent().inject(this);
         initView();
         fragment = new ProjectListFragment();
         getSupportFragmentManager().beginTransaction().replace(R.id.content_main, fragment, Constant.PROJECT_LIST).commit();
