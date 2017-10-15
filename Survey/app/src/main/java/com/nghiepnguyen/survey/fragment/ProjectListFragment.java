@@ -13,18 +13,24 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
-import com.nghiepnguyen.survey.Interface.ICallBack;
+import com.nghiepnguyen.survey.Interface.ApiInterface;
 import com.nghiepnguyen.survey.R;
 import com.nghiepnguyen.survey.adapter.ProjectListAdapter;
-import com.nghiepnguyen.survey.model.CommonErrorModel;
+import com.nghiepnguyen.survey.application.MainApplication;
 import com.nghiepnguyen.survey.model.MemberModel;
 import com.nghiepnguyen.survey.model.ProjectModel;
 import com.nghiepnguyen.survey.model.sqlite.ProjectSQLiteHelper;
 import com.nghiepnguyen.survey.model.sqlite.QuestionaireSQLiteHelper;
-import com.nghiepnguyen.survey.networking.SurveyApiWrapper;
 import com.nghiepnguyen.survey.storage.UserInfoManager;
 
 import java.util.List;
+
+import javax.inject.Inject;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
 
 /**
  * Created by nghiep on 10/29/15.
@@ -40,6 +46,9 @@ public class ProjectListFragment extends Fragment {
     private RecyclerView mProjectListListView;
     private ProjectSQLiteHelper projectSQLiteHelper;
     private QuestionaireSQLiteHelper questionaireSQLiteHelper;
+
+    @Inject
+    Retrofit retrofit;
 
     @Override
     public void onAttach(Activity activity) {
@@ -61,6 +70,7 @@ public class ProjectListFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        ((MainApplication) mActivity.getApplication()).getNetComponent().inject(this);
         initView();
         memberInfo = UserInfoManager.getMemberInfo(mActivity);
         projectSQLiteHelper = new ProjectSQLiteHelper(mActivity);
@@ -92,57 +102,42 @@ public class ProjectListFragment extends Fragment {
     }
 
     private void callApiGetProjectList() {
-        SurveyApiWrapper.getProjectList(mActivity, memberInfo.getID(), memberInfo.getSecrectToken(), new ICallBack() {
-            @SuppressWarnings("unchecked")
+        Call<List<ProjectModel>> listCall = retrofit.create(ApiInterface.class).getProjectList(memberInfo.getID(), memberInfo.getSecrectToken());
+        //Enque the call
+        listCall.enqueue(new Callback<List<ProjectModel>>() {
             @Override
-            public void onSuccess(final Object data) {
-                mActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        List<ProjectModel> projectList = (List<ProjectModel>) data;
-                        if (projectList != null && projectList.size() > 0) {
-                            for (ProjectModel item : projectList)
-                                projectSQLiteHelper.addProject(item);
+            public void onResponse(Call<List<ProjectModel>> call, Response<List<ProjectModel>> response) {
+                List<ProjectModel> projectList = response.body();
+                if (projectList != null && projectList.size() > 0) {
+                    for (ProjectModel item : projectList)
+                        projectSQLiteHelper.addProject(item);
 
-                            ProjectListAdapter adapter = new ProjectListAdapter(mActivity, ProjectListFragment.this, projectList);
-                            mProjectListListView.setAdapter(adapter);
-                            loadingProgressBar.setVisibility(View.GONE);
-                        }
-                    }
-                });
-
+                    ProjectListAdapter adapter = new ProjectListAdapter(mActivity, ProjectListFragment.this, projectList);
+                    mProjectListListView.setAdapter(adapter);
+                    loadingProgressBar.setVisibility(View.GONE);
+                }
             }
 
             @Override
-            public void onFailure(CommonErrorModel error) {
-                mActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        List<ProjectModel> projectList = projectSQLiteHelper.getAllProject();
-                        if (projectList.size() > 0) {
-                            ProjectListAdapter adapter = new ProjectListAdapter(mActivity, ProjectListFragment.this, projectList);
-                            mProjectListListView.setAdapter(adapter);
-                        } else {
-                            AlertDialog.Builder dialog = new AlertDialog.Builder(mActivity, R.style.AppCompatAlertDialogStyle);
-                            dialog.setCancelable(false);
-                            dialog.setTitle(getResources().getString(R.string.title_attention));
-                            dialog.setMessage(getResources().getString(R.string.message_can_not_get_project_list));
-                            dialog.setPositiveButton(getResources().getString(R.string.button_ok), new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    mActivity.finish();
-                                }
-                            });
-                            dialog.show();
+            public void onFailure(Call<List<ProjectModel>> call, Throwable t) {
+                List<ProjectModel> projectList = projectSQLiteHelper.getAllProject();
+                if (projectList.size() > 0) {
+                    ProjectListAdapter adapter = new ProjectListAdapter(mActivity, ProjectListFragment.this, projectList);
+                    mProjectListListView.setAdapter(adapter);
+                } else {
+                    AlertDialog.Builder dialog = new AlertDialog.Builder(mActivity, R.style.AppCompatAlertDialogStyle);
+                    dialog.setCancelable(false);
+                    dialog.setTitle(getResources().getString(R.string.title_attention));
+                    dialog.setMessage(getResources().getString(R.string.message_can_not_get_project_list));
+                    dialog.setPositiveButton(getResources().getString(R.string.button_ok), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            mActivity.finish();
                         }
-                        loadingProgressBar.setVisibility(View.GONE);
-                    }
-                });
-            }
-
-            @Override
-            public void onCompleted() {
-
+                    });
+                    dialog.show();
+                }
+                loadingProgressBar.setVisibility(View.GONE);
             }
         });
     }
