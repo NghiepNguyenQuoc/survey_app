@@ -3,14 +3,21 @@ package com.nghiepnguyen.survey.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Created by nghiep on 11/22/15.
  */
 public class ProjectModel implements Parcelable {
+    @SerializedName("ID")
     private int ID;
+    @SerializedName("Name")
     private String Name;
+    @SerializedName("Description")
     private String Description;
+    @SerializedName("Image1")
     private String Image1;
+    @SerializedName("numberResult")
     private int numberResult;
 
 
