@@ -1,5 +1,7 @@
 package com.nghiepnguyen.survey.Interface;
 
+import com.nghiepnguyen.survey.activity.LoginActivity;
+import com.nghiepnguyen.survey.adapter.ProjectListAdapter;
 import com.nghiepnguyen.survey.fragment.ProjectListFragment;
 import com.nghiepnguyen.survey.networking2.AppModule;
 import com.nghiepnguyen.survey.networking2.NetModule;
@@ -15,4 +17,6 @@ import dagger.Component;
 @Component(modules = {AppModule.class, NetModule.class})
 public interface NetComponent {
     void inject(ProjectListFragment projectListFragment);
+    void inject(LoginActivity loginActivity);
+    void inject(ProjectListAdapter projectListAdapter);
 }

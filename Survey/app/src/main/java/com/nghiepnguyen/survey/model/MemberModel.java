@@ -3,41 +3,75 @@ package com.nghiepnguyen.survey.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Created by 08670_000 on 28/02/2016.
  */
 public class MemberModel implements Parcelable {
+    @SerializedName("ID")
     private int ID;
+    @SerializedName("LoginName")
     private String LoginName;
+    @SerializedName("SecrectToken")
     private String SecrectToken;
+    @SerializedName("FirstName")
     private String FirstName;
+    @SerializedName("LastName")
     private String LastName;
+    @SerializedName("Email")
     private String Email;
+    @SerializedName("CMND")
     private String CMND;
+    @SerializedName("Phone")
     private String Phone;
+    @SerializedName("Mobile")
     private String Mobile;
+    @SerializedName("Type")
     private String Type;
+    @SerializedName("TypeName")
     private String TypeName;
+    @SerializedName("ClassName")
     private String ClassName;
+    @SerializedName("Gender")
     private int Gender;
+    @SerializedName("Mark")
     private int Mark;
+    @SerializedName("DateOfBirth")
     private String DateOfBirth;
+    @SerializedName("MaritalStatus")
     private int MaritalStatus;
+    @SerializedName("MaritalStatusName")
     private String MaritalStatusName;
+    @SerializedName("GenderName")
     private String GenderName;
+    @SerializedName("JobID")
     private int JobID;
+    @SerializedName("JobName")
     private String JobName;
+    @SerializedName("Address")
     private String Address;
+    @SerializedName("Street")
     private String Street;
+    @SerializedName("StreetNo")
     private String StreetNo;
+    @SerializedName("Ward")
     private String Ward;
+    @SerializedName("ProvinceName")
     private String ProvinceName;
+    @SerializedName("ProvinceID")
     private int ProvinceID;
+    @SerializedName("EducationID")
     private int EducationID;
+    @SerializedName("EducationName")
     private String EducationName;
+    @SerializedName("UserGroupID")
     private int UserGroupID;
+    @SerializedName("Avatar")
     private String Avatar;
+    @SerializedName("Status")
     private int Status;
+    @SerializedName("StatusName")
     private String StatusName;
 
     protected MemberModel(Parcel in) {

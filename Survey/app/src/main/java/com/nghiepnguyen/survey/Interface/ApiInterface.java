@@ -1,5 +1,6 @@
 package com.nghiepnguyen.survey.Interface;
 
+import com.nghiepnguyen.survey.model.LoginModel;
 import com.nghiepnguyen.survey.model.ProjectModel;
 
 import java.util.List;
@@ -18,7 +19,7 @@ import retrofit2.http.Query;
 public interface ApiInterface {
     @POST("/api/admin/MemberLogin")
     @FormUrlEncoded
-    Call<List<ProjectModel>> postLogin(@Field("userName") String userName, @Field("password") String password);
+    Call<LoginModel> postLogin(@Field("userName") String userName, @Field("password") String password);
 
     @POST("/api/admin2/SaveSurvey")
     @FormUrlEncoded
