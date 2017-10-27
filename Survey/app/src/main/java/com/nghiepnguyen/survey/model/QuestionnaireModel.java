@@ -3,6 +3,8 @@ package com.nghiepnguyen.survey.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Created by 08670_000 on 21/03/2016.
  */
@@ -18,27 +20,49 @@ public class QuestionnaireModel implements Parcelable {
             return new QuestionnaireModel[size];
         }
     };
+    @SerializedName("ID")
     private int ID;
+    @SerializedName("ProjectID")
     private int ProjectID;
+    @SerializedName("QuestionnaireID")
     private int QuestionnaireID;
+    @SerializedName("DependentID")
     private int DependentID;
+    @SerializedName("ParentID")
     private int ParentID;
+    @SerializedName("Type")
     private int Type;
+    @SerializedName("ZOrderQuestion")
     private int ZOrderQuestion;
+    @SerializedName("Value")
     private int Value;
+    @SerializedName("AllowInputText")
     private int AllowInputText;
+    @SerializedName("IsSelected")
     private int IsSelected;
+    @SerializedName("MaxResponseCount")
     private int MaxResponseCount;
+    @SerializedName("Exclusion")
     private int Exclusion;
+    @SerializedName("DependentType")
     private int DependentType;
+    @SerializedName("DisplayRandomResponse")
     private int DisplayRandomResponse;
+    @SerializedName("FlagGPS")
     private int FlagGPS;
+    @SerializedName("FlagQueRecord")
     private int FlagQueRecord;
+    @SerializedName("Code")
     private String Code;
+    @SerializedName("QuestionText")
     private String QuestionText;
+    @SerializedName("Caption")
     private String Caption;
+    @SerializedName("Description")
     private String Description;
+    @SerializedName("ZOrderOption")
     private String ZOrderOption;
+    @SerializedName("otherOption")
     private String otherOption;
 
     public QuestionnaireModel(Parcel in) {
