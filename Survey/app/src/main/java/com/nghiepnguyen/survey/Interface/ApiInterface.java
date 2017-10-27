@@ -2,6 +2,8 @@ package com.nghiepnguyen.survey.Interface;
 
 import com.nghiepnguyen.survey.model.LoginModel;
 import com.nghiepnguyen.survey.model.ProjectModel;
+import com.nghiepnguyen.survey.model.QuestionnaireModel;
+import com.nghiepnguyen.survey.model.RouteModel;
 
 import java.util.List;
 
@@ -33,8 +35,8 @@ public interface ApiInterface {
     Call<List<ProjectModel>> getProjectList(@Query("UserId") int UserId, @Query("SecrectToken") String SecrectToken);
 
     @GET("/api/admin/getquestionarelist")
-    Call<List<ProjectModel>> getProjectData(@Query("projectID") int projectID);
+    Call<List<QuestionnaireModel>> getProjectData(@Query("projectID") int projectID);
 
     @GET("/api/admin/GetQuestionareConditionList")
-    Call<List<ProjectModel>> getProjectRoute(@Query("ProjectIDCondition") int ProjectIDCondition);
+    Call<List<RouteModel>> getProjectRoute(@Query("ProjectIDCondition") int ProjectIDCondition);
 }
