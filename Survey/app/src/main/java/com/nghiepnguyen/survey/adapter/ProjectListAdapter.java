@@ -24,6 +24,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.nghiepnguyen.survey.Interface.ApiInterface;
 import com.nghiepnguyen.survey.Interface.ICallBack;
 import com.nghiepnguyen.survey.R;
 import com.nghiepnguyen.survey.activity.ProjectSurveyActivity;
@@ -58,6 +59,13 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+
 /**
  * Created by nghiep on 11/22/15.
  */
@@ -82,6 +90,8 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
     private RouteSQLiteHelper routeSQLiteHelper;
     private AnswerSQLiteHelper answerSQLiteHelper;
 
+    @Inject
+    Retrofit retrofit;
     public ProjectListAdapter( Context mContext,Fragment fragment, List<ProjectModel> projectList) {
         this.mContext = mContext;
         this.mainFragment = fragment;
@@ -216,94 +226,64 @@ public class ProjectListAdapter extends RecyclerView.Adapter<ProjectListAdapter.
     }
 
     private void downloadProjectData(final ProjectModel project, final View loadingView, final CardView itemView) {
-        SurveyApiWrapper.downloadProjectData(mContext, project.getID(), new ICallBack() {
+        Call<List<QuestionnaireModel>> listCall=retrofit.create(ApiInterface.class).getProjectData(project.getID());
+        listCall.enqueue(new Callback<List<QuestionnaireModel>>() {
             @Override
-            public void onSuccess(final Object data) {
-                ((Activity) mContext).runOnUiThread(new Runnable() {
-                    @SuppressWarnings("unchecked")
-                    @Override
-                    public void run() {
-                        List<QuestionnaireModel> allDataOfProject = (List<QuestionnaireModel>) data;
-                        if (allDataOfProject != null && allDataOfProject.size() > 0) {
-                            if (questionaireSQLiteHelper.getCountQuestionnaireByProjectId(project.getID()) == 0)
-                                for (QuestionnaireModel item : allDataOfProject) {
-                                    questionaireSQLiteHelper.addQuestionnaire(item, project.getID());
-                                }
+            public void onResponse(Call<List<QuestionnaireModel>> call, Response<List<QuestionnaireModel>> response) {
+                List<QuestionnaireModel> allDataOfProject = response.body();
+                if (allDataOfProject != null && allDataOfProject.size() > 0) {
+                    if (questionaireSQLiteHelper.getCountQuestionnaireByProjectId(project.getID()) == 0)
+                        for (QuestionnaireModel item : allDataOfProject) {
+                            questionaireSQLiteHelper.addQuestionnaire(item, project.getID());
                         }
+                }
 
-                        // download project route
-                        downloadProjectRoute(project, loadingView, itemView);
-                    }
-                });
+                // download project route
+                downloadProjectRoute(project, loadingView, itemView);
             }
 
             @Override
-            public void onFailure(CommonErrorModel error) {
-                ((Activity) mContext).runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        AlertDialog.Builder dialog = new AlertDialog.Builder(mContext, R.style.AppCompatAlertDialogStyle);
-                        dialog.setCancelable(false);
-                        dialog.setTitle(mContext.getString(R.string.title_attention));
-                        dialog.setMessage(mContext.getString(R.string.message_can_not_get_questionnaire_list));
-                        dialog.setPositiveButton(mContext.getString(R.string.button_ok), null);
-                        dialog.show();
+            public void onFailure(Call<List<QuestionnaireModel>> call, Throwable t) {
+                AlertDialog.Builder dialog = new AlertDialog.Builder(mContext, R.style.AppCompatAlertDialogStyle);
+                dialog.setCancelable(false);
+                dialog.setTitle(mContext.getString(R.string.title_attention));
+                dialog.setMessage(mContext.getString(R.string.message_can_not_get_questionnaire_list));
+                dialog.setPositiveButton(mContext.getString(R.string.button_ok), null);
+                dialog.show();
 
-                        loadingView.setVisibility(View.GONE);
-                    }
-                });
-            }
-
-            @Override
-            public void onCompleted() {
-
+                loadingView.setVisibility(View.GONE);
             }
         });
     }
 
     private void downloadProjectRoute(final ProjectModel project, final View loadingView, final CardView itemView) {
-        SurveyApiWrapper.downloadProjectRoute(mContext, project.getID(), new ICallBack() {
+        Call<List<RouteModel>> listCall=retrofit.create(ApiInterface.class).getProjectRoute(project.getID());
+        listCall.enqueue(new Callback<List<RouteModel>>() {
             @Override
-            public void onSuccess(final Object data) {
-                ((Activity) mContext).runOnUiThread(new Runnable() {
-                    @SuppressWarnings("unchecked")
-                    @Override
-                    public void run() {
-                        List<RouteModel> routeModels = (List<RouteModel>) data;
-                        if (routeModels != null && routeModels.size() > 0) {
-                            if (routeSQLiteHelper.countRouteByProjectId(project.getID()) == 0)
-                                for (RouteModel item : routeModels)
-                                    routeSQLiteHelper.addQuestionnaire(item, project.getID());
+            public void onResponse(Call<List<RouteModel>> call, Response<List<RouteModel>> response) {
+                List<RouteModel> routeModels = response.body();
+                if (routeModels != null && routeModels.size() > 0) {
+                    if (routeSQLiteHelper.countRouteByProjectId(project.getID()) == 0)
+                        for (RouteModel item : routeModels)
+                            routeSQLiteHelper.addQuestionnaire(item, project.getID());
 
-                        }
+                }
 
-                        loadingView.setVisibility(View.GONE);
-                        itemView.setCardBackgroundColor(ContextCompat.getColor(mContext, R.color.cl_default_trans));
-                        Utils.showToastLong(mContext, String.format(mContext.getString(R.string.message_download_compeleted), project.getName()));
-                    }
-                });
+                loadingView.setVisibility(View.GONE);
+                itemView.setCardBackgroundColor(ContextCompat.getColor(mContext, R.color.cl_default_trans));
+                Utils.showToastLong(mContext, String.format(mContext.getString(R.string.message_download_compeleted), project.getName()));
             }
 
             @Override
-            public void onFailure(CommonErrorModel error) {
-                ((Activity) mContext).runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        AlertDialog.Builder dialog = new AlertDialog.Builder(mContext, R.style.AppCompatAlertDialogStyle);
-                        dialog.setCancelable(false);
-                        dialog.setTitle(mContext.getString(R.string.title_attention));
-                        dialog.setMessage(mContext.getString(R.string.message_can_not_get_route_list));
-                        dialog.setPositiveButton(mContext.getString(R.string.button_ok), null);
-                        dialog.show();
+            public void onFailure(Call<List<RouteModel>> call, Throwable t) {
+                AlertDialog.Builder dialog = new AlertDialog.Builder(mContext, R.style.AppCompatAlertDialogStyle);
+                dialog.setCancelable(false);
+                dialog.setTitle(mContext.getString(R.string.title_attention));
+                dialog.setMessage(mContext.getString(R.string.message_can_not_get_route_list));
+                dialog.setPositiveButton(mContext.getString(R.string.button_ok), null);
+                dialog.show();
 
-                        loadingView.setVisibility(View.GONE);
-                    }
-                });
-            }
-
-            @Override
-            public void onCompleted() {
-
+                loadingView.setVisibility(View.GONE);
             }
         });
     }
